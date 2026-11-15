@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network Security Configuration — Thinkable Vault
+  Production: All traffic must be HTTPS (enforced by default).
+  Dev/LAN fallback: cleartext HTTP is permitted ONLY to 192.168.x.x and 10.x.x.x ranges,
+  so the developer Wi-Fi preview server works without disabling security globally.
+  When you deploy to a real HTTPS domain, remove the domain-config blocks below.
+-->
+<network-security-config>
+    <!-- Global default: enforce HTTPS everywhere -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- DEV ONLY: allow cleartext to local LAN IP ranges used by the preview server -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">192.168.9.175</domain>
+        <domain includeSubdomains="false">192.168.6.12</domain>
+        <domain includeSubdomains="false">192.168.6.49</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

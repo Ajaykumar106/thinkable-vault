@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: thinkable-vault
+    env: node
+    plan: free
+    buildCommand: ""
+    startCommand: node server.cjs
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NEON_CONNECTION_STRING
+        sync: false
+      - key: NEON_ENDPOINT
+        sync: false

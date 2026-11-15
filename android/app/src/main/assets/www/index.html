@@ -1,0 +1,4082 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<title>Agreement Vault — Two-Party Contracts & Mutual Endorsements</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<!-- html2pdf for direct 1-click A4 PDF download -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+/* ─── Clean Fintech Design System (Light & Dark Only) ─── */
+:root, [data-theme="light"] {
+  --bg: #f8fafc;
+  --paper: #ffffff;
+  --paper-translucent: rgba(255, 255, 255, 0.92);
+  --tx: #0f172a;
+  --tx-muted: #475569;
+  --tx-faint: #94a3b8;
+  --border: #e2e8f0;
+  --border-strong: #0f172a;
+  --pill: #f1f5f9;
+  --radius: 10px;
+  --shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+  
+  --brand: #4f46e5;
+  --brand-grad: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  --brand-text: #ffffff;
+  
+  --ok: #059669;
+  --ok-bg: #ecfdf5;
+  --ok-border: #a7f3d0;
+  --ok-grad: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  
+  --warn: #d97706;
+  --warn-bg: #fffbeb;
+  --warn-border: #fde68a;
+  
+  --err: #e11d48;
+  --err-bg: #fff1f2;
+  --err-border: #fecdd3;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #000000;
+  --paper: #09090b;
+  --paper-translucent: rgba(9, 9, 11, 0.94);
+  --tx: #f8fafc;
+  --tx-muted: #a1a1aa;
+  --tx-faint: #71717a;
+  --border: #222226;
+  --border-strong: #3f3f46;
+  --pill: #141417;
+  --radius: 10px;
+  --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.85);
+  
+  --brand: #6366f1;
+  --brand-grad: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+  --brand-text: #ffffff;
+  
+  --ok: #10b981;
+  --ok-bg: #042416;
+  --ok-border: #0a4f32;
+  --ok-grad: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  
+  --warn: #f59e0b;
+  --warn-bg: #291802;
+  --warn-border: #5a3605;
+  
+  --err: #f43f5e;
+  --err-bg: #27060e;
+  --err-border: #5c1020;
+  color-scheme: dark;
+}
+
+[data-theme="dark"] body { background: #000000; }
+[data-theme="dark"] .app-header { background: #000000; border-bottom-color: #1e1e24; }
+[data-theme="dark"] .paper-document {
+  background: #09090b;
+  border-color: #222226;
+  color: #f1f5f9;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.85);
+}
+[data-theme="dark"] .doc-header { border-bottom-color: #222226; }
+[data-theme="dark"] .doc-header h1 { color: #ffffff; }
+[data-theme="dark"] .doc-clause { color: #d4d4d8; }
+[data-theme="dark"] .doc-clause b { color: #ffffff; }
+[data-theme="dark"] .sig-cell { background: #000000; border-color: #27272a; }
+[data-theme="dark"] .sig-cell.verified { background: #042416; border-color: #10b981; }
+[data-theme="dark"] canvas.pad-canvas { background: #0c0c0e; border-color: #3f3f46; }
+[data-theme="dark"] .doc-ledger-title { color: #ffffff; }
+[data-theme="dark"] .doc-ledger th { border-bottom-color: #27272a; color: #a1a1aa; }
+[data-theme="dark"] .doc-ledger td { border-bottom-color: #18181b; color: #e4e4e7; }
+[data-theme="dark"] .settlement-seal { background: #042416; border-color: #10b981; color: #34d399; }
+[data-theme="dark"] .settlement-seal h3 { color: #10b981; }
+[data-theme="dark"] .settlement-seal p { color: #a7f3d0; }
+[data-theme="dark"] .modal-card { background: #09090b; border-color: #222226; }
+[data-theme="dark"] .template-card { background: #000000; border-color: #222226; }
+[data-theme="dark"] .milestone-item { background: #000000; border-color: #222226; }
+[data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
+  background: #000000;
+  border-color: #222226;
+  color: #f8fafc;
+}
+[data-theme="dark"] input:focus, [data-theme="dark"] select:focus, [data-theme="dark"] textarea:focus {
+  border-color: var(--brand);
+}
+[data-theme="dark"] .role-banner { background: #09090b; }
+
+/* ─── Smooth Animations & Micro-Interactions ─── */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseBorder {
+  0% { border-color: var(--brand); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+  70% { border-color: #3b82f6; box-shadow: 0 0 0 8px rgba(79, 70, 229, 0); }
+  100% { border-color: var(--brand); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+}
+
+.anim-fade {
+  animation: slideUpFade 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Incoming Request Card with Attention Animation */
+.incoming-req-box {
+  background: var(--paper);
+  border: 2px solid var(--brand);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.12);
+  animation: slideUpFade 0.3s ease-out, pulseBorder 3s infinite;
+}
+
+/* Vault ID Pill (Tap to Copy) */
+.vault-id-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1.5px solid var(--border);
+  background: var(--pill);
+  color: var(--brand);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.vault-id-pill:hover {
+  border-color: var(--brand);
+  background: var(--paper);
+  transform: translateY(-1px);
+}
+.vault-id-pill:active {
+  transform: scale(0.96);
+}
+.mobile-nav-bar {
+  display: none;
+}
+
+/* Mobile-First Layout Rules & Proportions */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 10px 10px 115px;
+  }
+  .app-header {
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+  .header-actions {
+    gap: 5px;
+  }
+  .header-actions button, .header-actions .vault-id-pill {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .kpi-card {
+    padding: 9px 10px;
+    border-radius: 10px;
+  }
+  .kpi-label {
+    font-size: 10px;
+  }
+  .kpi-val {
+    font-size: 17px;
+  }
+  .card {
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+  }
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .tab-pills {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .tab-pills::-webkit-scrollbar {
+    display: none;
+  }
+  .search-input {
+    max-width: 100% !important;
+    width: 100%;
+    min-height: 40px;
+  }
+  button {
+    min-height: 42px;
+  }
+  button.btn-sm {
+    min-height: 34px;
+  }
+  input, select, textarea {
+    font-size: 16px !important;
+    min-height: 42px;
+  }
+  .mobile-nav-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: var(--paper-translucent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    z-index: 1000;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 4px env(safe-area-inset-bottom);
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.05);
+  }
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    background: transparent;
+    border: none;
+    color: var(--tx-muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 4px 8px;
+    cursor: pointer;
+    flex: 1;
+    min-height: 48px;
+    border-radius: 6px;
+  }
+  .mobile-nav-item.active, .mobile-nav-item:active {
+    color: var(--brand);
+    transform: scale(0.96);
+  }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0; min-height: 100%;
+  background: var(--bg); color: var(--tx);
+  font: 14.5px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  letter-spacing: -0.01em;
+  transition: background .2s ease, color .2s ease;
+}
+
+.app-container {
+  max-width: 880px; margin: 0 auto;
+  padding: 16px 16px 80px;
+}
+
+/* ── Top Header ── */
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 14px; border-bottom: 1px solid var(--border);
+  margin-bottom: 18px; gap: 8px; flex-wrap: wrap;
+}
+.brand {
+  font-weight: 800; font-size: 16px; letter-spacing: -0.02em;
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+  user-select: none;
+}
+.brand-icon {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: var(--brand-grad);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px; font-weight: 900;
+}
+.header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ── Live Status Pill ── */
+.live-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 3px 9px; border-radius: 99px;
+  border: 1px solid var(--border); background: var(--paper);
+}
+.live-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--tx-faint); display: inline-block;
+}
+.live-dot.active {
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.28);
+  animation: pulseLive 2s infinite ease-in-out;
+}
+@keyframes pulseLive {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+/* ── Role Banner (Testing Dual Sides) ── */
+.role-banner {
+  background: var(--paper); border: 1.5px solid var(--brand);
+  border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  flex-wrap: wrap; box-shadow: var(--shadow);
+}
+.role-banner-text { font-size: 13px; }
+.role-banner-text b { color: var(--brand); }
+
+/* ── Cards & UI Blocks ── */
+.card {
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px; margin-bottom: 14px;
+  box-shadow: var(--shadow);
+}
+.card.clickable {
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: border-color .15s, transform .15s;
+}
+.card.clickable:hover {
+  border-color: var(--brand); transform: translateY(-1px);
+}
+
+/* ── Modern Fintech Agreement Cards ── */
+.contract-card {
+  padding: 16px 18px;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  background: var(--paper);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+.contract-card:active {
+  transform: scale(0.985);
+}
+.contract-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.contract-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.contract-badges .badge {
+  font-size: 10px;
+  padding: 2.5px 8px;
+  letter-spacing: 0.04em;
+}
+.contract-badges .role-tag {
+  background: var(--pill);
+  color: var(--tx-muted);
+  border-color: var(--border);
+}
+.contract-status-pill {
+  font-size: 10.5px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 58%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.contract-card-body {
+  margin-bottom: 12px;
+}
+.contract-parties-row {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--tx);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  line-height: 1.35;
+}
+.contract-parties-row .party-name {
+  color: var(--tx);
+  word-break: break-word;
+}
+.contract-parties-row .party-arrow {
+  color: var(--brand);
+  font-size: 16px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.contract-title {
+  font-size: 15.5px;
+  font-weight: 800;
+  color: var(--tx);
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+  word-break: break-word;
+}
+.contract-meta {
+  font-size: 12.5px;
+  color: var(--tx-muted);
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  line-height: 1.4;
+}
+.contract-meta .meta-dot, .contract-meta .meta-sep {
+  color: var(--tx-faint);
+  font-weight: bold;
+}
+.contract-meta .role-sub {
+  font-weight: normal;
+  color: var(--tx-faint);
+  font-size: 11px;
+}
+.contract-meta .tx-highlight {
+  color: var(--tx);
+  font-weight: 700;
+}
+.contract-card-footer {
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+.contract-card-footer .tx-main {
+  color: var(--tx);
+}
+.pct-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--tx-muted);
+}
+.pct-pill.complete {
+  color: var(--ok);
+}
+
+/* ── KPI Grid ── */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin-bottom: 16px;
+}
+@media (max-width: 768px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 420px) { .kpi-grid { grid-template-columns: 1fr; } }
+
+.kpi-card {
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px 14px;
+}
+.kpi-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--tx-muted); margin-bottom: 4px; }
+.kpi-val { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+.kpi-sub { font-size: 11.5px; color: var(--tx-faint); margin-top: 3px; }
+
+/* ── Filter Tabs & Search ── */
+.filter-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.tab-pills { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.tab-btn {
+  padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 99px;
+  border: 1px solid var(--border); background: var(--paper); color: var(--tx-muted);
+  cursor: pointer; white-space: nowrap; transition: all .15s;
+}
+.tab-btn.active {
+  background: var(--brand-grad); color: var(--brand-text); border-color: transparent;
+}
+.search-input {
+  max-width: 220px; padding: 7px 12px; font-size: 13px;
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--tx);
+}
+@media (max-width: 600px) { .search-input { max-width: 100%; width: 100%; } }
+
+/* ── Badges ── */
+.badge {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 3px 9px; border-radius: 99px; border: 1px solid var(--border);
+  background: var(--pill); color: var(--tx); white-space: nowrap;
+}
+.badge.filled { background: var(--brand-grad); color: var(--brand-text); border-color: transparent; }
+.badge.warn { background: var(--warn-bg); color: var(--warn); border-color: var(--warn-border); }
+.badge.ok { background: var(--ok-bg); color: var(--ok); border-color: var(--ok-border); }
+.badge.err { background: var(--err-bg); color: var(--err); border-color: var(--err-border); }
+
+/* ── Buttons ── */
+button {
+  font: inherit; font-size: 13.5px; font-weight: 600;
+  padding: 9px 15px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--paper); color: var(--tx); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all .14s;
+}
+button:hover { border-color: var(--brand); }
+button:active { transform: scale(0.98); }
+button.btn-primary {
+  background: var(--brand-grad); color: var(--brand-text); border-color: transparent;
+  box-shadow: 0 3px 12px rgba(79, 70, 229, 0.28);
+}
+button.btn-primary:hover { opacity: 0.92; }
+button.btn-success {
+  background: var(--ok-grad); color: #fff; border-color: transparent;
+  box-shadow: 0 3px 12px rgba(16, 185, 129, 0.28);
+}
+button.btn-whatsapp {
+  background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+  color: #fff; border-color: transparent;
+}
+button.btn-sm { padding: 5px 11px; font-size: 12px; border-radius: 6px; }
+button.full { width: 100%; }
+button.btn-danger { color: var(--err); border-color: var(--err-border); background: var(--err-bg); }
+
+/* ── Form Inputs ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+label {
+  display: block; font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--tx-muted); margin: 12px 0 4px;
+}
+input, select, textarea {
+  width: 100%; padding: 9px 12px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--tx); font: inherit; font-size: 14px;
+  outline: none; transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--brand);
+}
+textarea { min-height: 75px; resize: vertical; }
+
+/* ── Progress Bar ── */
+.bar-track { height: 6px; border-radius: 99px; background: var(--border); overflow: hidden; margin: 10px 0 6px; }
+.bar-fill {
+  height: 100%; border-radius: 99px; transition: width .3s ease;
+  background: linear-gradient(90deg, #6366f1 0%, #3b82f6 100%);
+}
+.bar-fill.complete { background: var(--ok-grad); }
+
+/* ── Authentic Editorial Document View (A4 Printable) ── */
+.paper-document {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius);
+  padding: 38px 34px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  font-family: Georgia, Cambria, "Times New Roman", serif;
+  line-height: 1.8;
+  color: #0f172a;
+  position: relative;
+}
+@media (max-width: 600px) {
+  .paper-document { padding: 22px 16px; border-radius: 8px; }
+}
+
+.doc-stamp {
+  border: 1.5px solid var(--brand);
+  color: var(--brand);
+  background: rgba(79, 70, 229, 0.04);
+  display: inline-block;
+  padding: 4px 10px;
+  font-family: -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  border-radius: 4px;
+}
+
+.doc-header { text-align: center; margin-bottom: 24px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; }
+.doc-header h1 { font-family: inherit; font-size: 21px; margin: 0 0 4px; letter-spacing: 0.05em; font-weight: 700; text-transform: uppercase; color: #0f172a; }
+.doc-header .doc-id { font-family: -apple-system, sans-serif; font-size: 11px; color: #64748b; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.doc-clause { margin-bottom: 16px; font-size: 14.5px; text-align: justify; color: #1e293b; }
+.doc-clause b { font-family: inherit; color: #0f172a; }
+.doc-clause-num { font-weight: bold; margin-right: 4px; color: #4338ca; }
+
+/* ── Signature Blocks ── */
+.sig-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 28px;
+  padding-top: 20px; border-top: 1px solid #e2e8f0;
+  font-family: -apple-system, sans-serif;
+}
+@media (max-width: 600px) { .sig-grid { grid-template-columns: 1fr; } }
+
+.sig-cell {
+  border: 1px dashed var(--border); border-radius: 8px;
+  padding: 14px; background: #f8fafc;
+}
+.sig-cell.verified {
+  border: 1.5px solid #10b981; background: #f0fdf4;
+}
+.sig-cell img { max-height: 60px; max-width: 100%; display: block; border-radius: 4px; background: #fff; border: 1px solid #cbd5e1; }
+canvas.pad-canvas {
+  width: 100%; height: 95px; border: 1px solid #cbd5e1;
+  border-radius: 6px; background: #fff; touch-action: none; display: block;
+}
+
+/* ── Tamper-Proof Audit Certificate ── */
+.audit-seal {
+  margin-top: 26px; padding: 14px 16px; border: 1px solid #334155;
+  border-radius: 8px; font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px; line-height: 1.6; background: #0f172a; color: #f8fafc;
+}
+.audit-seal-title { font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; color: #38bdf8; }
+
+/* ── Green Settlement / IP Release Certificate Seal ── */
+.settlement-seal {
+  margin-top: 26px; padding: 18px 20px; border: 2px solid #059669;
+  border-radius: 8px; background: #ecfdf5; color: #065f46;
+  text-align: center; font-family: Georgia, serif;
+}
+.settlement-seal h3 { margin: 0 0 6px; font-size: 17px; text-transform: uppercase; letter-spacing: 0.06em; color: #047857; }
+.settlement-seal p { margin: 0; font-size: 13.5px; line-height: 1.6; color: #065f46; }
+
+/* ── Ledger / Milestone Table in Document ── */
+.doc-ledger {
+  margin-top: 24px; border-top: 1px solid #e2e8f0; padding-top: 16px;
+  font-family: -apple-system, sans-serif; font-size: 12.5px;
+}
+.doc-ledger-title {
+  font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; color: #0f172a;
+}
+.doc-ledger table { width: 100%; border-collapse: collapse; text-align: left; }
+.doc-ledger th { border-bottom: 1.5px solid #cbd5e1; padding: 6px 8px; font-size: 11px; text-transform: uppercase; color: #64748b; }
+.doc-ledger td { border-bottom: 1px solid #f1f5f9; padding: 8px; color: #1e293b; }
+
+/* ── Sticky Action Bar ── */
+.action-dock {
+  position: sticky; bottom: 12px; z-index: 100;
+  background: var(--paper-translucent);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12); flex-wrap: wrap;
+}
+
+/* ── Real-Time Toast Notification ── */
+.vault-toast {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-40px);
+  background: var(--brand-grad); color: #ffffff;
+  padding: 10px 22px; border-radius: 99px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.35); z-index: 9999;
+  opacity: 0; pointer-events: none; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.vault-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1; pointer-events: auto;
+}
+
+/* ── Modals (Universal Scrollable Layout for Desktop & Mobile) ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(5px);
+  display: flex; justify-content: center; align-items: flex-start; z-index: 1000;
+  padding: 32px 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-card {
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: var(--radius); width: 100%; max-width: 480px; padding: 22px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+  margin-top: auto;
+  margin-bottom: auto;
+  position: relative;
+  box-sizing: border-box;
+}
+@media (max-height: 750px) {
+  .modal-overlay { padding: 16px 12px; }
+  .modal-card { margin-top: 10px; margin-bottom: 24px; }
+}
+@media (max-width: 480px) {
+  .modal-overlay { padding: 12px 10px; }
+  .modal-card { padding: 18px 14px; margin-top: 8px; margin-bottom: 20px; border-radius: 14px; }
+}
+
+.template-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0;
+}
+@media (max-width: 500px) { .template-grid { grid-template-columns: 1fr; } }
+.template-card {
+  border: 1.5px solid var(--border); border-radius: 10px; padding: 16px;
+  background: var(--bg); cursor: pointer; transition: all .15s;
+}
+.template-card:hover {
+  border-color: var(--brand); transform: translateY(-2px);
+}
+.template-icon { font-size: 26px; margin-bottom: 8px; }
+.template-title { font-weight: 800; font-size: 14.5px; margin-bottom: 4px; }
+.template-desc { font-size: 12px; color: var(--tx-muted); line-height: 1.5; }
+
+.milestone-item {
+  border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+  background: var(--bg); margin-bottom: 10px; position: relative;
+}
+
+.flex { display: flex; align-items: center; gap: 8px; }
+.space { justify-content: space-between; }
+.sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.muted { color: var(--tx-muted); font-size: 13px; }
+.text-green { color: var(--ok); font-weight: 700; }
+
+/* ── Print Styles ── */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .app-header, .action-dock, .role-banner, .no-print, button, .card:not(.paper-document), .modal-overlay, .vault-toast { display: none !important; }
+  .app-container { max-width: 100% !important; padding: 0 !important; }
+  .paper-document {
+    border: none !important; box-shadow: none !important; padding: 0 !important;
+    width: 100% !important;
+  }
+  @page { size: A4 portrait; margin: 15mm 20mm; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <header class="app-header">
+    <div class="brand" id="goHome">
+      <div class="brand-icon">AV</div>
+      <span>AGREEMENT VAULT</span>
+    </div>
+    <div class="header-actions">
+      <div class="vault-id-pill" id="hdrVaultIdPill" style="display:none" title="Tap to copy your personal Vault ID">
+        <span>🆔</span> <b id="hdrVaultId">VID-XXXXX</b>
+      </div>
+      <div class="live-pill" id="livePill" title="Server-Sent Events Connection">
+        <span class="live-dot" id="liveDot"></span>
+        <span id="liveText">LIVE</span>
+      </div>
+      <button class="btn-sm" id="btnToggleTheme">🌙 Dark</button>
+      <button class="btn-sm" id="btnUserModal">👤 <span id="hdrUserLabel">User</span></button>
+      <button class="btn-sm btn-primary" id="btnOpenNew">+ New</button>
+    </div>
+  </header>
+
+  <main id="appSlot"></main>
+</div>
+
+<!-- Real-time Toast -->
+<div id="vaultToast" class="vault-toast"></div>
+
+<!-- Mobile Bottom Navigation Dock (Thumb Reach) -->
+<nav class="mobile-nav-bar" id="mobileNavBar" style="display:none">
+  <button class="mobile-nav-item active" id="mNavHome">
+    <span style="font-size:17px">📁</span>
+    <span>Portfolio</span>
+  </button>
+  <button class="mobile-nav-item" id="mNavNew">
+    <span style="font-size:17px">➕</span>
+    <span>New Contract</span>
+  </button>
+  <button class="mobile-nav-item" id="mNavId">
+    <span style="font-size:17px">🆔</span>
+    <span>My Vault ID</span>
+  </button>
+  <button class="mobile-nav-item" id="mNavProfile">
+    <span style="font-size:17px">👤</span>
+    <span>Account</span>
+  </button>
+</nav>
+
+<!-- Template Picker Modal -->
+<div id="templateModal" class="modal-overlay" style="display:none">
+  <div class="modal-card anim-fade">
+    <div class="flex space" style="margin-bottom:12px">
+      <div style="font-weight:800;font-size:16px">Draft New Instrument</div>
+      <button class="btn-sm" id="btnCloseTemplateModal">✕</button>
+    </div>
+    <div class="muted" style="margin-bottom:14px">
+      Choose agreement type. Request your counterparty by Vault ID or Email for direct mutual endorsement.
+    </div>
+
+    <div class="template-grid">
+      <div class="template-card" id="pickTemplateWork">
+        <div class="template-icon">💼</div>
+        <div class="template-title">Working Agreement &amp; SOW</div>
+        <div class="template-desc">Client ⇄ Contractor scope of work, milestone deliverables, client approval sign-offs, and full IP transfer.</div>
+      </div>
+      <div class="template-card" id="pickTemplateLoan">
+        <div class="template-icon">🤝</div>
+        <div class="template-title">Mutual Loan Agreement</div>
+        <div class="template-desc">Lender ⇄ Borrower promissory note, principal, interest rate, repayment endorsements, and debt discharge.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Account / Profile Modal -->
+<div id="userModal" class="modal-overlay" style="display:none">
+  <div class="modal-card anim-fade">
+    <div class="flex space" style="margin-bottom:14px">
+      <div style="font-weight:800;font-size:16px">Account &amp; Security</div>
+      <button class="btn-sm" id="btnCloseUserModal">✕</button>
+    </div>
+
+    <div id="userModalProfileContent">
+      <div class="flex" style="gap:14px;margin-bottom:16px">
+        <div id="profileAvatar" style="width:48px;height:48px;border-radius:50%;background:var(--brand-grad);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px">
+          U
+        </div>
+        <div>
+          <div id="profileFullName" style="font-weight:800;font-size:16px">User Name</div>
+          <div id="profileHandle" class="muted" style="font-size:13px">user@email.com</div>
+          <div style="margin-top:4px">
+            <span class="badge ok" style="font-size:10px;padding:2px 7px">🛡️ KYC Verified Tier 1</span>
+            <span class="badge filled" style="font-size:10px;padding:2px 7px">Trust Score: 99</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vault ID Copy Card -->
+      <div style="background:var(--pill);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px">
+        <div class="flex space">
+          <div>
+            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--tx-muted);letter-spacing:0.06em">Your Unique Vault ID</div>
+            <div id="profileVaultId" style="font-size:18px;font-weight:900;color:var(--brand);letter-spacing:0.04em">VID-XXXXX</div>
+          </div>
+          <button class="btn-sm btn-primary" id="btnCopyProfileVaultId">📋 Copy ID</button>
+        </div>
+        <div class="muted" style="font-size:11.5px;margin-top:6px">
+          Share this ID with other parties so they can send you direct digital contracts.
+        </div>
+      </div>
+
+      <!-- Personal UPI VPA & Real QR Scanner Settings -->
+      <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+        <label style="margin-top:0;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--tx-muted);letter-spacing:0.06em">
+          Payment Receiving Settings (Lender / Payee)
+        </label>
+        <div class="muted" style="font-size:11.5px;margin-bottom:10px">
+          Set your UPI ID and upload your real PhonePe, Google Pay, or Paytm scanner QR code so borrowers can scan &amp; pay you directly.
+        </div>
+
+        <label style="font-size:11px;font-weight:700;margin-top:0">1. Your UPI ID / VPA</label>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <input id="profileUpiInput" placeholder="e.g. mobile@paytm or name@okaxis" style="flex:1;font-size:13px;font-family:ui-monospace,monospace">
+        </div>
+
+        <label style="font-size:11px;font-weight:700;margin-top:0">2. Real Scanner QR Code (Google Pay / PhonePe / Paytm)</label>
+        <div class="muted" style="font-size:11px;margin-bottom:8px">
+          Upload a screenshot of your personal or shop QR scanner from your phone.
+        </div>
+        
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <label class="btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:var(--paper);border:1px solid var(--border);font-weight:700;font-size:12px">
+            📷 Choose Scanner Screenshot
+            <input type="file" id="profileQrInput" accept="image/*" style="display:none">
+          </label>
+          <span id="profileQrFileName" class="muted" style="font-size:11px">No scanner selected</span>
+        </div>
+
+        <div id="profileQrPreviewWrap" style="display:none;background:var(--paper);border:1px dashed var(--border);border-radius:8px;padding:10px;text-align:center;margin-bottom:12px">
+          <div style="font-size:10.5px;font-weight:700;color:var(--tx-muted);margin-bottom:6px">ACTIVE SCANNER PREVIEW</div>
+          <img id="profileQrPreview" src="" alt="Scanner QR Preview" style="max-width:140px;max-height:140px;border-radius:8px;border:1px solid var(--border);display:inline-block">
+          <div style="margin-top:6px">
+            <button class="btn-sm" id="btnRemoveProfileQr" type="button" style="font-size:10.5px;padding:2px 8px;color:var(--danger)">✕ Remove Scanner</button>
+          </div>
+        </div>
+
+        <button class="btn-primary full" id="btnSaveProfileUpi" style="padding:9px;font-weight:800;font-size:13px">
+          💾 Save UPI ID &amp; Real Scanner
+        </button>
+      </div>
+
+      <div class="sep"></div>
+
+      <label>Switch Role Testing (Dual Side)</label>
+      <div class="muted" style="margin-bottom:10px;font-size:12px">
+        Quickly test both sides of contracts between Client/Lender and Contractor/Borrower.
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+        <button class="btn-sm" id="btnSwitchSuraj" style="font-size:12px;padding:8px">👔 Suraj Sharma</button>
+        <button class="btn-sm" id="btnSwitchRohan" style="font-size:12px;padding:8px">📱 Rohan Verma</button>
+      </div>
+
+      <div class="flex space" style="margin-bottom:14px;font-size:12px">
+        <a href="privacy.html" target="_blank" style="color:var(--brand);text-decoration:none">📜 Privacy Policy</a>
+        <a href="terms.html" target="_blank" style="color:var(--brand);text-decoration:none">⚖️ Terms of Service</a>
+      </div>
+
+      <button class="btn-danger full" id="btnLogoutUser" style="padding:10px;font-weight:700">
+        🚪 Sign Out of Vault
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Instant 1-Tap UPI Payment Sheet Modal -->
+<div id="upiModal" class="modal-overlay" style="display:none">
+  <div class="modal-card anim-fade" style="max-width:420px;padding:20px">
+    <div class="flex space" style="margin-bottom:14px">
+      <div style="font-weight:900;font-size:16px;display:flex;align-items:center;gap:6px">
+        <span style="color:var(--brand);font-size:18px">⚡</span> UPI Payment &amp; Settlement
+      </div>
+      <button class="btn-sm" id="btnCloseUpiModal">✕</button>
+    </div>
+
+    <!-- Recipient & Amount Summary -->
+    <div style="background:var(--pill);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px">
+      <div class="flex space">
+        <span class="muted" style="font-size:12px">Payee (Lender):</span>
+        <b id="upiPayeeName" style="font-size:14px">Payee Name</b>
+      </div>
+      <div class="flex space" style="margin-top:6px">
+        <span class="muted" style="font-size:12px">Payable Amount:</span>
+        <b id="upiDisplayAmount" style="font-size:22px;color:var(--ok);font-weight:900">₹0</b>
+      </div>
+      <div class="flex space" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:12px">
+        <span class="muted">Payee UPI VPA:</span>
+        <span style="font-family:ui-monospace,monospace;font-weight:700;display:flex;align-items:center;gap:6px">
+          <span id="upiTargetVpaText">payee@upi</span>
+          <button class="btn-sm" id="btnCopyVpa" style="padding:2px 7px;font-size:10px" title="Copy UPI ID">📋 Copy</button>
+        </span>
+      </div>
+      <!-- Hidden fields for internal submission -->
+      <input type="hidden" id="upiTargetVpa">
+      <input type="hidden" id="upiAmountInput">
+    </div>
+
+    <!-- Real Scanner QR Code / Dynamic Scan-to-Pay QR -->
+    <div style="text-align:center;margin-bottom:14px;background:var(--paper);border:1.5px dashed var(--border);border-radius:12px;padding:12px">
+      <div id="upiQrBadge" style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--tx-muted)">
+        📷 Scan with ANY UPI App (Google Pay, PhonePe, Paytm)
+      </div>
+      <div id="upiQrContainer" style="display:inline-block;text-align:center">
+        <img id="upiQrImage" src="" alt="UPI QR Code" style="max-width:180px;max-height:180px;border-radius:8px;border:1px solid #cbd5e1;padding:4px;background:#fff;display:inline-block;object-fit:contain" />
+      </div>
+      <div id="upiQrCaption" class="muted" style="font-size:11px;margin-top:6px">Amount &amp; Payee are auto-filled upon scan</div>
+    </div>
+
+    <!-- 1-Tap Launch Button -->
+    <div style="margin-bottom:14px">
+      <button class="btn-primary" id="btnLaunchUpiDefault" style="width:100%;padding:11px;font-size:14px;font-weight:800;background:var(--brand-grad);display:flex;align-items:center;justify-content:center;gap:8px">
+        <span>⚡ 1-Tap Pay via UPI App</span>
+      </button>
+      <div class="muted" style="font-size:10.5px;text-align:center;margin-top:4px">
+        Direct redirect to Google Pay · PhonePe · Paytm · BHIM
+      </div>
+    </div>
+        Supports Google Pay · PhonePe · Paytm · BHIM
+      </div>
+    </div>
+
+    <!-- Step 2: Confirm UTR & Alert Lender -->
+    <div style="background:rgba(99,102,241,0.06);border:1px solid var(--brand);border-radius:10px;padding:12px 14px">
+      <div style="font-weight:800;font-size:12px;margin-bottom:6px;color:var(--brand)">
+        Step 2: Enter 12-Digit UTR to notify Lender:
+      </div>
+      <div style="display:flex;gap:6px">
+        <input id="upiUtrInput" placeholder="12-digit UTR from receipt" style="flex:1;font-size:13px;padding:8px 10px" maxlength="16">
+        <button class="btn-sm btn-success" id="btnSubmitUpiReceipt" style="white-space:nowrap;padding:0 14px;font-weight:800">
+          ✓ Notify Lender
+        </button>
+      </div>
+      <div class="muted" style="font-size:10px;margin-top:4px">
+        Lender verifies payment on their screen to mark loan 100% Repaid
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ─── State & Storage ─── */
+const DB_KEY = 'promissory_vault_human_v1';
+const AUTH_TOKEN_KEY = 'vault_auth_token';
+const AUTH_USER_KEY = 'vault_auth_user';
+
+// API Base routing: auto-detects if running as bundled local asset in WebView
+const API_BASE = (location.protocol === 'file:' || !location.hostname)
+  ? (localStorage.getItem('vault_api_server') || 'http://192.168.6.12:3000')
+  : '';
+
+function apiUrl(path) {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  if (!path.startsWith('/')) path = '/' + path;
+  return API_BASE ? (API_BASE.replace(/\/+$/, '') + path) : path;
+}
+
+let serverIP = location.hostname || '192.168.6.12';
+let sseConnected = false;
+let currentId = null;
+let currentSigningRole = null;
+let activeTab = 'all';
+let searchQuery = '';
+
+let authToken = localStorage.getItem(AUTH_TOKEN_KEY) || null;
+let currentUser = null;
+try {
+  const u = localStorage.getItem(AUTH_USER_KEY);
+  if (u) currentUser = JSON.parse(u);
+} catch {}
+
+let activeProfile = currentUser ? currentUser.fullName : 'Guest User';
+
+function updateHeaderUser() {
+  const lbl = document.getElementById('hdrUserLabel');
+  const btnNew = document.getElementById('btnOpenNew');
+  const vPill = document.getElementById('hdrVaultIdPill');
+  const vText = document.getElementById('hdrVaultId');
+  const mobileNav = document.getElementById('mobileNavBar');
+
+  if (currentUser) {
+    lbl.textContent = currentUser.fullName.split(' ')[0] || currentUser.username;
+    if (btnNew) btnNew.style.display = 'inline-flex';
+    if (vPill && currentUser.vaultId) {
+      vPill.style.display = 'inline-flex';
+      vText.textContent = currentUser.vaultId;
+    }
+    if (mobileNav) mobileNav.style.display = 'flex';
+  } else {
+    lbl.textContent = 'Sign In';
+    if (btnNew) btnNew.style.display = 'none';
+    if (vPill) vPill.style.display = 'none';
+    if (mobileNav) mobileNav.style.display = 'none';
+  }
+}
+
+async function verifyAuth() {
+  if (!authToken) {
+    currentUser = null;
+    updateHeaderUser();
+    return false;
+  }
+  try {
+    const r = await fetch(apiUrl('/api/auth/me'), {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (d && d.ok && d.user) {
+        currentUser = d.user;
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+        activeProfile = currentUser.fullName;
+        updateHeaderUser();
+        return true;
+      }
+    }
+  } catch {}
+  authToken = null;
+  currentUser = null;
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USER_KEY);
+  updateHeaderUser();
+  return false;
+}
+
+function loadLocalList() {
+  try {
+    const raw = localStorage.getItem(DB_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [];
+}
+function saveLocalList(data) {
+  localStorage.setItem(DB_KEY, JSON.stringify(data));
+}
+
+let list = loadLocalList();
+
+/* ─── Formatting Helpers ─── */
+const money = n => '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const today = () => new Date().toISOString().slice(0, 10);
+const fd = d => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+const fdLong = d => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function daysRemaining(dateStr) {
+  if (!dateStr) return 0;
+  return Math.ceil((new Date(dateStr) - new Date()) / 864e5);
+}
+
+function calcTotals(a) {
+  if (a.type === 'work') {
+    const milestones = a.milestones || [];
+    const total = +a.amount || milestones.reduce((s, m) => s + (+m.amt || 0), 0);
+    const paid = milestones.filter(m => m.status === 'PAID').reduce((s, m) => s + (+m.amt || 0), 0);
+    const left = Math.max(0, total - paid);
+    return { days: 0, interest: 0, total, paid, left };
+  }
+  const P = +a.amount || 0;
+  const r = (+a.rate || 0) / 100;
+  const days = Math.max(0, Math.round((new Date(a.due) - new Date(a.start)) / 864e5) || 0);
+  const interest = P * r * (days / 365);
+  const total = P + interest;
+  const paid = (a.payments || [])
+    .filter(p => p.status === 'VERIFIED' || p.status === undefined)
+    .reduce((sum, p) => sum + (+p.amt || 0), 0);
+  const left = Math.max(0, total - paid);
+  return { days, interest, total, paid, left };
+}
+
+function totalPaid(a) {
+  return calcTotals(a).paid;
+}
+
+function agreementStatus(a) {
+  const sigCount = (a.sigA ? 1 : 0) + (a.sigB ? 1 : 0);
+  if (sigCount === 0) return { text: a.type === 'work' ? 'Draft SOW' : 'Draft Note', class: '' };
+  if (sigCount === 1) {
+    const needName = !a.sigA ? a.partyA : a.partyB;
+    const shortName = (needName || '').trim().split(/\s+/)[0];
+    return { text: `Pending: ${shortName}`, class: 'warn' };
+  }
+  
+  if (a.type === 'work') {
+    const milestones = a.milestones || [];
+    const hasPendingReview = milestones.some(m => m.status === 'SUBMITTED');
+    if (hasPendingReview) return { text: '⚡ Review Needed', class: 'warn' };
+    const allPaid = milestones.length > 0 && milestones.every(m => m.status === 'PAID');
+    if (allPaid) return { text: '✓ Completed', class: 'ok' };
+    return { text: 'Active SOW', class: 'filled' };
+  }
+
+  // Loan Note Status
+  const hasPendingPay = (a.payments || []).some(p => p.status === 'PENDING');
+  if (hasPendingPay) return { text: '⚡ Verify Repay', class: 'warn' };
+
+  const { left } = calcTotals(a);
+  if (left <= 0.005) return { text: '✓ Fully Repaid', class: 'ok' };
+  if (daysRemaining(a.due) < 0) return { text: 'Overdue', class: 'err' };
+  return { text: 'Active Loan', class: 'filled' };
+}
+
+function amountToWords(n) {
+  const num = Math.floor(+n || 0);
+  if (num === 0) return 'Zero Rupees Only';
+  const a = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
+  const b = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+  function inWords(n) {
+    if (n < 20) return a[n];
+    if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? ' ' + a[n % 10] : '');
+    if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 !== 0 ? ' and ' + inWords(n % 100) : '');
+    if (n < 100000) return inWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 !== 0 ? ' ' + inWords(n % 1000) : '');
+    if (n < 10000000) return inWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 !== 0 ? ' ' + inWords(n % 100000) : '');
+    return inWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 !== 0 ? ' ' + inWords(n % 10000000) : '');
+  }
+  return 'Rupees ' + inWords(num) + ' Only';
+}
+
+function makeHash(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return 'SHA256:' + Math.abs(hash).toString(16).toUpperCase().padStart(16, 'A') + '7F9B';
+}
+
+/* ─── Real-Time Toast Notifications ─── */
+function showToast(msg) {
+  const el = document.getElementById('vaultToast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3800);
+}
+
+/* ─── Real-Time SSE Engine ─── */
+function updateLiveStatus(live) {
+  sseConnected = live;
+  const dot = document.getElementById('liveDot');
+  const text = document.getElementById('liveText');
+  if (live) {
+    dot.className = 'live-dot active';
+    text.textContent = 'LIVE';
+  } else {
+    dot.className = 'live-dot';
+    text.textContent = 'CONNECTING';
+  }
+}
+
+let activeSse = null;
+function initSSE() {
+  if (activeSse) { try { activeSse.close(); } catch {} activeSse = null; }
+  fetch(apiUrl('/api/info')).then(r => r.json()).then(d => {
+    if (d && d.ip) serverIP = d.ip;
+    if (d && d.cloudDatabase) {
+      const lp = document.getElementById('livePill');
+      if (lp) lp.title = 'Neon Serverless PostgreSQL Live · Singapore Region (AWS ap-southeast-1)';
+    }
+  }).catch(() => {});
+
+  try {
+    const sseUrl = apiUrl(authToken ? `/api/events?token=${encodeURIComponent(authToken)}` : '/api/events');
+    activeSse = new EventSource(sseUrl);
+    activeSse.onopen = () => updateLiveStatus(true);
+    activeSse.onerror = () => updateLiveStatus(false);
+
+    activeSse.addEventListener('init', e => {
+      try {
+        const d = JSON.parse(e.data);
+        if (d && Array.isArray(d.agreements)) {
+          list = d.agreements;
+          saveLocalList(list);
+          if (currentId) renderDocumentView(currentId, currentSigningRole);
+          else if (currentUser) renderDashboard();
+        }
+      } catch {}
+    });
+
+    activeSse.addEventListener('agreement', e => {
+      try {
+        const item = JSON.parse(e.data);
+        if (!item || !item.id) return;
+        const idx = list.findIndex(x => x.id === item.id);
+        if (idx >= 0) list[idx] = item;
+        else list.unshift(item);
+        saveLocalList(list);
+
+        if (item._notice) {
+          showToast(item._notice);
+        } else if (item.sigA && item.sigB && (!item.payments || item.payments.length === 0) && (!item.milestones || item.milestones.every(m => m.status === 'PENDING'))) {
+          showToast(`⚡ Instrument ${item.id} fully executed by both parties!`);
+        }
+
+        if (currentId === item.id) {
+          renderDocumentView(item.id, currentSigningRole);
+        } else if (!currentId && currentUser) {
+          renderDashboard();
+        }
+      } catch {}
+    });
+
+    activeSse.addEventListener('delete', e => {
+      try {
+        const { id } = JSON.parse(e.data);
+        list = list.filter(x => x.id !== id);
+        saveLocalList(list);
+        if (currentId === id) {
+          showToast(`Agreement ${id} deleted.`);
+          if (currentUser) renderDashboard();
+        } else if (!currentId && currentUser) {
+          renderDashboard();
+        }
+      } catch {}
+    });
+  } catch {}
+}
+
+/* ─── Sync with Server ─── */
+async function syncWithServer() {
+  try {
+    const headers = {};
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    const r = await fetch(apiUrl('/api/agreements'), { headers });
+    if (r.ok) {
+      const serverAgreements = await r.json();
+      if (Array.isArray(serverAgreements)) {
+        list = serverAgreements;
+        saveLocalList(list);
+      }
+    }
+  } catch {}
+}
+
+async function saveAgreementToServer(item) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  return fetch(apiUrl('/api/agreements'), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(item)
+  }).catch(() => {});
+}
+
+async function deleteAgreementFromServer(id) {
+  const headers = {};
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  return fetch(apiUrl(`/api/agreements/${encodeURIComponent(id)}`), {
+    method: 'DELETE',
+    headers
+  }).catch(() => {});
+}
+
+async function fetchAgreementFromServer(id) {
+  const headers = {};
+  if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+  return fetch(apiUrl(`/api/agreements/${encodeURIComponent(id)}`), { headers }).catch(() => {});
+}
+
+/* ─── Authentication View (Sign In & Register) ─── */
+function renderAuthView(initialTab = 'signin') {
+  currentId = null;
+  currentSigningRole = null;
+  updateHeaderUser();
+
+  const app = document.getElementById('appSlot');
+  app.innerHTML = `
+    <div style="max-width:440px;margin:28px auto 60px">
+      <div class="card anim-fade" style="padding:28px 24px;border:1px solid var(--border);box-shadow:var(--shadow)">
+        <div style="text-align:center;margin-bottom:22px">
+          <div class="brand-icon" style="width:46px;height:46px;font-size:20px;margin:0 auto 12px;border-radius:12px">AV</div>
+          <div style="font-weight:900;font-size:20px;letter-spacing:-0.02em">AGREEMENT VAULT</div>
+          <div class="muted" style="font-size:12.5px;margin-top:4px">
+            Two-Party Cryptographic Contracts &amp; Vault ID Exchange
+          </div>
+        </div>
+
+        <!-- Auth Tabs -->
+        <div style="display:flex;background:var(--bg);padding:4px;border-radius:8px;border:1px solid var(--border);margin-bottom:20px">
+          <button id="tabAuthSignIn" class="full btn-sm" style="border:none;border-radius:6px;${initialTab==='signin' ? 'background:var(--paper);font-weight:700;box-shadow:var(--shadow)' : 'background:transparent;color:var(--tx-muted)'}">Sign In</button>
+          <button id="tabAuthRegister" class="full btn-sm" style="border:none;border-radius:6px;${initialTab==='register' ? 'background:var(--paper);font-weight:700;box-shadow:var(--shadow)' : 'background:transparent;color:var(--tx-muted)'}">Create Account</button>
+        </div>
+
+        <!-- Sign In Pane -->
+        <div id="paneSignIn" style="${initialTab==='signin' ? 'display:block' : 'display:none'}">
+          <div id="loginAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
+          
+          <label>Email Address or Vault ID</label>
+          <input id="inLoginId" placeholder="e.g. suraj.sharma@gmail.com or VID-65228" autocomplete="username">
+
+          <label>Password</label>
+          <input id="inLoginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+
+          <div style="margin-top:18px">
+            <button class="btn-primary full" id="btnSubmitLogin" style="padding:11px">Sign In to Vault</button>
+          </div>
+
+          <div class="sep"></div>
+
+          <div style="text-align:center;margin-bottom:10px">
+            <span class="muted" style="font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">Quick Test Accounts</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <button class="btn-sm" id="btnDemoSuraj" style="font-size:12px">👔 Suraj (VID-65228)</button>
+            <button class="btn-sm" id="btnDemoRohan" style="font-size:12px">📱 Rohan (VID-38110)</button>
+          </div>
+        </div>
+
+        <!-- Register Pane -->
+        <div id="paneRegister" style="${initialTab==='register' ? 'display:block' : 'display:none'}">
+          <div id="regAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
+
+          <label>Legal Full Name</label>
+          <input id="inRegName" placeholder="e.g. Suraj Sharma" autocomplete="name">
+
+          <label>Real Email Address (Required for Identity &amp; Notices)</label>
+          <input id="inRegEmail" type="email" placeholder="e.g. yourname@domain.com" autocomplete="email">
+
+          <label>Username / Handle</label>
+          <input id="inRegUser" placeholder="e.g. surajsharma" autocomplete="username">
+
+          <label>Password</label>
+          <input id="inRegPass" type="password" placeholder="Choose a secure password" autocomplete="new-password">
+
+          <label>Optional 4-Digit Security PIN</label>
+          <input id="inRegPin" type="password" maxlength="4" placeholder="4 digits for mobile unlock">
+
+          <div class="muted" style="font-size:11.5px;margin-top:10px;line-height:1.5">
+            🛡️ A unique, permanent <b>Vault ID (VID-XXXXX)</b> will be cryptographically minted for your profile upon registration.
+          </div>
+
+          <div style="margin-top:18px">
+            <button class="btn-primary full" id="btnSubmitRegister" style="padding:11px">Create Account &amp; Mint Vault ID</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const tabSignIn = document.getElementById('tabAuthSignIn');
+  const tabRegister = document.getElementById('tabAuthRegister');
+  const paneSignIn = document.getElementById('paneSignIn');
+  const paneRegister = document.getElementById('paneRegister');
+
+  tabSignIn.onclick = () => {
+    tabSignIn.style.background = 'var(--paper)';
+    tabSignIn.style.fontWeight = '700';
+    tabSignIn.style.color = 'var(--tx)';
+    tabRegister.style.background = 'transparent';
+    tabRegister.style.fontWeight = '500';
+    tabRegister.style.color = 'var(--tx-muted)';
+    paneSignIn.style.display = 'block';
+    paneRegister.style.display = 'none';
+  };
+
+  tabRegister.onclick = () => {
+    tabRegister.style.background = 'var(--paper)';
+    tabRegister.style.fontWeight = '700';
+    tabRegister.style.color = 'var(--tx)';
+    tabSignIn.style.background = 'transparent';
+    tabSignIn.style.fontWeight = '500';
+    tabSignIn.style.color = 'var(--tx-muted)';
+    paneSignIn.style.display = 'none';
+    paneRegister.style.display = 'block';
+  };
+
+  const doLogin = async (username, password) => {
+    const alertBox = document.getElementById('loginAlert');
+    if (alertBox) alertBox.style.display = 'none';
+    const btn = document.getElementById('btnSubmitLogin');
+    if (btn) { btn.disabled = true; btn.textContent = 'Verifying...'; }
+
+    try {
+      const res = await fetch(apiUrl('/api/auth/login'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        if (alertBox) { alertBox.textContent = data.error || 'Invalid credentials.'; alertBox.style.display = 'block'; }
+        if (btn) { btn.disabled = false; btn.textContent = 'Sign In to Vault'; }
+        return;
+      }
+      authToken = data.token;
+      currentUser = data.user;
+      localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+      activeProfile = currentUser.fullName;
+      showToast(`Welcome back, ${currentUser.fullName}! (${currentUser.vaultId})`);
+      updateHeaderUser();
+      initSSE();
+      await syncWithServer();
+      renderDashboard();
+    } catch {
+      if (alertBox) { alertBox.textContent = 'Network or server error.'; alertBox.style.display = 'block'; }
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign In to Vault'; }
+    }
+  };
+
+  document.getElementById('btnSubmitLogin').onclick = () => {
+    const id = document.getElementById('inLoginId').value.trim();
+    const pass = document.getElementById('inLoginPass').value;
+    if (!id || !pass) {
+      const a = document.getElementById('loginAlert');
+      a.textContent = 'Please enter your Email / Vault ID and password.';
+      a.style.display = 'block';
+      return;
+    }
+    doLogin(id, pass);
+  };
+
+  document.getElementById('inLoginPass').onkeydown = e => {
+    if (e.key === 'Enter') document.getElementById('btnSubmitLogin').click();
+  };
+
+  document.getElementById('btnDemoSuraj').onclick = () => doLogin('suraj', 'suraj123');
+  document.getElementById('btnDemoRohan').onclick = () => doLogin('rohan', 'rohan123');
+
+  document.getElementById('btnSubmitRegister').onclick = async () => {
+    const alertBox = document.getElementById('regAlert');
+    if (alertBox) alertBox.style.display = 'none';
+
+    const fullName = document.getElementById('inRegName').value.trim();
+    const username = document.getElementById('inRegUser').value.trim();
+    const email = document.getElementById('inRegEmail').value.trim();
+    const password = document.getElementById('inRegPass').value;
+    const pin = document.getElementById('inRegPin').value.trim();
+
+    if (!fullName || !username || !password || !email) {
+      alertBox.textContent = 'Full Name, Real Email, Username, and Password are all required.';
+      alertBox.style.display = 'block';
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alertBox.textContent = 'Please enter a valid, real email address (e.g. name@domain.com).';
+      alertBox.style.display = 'block';
+      return;
+    }
+
+    const btn = document.getElementById('btnSubmitRegister');
+    btn.disabled = true;
+    btn.textContent = 'Minting Vault ID & Account...';
+
+    try {
+      const res = await fetch(apiUrl('/api/auth/register'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, username, email, password, pin })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        alertBox.textContent = data.error || 'Failed to create account.';
+        alertBox.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Create Account & Mint Vault ID';
+        return;
+      }
+      authToken = data.token;
+      currentUser = data.user;
+      localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+      activeProfile = currentUser.fullName;
+      showToast(`Account created! Your personal Vault ID is ${currentUser.vaultId}`);
+      updateHeaderUser();
+      initSSE();
+      await syncWithServer();
+      renderDashboard();
+    } catch {
+      alertBox.textContent = 'Network or server error.';
+      alertBox.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Create Account & Mint Vault ID';
+    }
+  };
+}
+
+window.logoutUser = async () => {
+  try {
+    if (authToken) {
+      await fetch(apiUrl('/api/auth/logout'), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+    }
+  } catch {}
+  authToken = null;
+  currentUser = null;
+  list = [];
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_USER_KEY);
+  localStorage.removeItem(DB_KEY);
+  document.getElementById('userModal').style.display = 'none';
+  showToast('Signed out of Agreement Vault.');
+  updateHeaderUser();
+  renderAuthView('signin');
+};
+
+/* ─── View 1: Unified Portfolio Dashboard ─── */
+function renderDashboard() {
+  if (!currentUser) return renderAuthView('signin');
+  currentId = null;
+  currentSigningRole = null;
+  updateHeaderUser();
+
+  if (list.length === 0) {
+    const app = document.getElementById('appSlot');
+    app.innerHTML = `
+      <div class="card" style="text-align:center;padding:52px 20px;border:1.5px dashed var(--border);max-width:540px;margin:28px auto">
+        <div style="font-size:42px;margin-bottom:14px">📜</div>
+        <div style="font-weight:800;font-size:18px;margin-bottom:6px">No Agreements in Your Vault</div>
+        <div class="muted" style="max-width:400px;margin:0 auto 20px;line-height:1.6">
+          Draft your first Promissory Note or Working Agreement. You can digitally sign and share the secure remote signing link with your counterparty.
+        </div>
+        <button class="btn-primary" id="btnZeroNew">+ Draft New Agreement</button>
+      </div>
+    `;
+    const bz = document.getElementById('btnZeroNew');
+    if (bz) bz.onclick = () => { document.getElementById('templateModal').style.display = 'flex'; };
+    return;
+  }
+
+  let totalCommitted = 0, totalPaidOut = 0;
+  let activeCount = 0, pendingActionCount = 0;
+
+  for (const a of list) {
+    const { total, paid } = calcTotals(a);
+    totalCommitted += total;
+    totalPaidOut += paid;
+
+    if (a.sigA && a.sigB) activeCount++;
+
+    if (a.type === 'work') {
+      if ((a.milestones || []).some(m => m.status === 'SUBMITTED') || (!a.sigA || !a.sigB)) {
+        pendingActionCount++;
+      }
+    } else {
+      if ((a.payments || []).some(p => p.status === 'PENDING') || (!a.sigA || !a.sigB)) {
+        pendingActionCount++;
+      }
+    }
+  }
+
+  // Filter list by Tab & Search
+  let filtered = list;
+  if (activeTab === 'work') {
+    filtered = filtered.filter(a => a.type === 'work');
+  } else if (activeTab === 'loan') {
+    filtered = filtered.filter(a => a.type !== 'work');
+  } else if (activeTab === 'action') {
+    filtered = filtered.filter(a => {
+      if (!a.sigA || !a.sigB) return true;
+      if (a.type === 'work') return (a.milestones || []).some(m => m.status === 'SUBMITTED');
+      return (a.payments || []).some(p => p.status === 'PENDING');
+    });
+  } else if (activeTab === 'settled') {
+    filtered = filtered.filter(a => {
+      const { left } = calcTotals(a);
+      return a.sigA && a.sigB && left <= 0.005;
+    });
+  }
+
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase().trim();
+    filtered = filtered.filter(a => 
+      a.partyA.toLowerCase().includes(q) || 
+      a.partyB.toLowerCase().includes(q) || 
+      a.id.toLowerCase().includes(q) ||
+      (a.title && a.title.toLowerCase().includes(q)) ||
+      (a.purpose && a.purpose.toLowerCase().includes(q))
+    );
+  }
+
+  const incomingReqs = currentUser ? list.filter(a => {
+    const isTargetB = (a.partyBVaultId && a.partyBVaultId === currentUser.vaultId) ||
+                      (a.partyBEmail && (currentUser.email && a.partyBEmail.toLowerCase() === currentUser.email.toLowerCase())) ||
+                      (!a.partyBVaultId && matchName(currentUser.fullName, a.partyB));
+    return isTargetB && !a.sigB;
+  }) : [];
+
+  const app = document.getElementById('appSlot');
+  app.innerHTML = `
+    <!-- Direct Incoming Requests (Pulse Attention) -->
+    ${incomingReqs.length > 0 ? `
+      <div class="incoming-req-box anim-fade">
+        <div class="flex space" style="margin-bottom:8px">
+          <div style="font-weight:900;font-size:15px;color:var(--brand);display:flex;align-items:center;gap:6px">
+            <span style="font-size:18px">📬</span> Incoming Contract Requests (${incomingReqs.length})
+          </div>
+          <span class="badge warn" style="font-size:10px">Sign Required</span>
+        </div>
+        <div class="muted" style="font-size:12.5px;margin-bottom:12px">
+          You have received direct digital contract request(s) on your Vault ID (<b>${esc(currentUser.vaultId || 'Your Profile')}</b>). Review terms and affix your signature.
+        </div>
+        <div style="display:grid;gap:10px">
+          ${incomingReqs.map(req => {
+            const isWork = req.type === 'work';
+            const { total } = calcTotals(req);
+            return `
+              <div class="card" style="margin:0;padding:12px 14px;background:var(--paper);border:1px solid var(--border);border-left:4px solid var(--brand)">
+                <div class="flex space" style="flex-wrap:wrap;gap:8px">
+                  <div>
+                    <div style="font-weight:800;font-size:14.5px">
+                      ${isWork ? `💼 ${esc(req.title || 'Working Agreement & SOW')}` : `🤝 Mutual Loan Note (${money(req.amount)})`}
+                      <span class="badge ${isWork ? 'filled' : 'ok'}" style="font-size:9.5px;margin-left:4px">${isWork ? 'SOW' : 'LOAN'}</span>
+                    </div>
+                    <div class="muted" style="font-size:12px;margin-top:2px">
+                      Requested by: <b>${esc(req.partyA)}</b> ${req.partyAVaultId ? `<span class="vault-id-pill" style="font-size:10px;padding:1px 6px">🆔 ${esc(req.partyAVaultId)}</span>` : ''} · Total: <b>${money(total)}</b>
+                    </div>
+                  </div>
+                  <div class="flex" style="gap:6px">
+                    <button class="btn-sm btn-primary" onclick="window.reviewAndSign('${req.id}')" style="padding:6px 12px;font-weight:700">✍️ Review &amp; Sign</button>
+                    <button class="btn-sm btn-danger" onclick="window.declineAgreement('${req.id}')" style="padding:6px 10px">Decline</button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Top KPI Grid -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Invoiced / Committed</div>
+        <div class="kpi-val">${money(totalCommitted)}</div>
+        <div class="kpi-sub">
+          <span class="badge ok" style="font-size:10px;padding:1px 6px">
+            ${totalCommitted > 0 ? ((totalPaidOut / totalCommitted) * 100).toFixed(0) : 0}% Cleared
+          </span>
+          <span>${money(totalPaidOut)} paid</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Total Endorsed Payouts</div>
+        <div class="kpi-val">${money(totalPaidOut)}</div>
+        <div class="kpi-sub">
+          <span>Remaining: ${money(Math.max(0, totalCommitted - totalPaidOut))}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Active Binding Contracts</div>
+        <div class="kpi-val">${activeCount}</div>
+        <div class="kpi-sub">
+          <span>${list.length - activeCount} pending signature(s)</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Pending Action</div>
+        <div class="kpi-val" style="${pendingActionCount > 0 ? 'color:var(--warn)' : 'color:var(--ok)'}">
+          ${pendingActionCount > 0 ? `${pendingActionCount} Items` : '✓ 0'}
+        </div>
+        <div class="kpi-sub">
+          ${pendingActionCount > 0 
+            ? '<span class="badge warn" style="font-size:10px;padding:1px 6px">Action Required</span>' 
+            : '<span class="badge ok" style="font-size:10px;padding:1px 6px">All Cleared</span>'}
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Tabs & Real-time Search -->
+    <div class="filter-row">
+      <div class="tab-pills">
+        <button class="tab-btn ${activeTab === 'all' ? 'active' : ''}" data-tab="all">All (${list.length})</button>
+        <button class="tab-btn ${activeTab === 'work' ? 'active' : ''}" data-tab="work">💼 Working SOW (${list.filter(x => x.type === 'work').length})</button>
+        <button class="tab-btn ${activeTab === 'loan' ? 'active' : ''}" data-tab="loan">🤝 Loans (${list.filter(x => x.type !== 'work').length})</button>
+        <button class="tab-btn ${activeTab === 'action' ? 'active' : ''}" data-tab="action">
+          Needs Action ${pendingActionCount > 0 ? `(${pendingActionCount})` : ''}
+        </button>
+        <button class="tab-btn ${activeTab === 'settled' ? 'active' : ''}" data-tab="settled">Completed</button>
+      </div>
+      <input class="search-input" id="inSearch" placeholder="Search contracts, parties, SOW…" value="${esc(searchQuery)}">
+    </div>
+
+    <!-- Agreements List -->
+    ${filtered.length === 0 ? `
+      <div class="card" style="text-align:center;padding:44px 16px">
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px">No agreements found</div>
+        <div class="muted" style="margin-bottom:16px">Create a professional working agreement (SOW) or a mutual loan promissory note.</div>
+        <button class="btn-primary" id="btnEmptyNew">+ Draft Agreement</button>
+      </div>
+    ` : filtered.map(a => {
+      const st = agreementStatus(a);
+      const { total, paid, left } = calcTotals(a);
+      const pct = total > 0 ? Math.min(100, (paid / total) * 100).toFixed(0) : 0;
+      const isWork = a.type === 'work';
+
+      const isPartyA = matchName(activeProfile, a.partyA);
+      const isPartyB = matchName(activeProfile, a.partyB);
+      const roleTag = isWork 
+        ? (isPartyA ? 'CLIENT' : isPartyB ? 'CONTRACTOR' : 'VIEWER') 
+        : (isPartyA ? 'LENDER' : isPartyB ? 'BORROWER' : 'VIEWER');
+
+      const borderStripe = left <= 0.005 
+        ? 'border-left: 4px solid var(--ok);' 
+        : (!a.sigA || !a.sigB)
+        ? 'border-left: 4px solid var(--warn);'
+        : 'border-left: 4px solid var(--brand);';
+
+      return `
+      <div class="card contract-card clickable" data-open="${a.id}" style="${borderStripe}">
+        <!-- Row 1: Badges & Status Header -->
+        <div class="contract-card-header">
+          <div class="contract-badges">
+            <span class="badge ${isWork ? 'filled' : 'ok'}">${isWork ? '💼 SOW' : '🤝 LOAN'}</span>
+            <span class="badge role-tag">${roleTag}</span>
+          </div>
+          <span class="badge ${st.class} contract-status-pill">${st.text}</span>
+        </div>
+
+        <!-- Row 2: Headline / Counterparties (Full Width) -->
+        <div class="contract-card-body">
+          ${isWork ? `
+            <div class="contract-title">💼 ${esc(a.title || 'Working Agreement & SOW')}</div>
+            <div class="contract-meta">
+              <span class="contract-party"><b>${esc(a.partyA)}</b> <span class="role-sub">(Client)</span></span>
+              <span class="meta-sep">&amp;</span>
+              <span class="contract-party"><b>${esc(a.partyB)}</b> <span class="role-sub">(Contractor)</span></span>
+            </div>
+          ` : `
+            <div class="contract-parties-row">
+              <span class="party-name">${esc(a.partyA)}</span>
+              <span class="party-arrow">⇄</span>
+              <span class="party-name">${esc(a.partyB)}</span>
+            </div>
+            <div class="contract-meta">
+              <span class="meta-item"><b class="tx-highlight">${money(a.amount)}</b> principal</span>
+              <span class="meta-dot">·</span>
+              <span class="meta-item">Due <b>${fd(a.due)}</b></span>
+              ${a.rate ? `<span class="meta-dot">·</span> <span class="meta-item"><b>${a.rate}%</b> p.a.</span>` : ''}
+            </div>
+          `}
+        </div>
+
+        <!-- Row 3: Financial Progress & Ledger -->
+        <div class="contract-card-footer">
+          <div class="flex space" style="font-size:12px;margin-bottom:6px">
+            <span class="muted">Balance: <b class="tx-main">${money(left)}</b> / ${money(total)}</span>
+            <span class="pct-pill ${left <= 0.005 ? 'complete' : ''}">${pct}% fulfilled</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill ${left <= 0.005 ? 'complete' : ''}" style="width:${pct}%"></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+
+  // Bind Events
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.onclick = () => { activeTab = b.dataset.tab; renderDashboard(); };
+  });
+
+  const searchInput = document.getElementById('inSearch');
+  if (searchInput) {
+    searchInput.oninput = e => { searchQuery = e.target.value; renderDashboard(); };
+  }
+
+  document.querySelectorAll('[data-open]').forEach(c => {
+    c.onclick = () => renderDocumentView(c.dataset.open);
+  });
+
+  const en = document.getElementById('btnEmptyNew');
+  if (en) en.onclick = () => { document.getElementById('templateModal').style.display = 'flex'; };
+}
+
+/* ─── Match Helper for Names ─── */
+function matchName(name1, name2) {
+  if (!name1 || !name2) return false;
+  const n1 = name1.trim().toLowerCase();
+  const n2 = name2.trim().toLowerCase();
+  return n1 === n2 || n1.includes(n2) || n2.includes(n1);
+}
+
+/* ─── View 2: Detailed Document View ─── */
+function renderDocumentView(id, remoteSigningRole = null) {
+  const a = list.find(x => x.id === id);
+  if (!a) return renderDashboard();
+
+  currentId = id;
+  currentSigningRole = remoteSigningRole;
+
+  if (a.type === 'work') {
+    renderWorkAgreementView(a, remoteSigningRole);
+  } else {
+    renderLoanAgreementView(a, remoteSigningRole);
+  }
+}
+
+/* ─── Statutory Evidence Annexure: Section 65B Electronic Record Certificate ─── */
+function renderSection65BCertificate(a, verifyUrl, docHash) {
+  const bothSigned = !!(a.sigA && a.sigB);
+  const digest = a.sha256Digest || docHash;
+  const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(verifyUrl)}`;
+
+  return `
+    <div class="sec65b-annexure" style="margin-top:34px;padding:22px;border:2px solid #0f172a;border-radius:8px;background:#fcfcfd;page-break-before:always">
+      <div class="flex space" style="border-bottom:2px solid #0f172a;padding-bottom:12px;margin-bottom:14px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:#4338ca">STATUTORY EVIDENCE ANNEXURE</div>
+          <div style="font-size:16px;font-weight:900;color:#0f172a;margin-top:2px">CERTIFICATE OF ELECTRONIC EVIDENCE</div>
+          <div style="font-size:11px;color:#475569;font-weight:600">
+            Under Section 65B(4) Indian Evidence Act, 1872 / Section 63 Bharatiya Sakshya Adhiniyam, 2023 &amp; Section 10A IT Act, 2000
+          </div>
+        </div>
+        <div style="text-align:center">
+          <img src="${qrApiUrl}" alt="Live QR Scan Verification" style="width:72px;height:72px;border:1px solid #cbd5e1;padding:2px;background:#fff;border-radius:4px;display:block;margin:0 auto">
+          <div style="font-size:8.5px;font-weight:800;color:#64748b;margin-top:3px;letter-spacing:0.04em">SCAN TO VERIFY</div>
+        </div>
+      </div>
+
+      <div style="font-size:12px;line-height:1.65;color:#1e293b;text-align:justify;margin-bottom:14px">
+        I, the authorized digital system custodian of <b>Agreement Vault</b>, do hereby solemnly declare and certify under the statutory provisions of the <i>Information Technology Act, 2000</i> and Section 65B of the <i>Indian Evidence Act, 1872</i>:
+        <ol style="margin:6px 0 10px 18px;padding:0">
+          <li>That the electronic record bearing Reference ID <b>${esc(a.id)}</b> was produced, transmitted, and digitally endorsed through the Agreement Vault automated system during the ordinary course of regular business operations.</li>
+          <li>That throughout the material period, the computer servers, authentication engines, and cryptographic services operated under normal security integrity controls without unauthorized disruption or electronic tampering.</li>
+          <li>That the cryptographic SHA-256 hash digest below mathematically authenticates this electronic record against post-execution modification or tampering.</li>
+        </ol>
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:ui-monospace,SFMono-Regular,monospace;background:#f8fafc;border:1px solid #cbd5e1;margin-bottom:14px">
+        <tbody>
+          <tr style="border-bottom:1px solid #cbd5e1">
+            <td style="padding:6px 10px;font-weight:700;background:#f1f5f9;width:32%">INSTRUMENT REFERENCE</td>
+            <td style="padding:6px 10px;font-weight:800;color:#4338ca">${esc(a.id)} (${a.type === 'work' ? 'Scope of Work & Professional Services SOW' : 'Mutual Loan Promissory Note'})</td>
+          </tr>
+          <tr style="border-bottom:1px solid #cbd5e1">
+            <td style="padding:6px 10px;font-weight:700;background:#f1f5f9">CRYPTOGRAPHIC SHA-256 DIGEST</td>
+            <td style="padding:6px 10px;font-weight:700;color:#0f172a;word-break:break-all">${digest}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #cbd5e1">
+            <td style="padding:6px 10px;font-weight:700;background:#f1f5f9">PARTY A (CREATOR / PRINCIPAL)</td>
+            <td style="padding:6px 10px">${esc(a.partyA)} ${a.partyAVaultId ? `· Vault ID: <b>${esc(a.partyAVaultId)}</b>` : ''} ${a.partyAEmail ? `· Email: ${esc(a.partyAEmail)}` : ''}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #cbd5e1">
+            <td style="padding:6px 10px;font-weight:700;background:#f1f5f9">PARTY A SIGNATURE SEAL &amp; IP</td>
+            <td style="padding:6px 10px">
+              ${a.sigA ? `✓ Endorsed: ${new Date(a.sigA.at).toUTCString()} · IP: ${esc(a.sigA.ip || '127.0.0.1')} · ${esc(a.sigA.stamp || 'SEALED')}` : '<span style="color:#d97706">Pending Signature</span>'}
+            </td>
+          </tr>
+          <tr style="border-bottom:1px solid #cbd5e1">
+            <td style="padding:6px 10px;font-weight:700;background:#f1f5f9">PARTY B (COUNTERPARTY)</td>
+            <td style="padding:6px 10px">${esc(a.partyB)} ${a.partyBVaultId ? `· Vault ID: <b>${esc(a.partyBVaultId)}</b>` : ''} ${a.partyBEmail ? `· Email: ${esc(a.partyBEmail)}` : ''}</td>
+          </tr>
+          <tr style="border-bottom:1px solid #cbd5e1">
+            <td style="padding:6px 10px;font-weight:700;background:#f1f5f9">PARTY B SIGNATURE SEAL &amp; IP</td>
+            <td style="padding:6px 10px">
+              ${a.sigB ? `✓ Endorsed: ${new Date(a.sigB.at).toUTCString()} · IP: ${esc(a.sigB.ip || '127.0.0.1')} · ${esc(a.sigB.stamp || 'SEALED')}` : '<span style="color:#d97706">Pending Signature</span>'}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;font-weight:700;background:#f1f5f9">LIVE VERIFICATION URL</td>
+            <td style="padding:6px 10px"><a href="${verifyUrl}" target="_blank" style="color:#2563eb;text-decoration:none">${verifyUrl}</a></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="flex space" style="font-size:11px;color:#475569;border-top:1px dashed #cbd5e1;padding-top:10px;flex-wrap:wrap">
+        <div>
+          <b>System Authority:</b> Agreement Vault Cryptographic Custodian Service<br/>
+          <b>Legal Admissibility:</b> Section 65B Evidence Act / Section 10A IT Act
+        </div>
+        <div style="text-align:right">
+          <b>Digital Evidence Stamp:</b> AV-SEC65B-CERT<br/>
+          <b>Execution Status:</b> ${bothSigned ? '<span style="color:#059669;font-weight:800">✓ FULLY EXECUTED &amp; BINDING</span>' : '<span style="color:#d97706;font-weight:700">PARTIALLY EXECUTED</span>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ─── 2A: Working Agreement View (Client & Contractor Sides) ─── */
+function renderWorkAgreementView(a, remoteSigningRole) {
+  const { total, paid, left } = calcTotals(a);
+  const pct = total > 0 ? Math.min(100, (paid / total) * 100).toFixed(0) : 0;
+  const st = agreementStatus(a);
+  const bothSigned = a.sigA && a.sigB;
+
+  const port = location.port ? `:${location.port}` : '';
+  const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
+  const remoteSignUrl = `${location.protocol}//${host}${port}/?action=sign&id=${encodeURIComponent(a.id)}&party=B`;
+  const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
+  const verifyUrl = `${location.protocol}//${host}${port}/?action=verify&id=${encodeURIComponent(a.id)}`;
+
+  const docHash = makeHash(`${a.id}|${a.partyA}|${a.partyB}|${a.amount}|${a.title}|${a.created}`);
+  const milestones = a.milestones || [];
+  const pendingReviews = milestones.filter(m => m.status === 'SUBMITTED');
+
+  // Role resolution
+  const isClient = matchName(activeProfile, a.partyA);
+  const isContractor = matchName(activeProfile, a.partyB);
+  const counterpartName = isClient ? a.partyB : a.partyA;
+
+  const app = document.getElementById('appSlot');
+  app.innerHTML = `
+    <!-- Dual-Side Testing Banner -->
+    <div class="role-banner no-print">
+      <div class="role-banner-text">
+        Viewing as: <b>${esc(activeProfile)}</b> &nbsp;·&nbsp;
+        Role: <b>${isClient ? 'Client (Party A)' : isContractor ? 'Contractor (Party B)' : 'Guest / Viewer'}</b>
+      </div>
+      <button class="btn-sm" id="btnSwitchToCounterpart">
+        🔄 Switch to ${esc(counterpartName)}
+      </button>
+    </div>
+
+    <!-- Back & Header Actions -->
+    <div class="flex space" style="margin-bottom:14px">
+      <button class="btn-sm" id="btnDocBack">← Dashboard</button>
+      <div class="flex">
+        <span class="badge ${st.class}">${st.text}</span>
+      </div>
+    </div>
+
+    <!-- Remote Signing Invite Box -->
+    ${!bothSigned && a.sigA ? `
+      <div class="card no-print" style="border:1.5px solid var(--brand);background:rgba(79, 70, 229, 0.04)">
+        <div class="flex space">
+          <div>
+            <div style="font-weight:800;font-size:14px;color:var(--brand)">🔗 Send SOW Remote Signing Link to ${esc(a.partyB)}</div>
+            <div class="muted" style="margin-top:2px">
+              ${esc(a.partyB)} opens this link on their own phone to review deliverables &amp; sign.
+            </div>
+          </div>
+          <span class="badge warn">Pending Contractor Sign</span>
+        </div>
+        <div class="sep"></div>
+        <div class="flex" style="gap:8px;flex-wrap:wrap">
+          <button class="btn-sm btn-whatsapp" id="btnShareInvite">📲 Share via WhatsApp</button>
+          <button class="btn-sm" id="btnCopyInvite">📋 Copy Signing Link</button>
+        </div>
+      </div>
+    ` : bothSigned && left <= 0.005 ? `
+      <div class="card flex space no-print" style="border:2px solid var(--ok);background:var(--ok-bg);color:var(--ok)">
+        <div>
+          <div style="font-weight:800;font-size:14px">✓ PROJECT COMPLETED &amp; INTELLECTUAL PROPERTY ASSIGNED</div>
+          <div style="font-size:12.5px;color:var(--ok)">All milestones are verified and 100% paid. Complete IP release executed.</div>
+        </div>
+        <button class="btn-sm btn-success" id="btnShareSettled">📤 Share Completion Certificate</button>
+      </div>
+    ` : ''}
+
+    <!-- The Legal Working Agreement Document -->
+    <div class="paper-document" id="printableNote">
+      <div class="doc-stamp">PROFESSIONAL SERVICES &amp; WORKING AGREEMENT</div>
+      
+      <div class="doc-header">
+        <h1>SCOPE OF WORK &amp; SERVICES COVENANT</h1>
+        <div class="doc-id">Reference: ${esc(a.id)} · Project: ${esc(a.title || 'Independent Services')}</div>
+      </div>
+
+      <div class="doc-clause">
+        THIS WORKING AGREEMENT is executed on this <b>${fdLong(a.start || a.created)}</b> by and between:
+      </div>
+
+      <div class="doc-clause">
+        <b>1. CLIENT / PRINCIPAL:</b> <b>${esc(a.partyA)}</b>${a.partyACity ? `, located at ${esc(a.partyACity)}` : ''} (hereinafter referred to as the "Client").
+      </div>
+
+      <div class="doc-clause">
+        <b>2. CONTRACTOR / SERVICE PROVIDER:</b> <b>${esc(a.partyB)}</b>${a.partyBCity ? `, located at ${esc(a.partyBCity)}` : ''} (hereinafter referred to as the "Contractor").
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">3. ENGAGEMENT &amp; SCOPE OF WORK:</span>
+        The Client hereby engages the Contractor, and the Contractor agrees to perform and deliver the following services and deliverables:
+        <div style="margin:8px 0;padding:12px 14px;background:#f8fafc;border-left:3px solid var(--brand);font-style:italic">
+          ${esc(a.scope || a.purpose || 'Custom professional engineering, architecture, and deployment services.')}
+        </div>
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">4. COMPENSATION &amp; TOTAL CONTRACT VALUE:</span>
+        As consideration for the completion of deliverables, the Client covenants to pay to the Contractor the total sum of <b>${money(total)}</b> (<b>${amountToWords(total)}</b>) payable against mutual endorsement of the milestone phases specified below.
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">5. MILESTONE SCHEDULE &amp; ACCEPTANCE PROTOCOL:</span>
+        Each deliverable shall be submitted by the Contractor for Client review. The Client shall inspect the deliverable within a standard review window of seven (7) business days. Formal endorsement in this instrument's ledger constitutes definitive acceptance and authorizes release of milestone payout.
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">6. INTELLECTUAL PROPERTY &amp; WORK-FOR-HIRE:</span>
+        Upon full payment of the total compensation, all right, title, interest, copyright, and patentable work product generated under this agreement shall be irrevocably assigned and transferred to the Client.
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">7. MUTUAL CONFIDENTIALITY (NDA):</span>
+        Both parties agree to hold in strict confidence all proprietary business data, source code, product designs, customer information, and trade secrets disclosed during this engagement.
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">8. REVISION CYCLES &amp; WARRANTIES:</span>
+        The Contractor guarantees up to two (2) cycles of revisions per milestone to correct discrepancies against agreed specifications.
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">9. GOVERNING LAW:</span>
+        This agreement is governed by the laws of <b>${esc(a.jurisdiction || 'India')}</b>.
+      </div>
+
+      <!-- Signature Blocks -->
+      <div class="sig-grid">
+        ${renderSignatureBox(a, 'A', a.partyA, 'Client / Principal', remoteSigningRole)}
+        ${renderSignatureBox(a, 'B', a.partyB, 'Contractor / Provider', remoteSigningRole)}
+      </div>
+
+      <!-- Cryptographic Audit Seal -->
+      ${bothSigned ? `
+        <div class="audit-seal">
+          <div class="audit-seal-title">🔐 Cryptographic Integrity &amp; Audit Certificate</div>
+          <div>DOCUMENT DIGEST : ${docHash}</div>
+          <div>CLIENT SEAL     : ${esc(a.partyA)} · Executed ${new Date(a.sigA.at).toUTCString()}</div>
+          <div>CONTRACTOR SEAL : ${esc(a.partyB)} · Executed ${new Date(a.sigB.at).toUTCString()}</div>
+          <div>INTEGRITY SEAL  : TAMPER-PROOF &amp; BINDING WORK AGREEMENT</div>
+        </div>
+      ` : ''}
+
+      <!-- Milestones Schedule Table in Document -->
+      <div class="doc-ledger">
+        <div class="doc-ledger-title">Endorsed Milestones &amp; Deliverables Schedule</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Milestone Phase</th>
+              <th>Due Date</th>
+              <th>Deliverable Spec</th>
+              <th>Payout</th>
+              <th>Verification Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${milestones.map(m => `
+              <tr>
+                <td><b>${esc(m.title)}</b></td>
+                <td>${fd(m.due)}</td>
+                <td>${esc(m.desc || 'Standard Specifications')}</td>
+                <td><b>${money(m.amt)}</b></td>
+                <td>
+                  ${m.status === 'PAID' ? `
+                    <span class="text-green">✓ PAID &amp; ENDORSED</span>
+                  ` : m.status === 'APPROVED' ? `
+                    <span class="text-green">✓ APPROVED BY CLIENT</span>
+                  ` : m.status === 'SUBMITTED' ? `
+                    <span style="color:var(--warn)">⏳ Submitted For Review</span>
+                  ` : `
+                    <span class="muted">In Progress</span>
+                  `}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <div class="flex space" style="margin-top:12px;font-weight:700">
+          <span>Endorsed Payouts: ${money(paid)}</span>
+          <span>Remaining Balance: ${money(left)}</span>
+        </div>
+      </div>
+
+      <!-- Final Completion & IP Transfer Certificate -->
+      ${bothSigned && left <= 0.005 ? `
+        <div class="settlement-seal">
+          <h3>CERTIFICATE OF FINAL COMPLETION &amp; IP ASSIGNMENT</h3>
+          <p>
+            This certifies that all milestones under Working Agreement <b>${esc(a.id)}</b> 
+            (<i>${esc(a.title || 'Project Scope')}</i>) have been fully completed, inspected, accepted, and 100% remunerated. 
+            All intellectual property rights, source code, and design assets are irrevocably assigned to the Client (<b>${esc(a.partyA)}</b>).
+          </p>
+          <div style="font-size:11px;margin-top:8px;font-family:ui-monospace;letter-spacing:0.06em">
+            STATUS: FULLY EXECUTED &amp; DISCHARGED · COMPLETE IP TRANSFER
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Statutory Evidence Annexure (Section 65B IT Act) -->
+      ${renderSection65BCertificate(a, verifyUrl, docHash)}
+    </div>
+
+    <!-- Milestones Review & Interactive Payout Dock -->
+    <div class="card no-print">
+      <div class="flex space" style="margin-bottom:12px">
+        <div>
+          <div style="font-weight:800;font-size:15px">Interactive Milestones &amp; Approvals</div>
+          <div class="muted">Contractor submits deliverables · Client reviews and approves in real-time.</div>
+        </div>
+        <span class="badge ${left <= 0.005 ? 'ok' : 'filled'}">
+          ${left <= 0.005 ? '100% Completed' : `${pct}% Paid`}
+        </span>
+      </div>
+
+      <!-- Client-Only Review Alert for Submitted Deliverables -->
+      ${pendingReviews.length > 0 && isClient ? `
+        <div class="card" style="border:1.5px solid var(--warn-border);background:var(--warn-bg);color:var(--warn);margin-bottom:14px">
+          <div style="font-weight:800;font-size:13.5px">⚡ DELIVERABLE SUBMITTED FOR YOUR CLIENT APPROVAL</div>
+          <div style="font-size:12.5px;margin-top:2px">
+            ${esc(a.partyB)} has completed work and submitted for your inspection. Review deliverable and sign off below:
+          </div>
+          <div style="margin-top:10px;display:grid;gap:8px">
+            ${pendingReviews.map(m => `
+              <div class="flex space" style="background:var(--paper);color:var(--tx);padding:10px 12px;border-radius:6px;border:1px solid var(--border)">
+                <div>
+                  <b style="font-size:14px">${esc(m.title)}</b> · <b>${money(m.amt)}</b>
+                  <div class="muted" style="font-size:12px;margin-top:2px">
+                    Deliverable: <i>${esc(m.deliverableNote || 'Completed work ready for inspection')}</i>
+                  </div>
+                </div>
+                <div class="flex">
+                  <button class="btn-sm btn-success" onclick="approveMilestone('${a.id}', '${m.id}')">✓ Approve &amp; Sign Off</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Milestones List with Strict Role Enforcement -->
+      <div style="display:grid;gap:10px">
+        ${milestones.map((m, idx) => `
+          <div class="milestone-item">
+            <div class="flex space">
+              <div>
+                <b style="font-size:14px">Phase ${idx + 1}: ${esc(m.title)}</b>
+                <span class="badge ${m.status === 'PAID' ? 'ok' : m.status === 'APPROVED' ? 'ok' : m.status === 'SUBMITTED' ? 'warn' : ''}" style="margin-left:6px">
+                  ${m.status}
+                </span>
+              </div>
+              <b style="font-size:14.5px">${money(m.amt)}</b>
+            </div>
+            <div class="muted" style="font-size:12.5px;margin-top:4px">${esc(m.desc || 'Deliverable')} · Due ${fd(m.due)}</div>
+
+            ${m.deliverableNote ? `
+              <div style="font-size:12px;background:var(--paper);padding:6px 10px;border-radius:6px;border:1px solid var(--border);margin-top:6px">
+                <b>Submitted Deliverable:</b> ${esc(m.deliverableNote)}
+                ${m.approvedBy ? `<div class="text-green" style="margin-top:2px">✓ Approved by ${esc(m.approvedBy)} on ${fd(m.approvedAt)}</div>` : ''}
+              </div>
+            ` : ''}
+
+            <!-- Role-Specific Action Controls -->
+            ${bothSigned ? `
+              <div class="flex" style="margin-top:10px;gap:8px;flex-wrap:wrap">
+                ${m.status === 'PENDING' && isContractor ? `
+                  <button class="btn-sm btn-primary" onclick="submitMilestoneDeliverable('${a.id}', '${m.id}')">
+                    📤 Submit Deliverable for Review
+                  </button>
+                ` : m.status === 'PENDING' && !isContractor ? `
+                  <span class="muted" style="font-size:12px">Awaiting Contractor (${esc(a.partyB)}) deliverable submission…</span>
+                ` : m.status === 'SUBMITTED' && isClient ? `
+                  <button class="btn-sm btn-success" onclick="approveMilestone('${a.id}', '${m.id}')">
+                    ✓ Approve Deliverable
+                  </button>
+                ` : m.status === 'SUBMITTED' && !isClient ? `
+                  <span style="color:var(--warn);font-size:12px">⏳ Submitted · Awaiting Client (${esc(a.partyA)}) approval</span>
+                ` : m.status === 'APPROVED' && isClient ? `
+                  <button class="btn-sm btn-primary" style="background:var(--brand-grad);font-weight:800" onclick="openUpiPaymentModal('${a.id}', '${m.id}', ${m.amt}, '${esc(a.partyB)}', '${esc(a.partyBUpi || '')}', 'Milestone Phase ${idx + 1}: ${esc(m.title)}')">
+                    ⚡ Pay via UPI (${money(m.amt)})
+                  </button>
+                  <button class="btn-sm btn-success" onclick="endorseMilestonePayout('${a.id}', '${m.id}')">
+                    ✓ Endorse Manual Settlement
+                  </button>
+                ` : m.status === 'APPROVED' && !isClient ? `
+                  <span class="text-green" style="font-size:12px">✓ Approved by Client · Awaiting Payout Release</span>
+                ` : `
+                  <span class="text-green" style="font-size:12px">✓ Fully Paid &amp; Transferred ${m.utr ? `· UTR: ${esc(m.utr)}` : ''}</span>
+                `}
+              </div>
+            ` : `
+              <div class="muted" style="margin-top:6px;font-size:12px">Dual digital signatures required before deliverables unlock.</div>
+            `}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Action Dock -->
+    <div class="action-dock no-print">
+      <button class="btn-sm" id="btnExportPDF">📥 Export SOW PDF</button>
+      <button class="btn-sm" id="btnPrintDoc">🖨 Print</button>
+      <button class="btn-sm" id="btnVerifyQR" onclick="window.open('${verifyUrl}', '_blank')">🔍 Live QR Proof</button>
+      <button class="btn-sm btn-whatsapp" id="btnShareWhatsApp">💬 WhatsApp Reminder</button>
+      ${!bothSigned ? `<button class="btn-sm btn-danger" id="btnDeleteNote">Delete</button>` : ''}
+    </div>
+  `;
+
+  // Bind Actions
+  document.getElementById('btnDocBack').onclick = renderDashboard;
+  document.getElementById('btnPrintDoc').onclick = () => window.print();
+
+  document.getElementById('btnSwitchToCounterpart').onclick = () => {
+    activeProfile = counterpartName;
+    localStorage.setItem(PROFILE_KEY, activeProfile);
+    showToast(`Switched active profile to ${activeProfile}`);
+    renderDocumentView(a.id);
+  };
+
+  document.getElementById('btnExportPDF').onclick = () => {
+    const el = document.getElementById('printableNote');
+    const opt = {
+      margin:       [10, 14, 10, 14],
+      filename:     `${a.id}-${a.partyA}-and-${a.partyB}-SOW.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(el).save();
+  };
+
+  document.getElementById('btnShareWhatsApp').onclick = () => sendWhatsAppReminder(a.id);
+
+  const bi = document.getElementById('btnShareInvite');
+  if (bi) bi.onclick = () => {
+    const msg = `Hi ${a.partyB},\n${a.partyA} has prepared our formal Working Agreement & Scope of Work (Ref: ${a.id}) for ${esc(a.title || 'Project')}.\nPlease review the clauses and affix your digital signature here:\n${remoteSignUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const ci = document.getElementById('btnCopyInvite');
+  if (ci) ci.onclick = async () => {
+    await navigator.clipboard.writeText(remoteSignUrl).catch(() => {});
+    showToast('Signing link copied to clipboard!');
+  };
+
+  const ss = document.getElementById('btnShareSettled');
+  if (ss) ss.onclick = () => {
+    const msg = `Hi ${a.partyB},\nCongratulations! Working Agreement (Ref: ${a.id}) is 100% COMPLETE. All milestones are verified and full Intellectual Property rights are transferred.\nView Certificate: ${viewUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const dn = document.getElementById('btnDeleteNote');
+  if (dn) dn.onclick = async () => {
+    if (!confirm('Permanently delete this draft agreement?')) return;
+    list = list.filter(x => x.id !== a.id);
+    saveLocalList(list);
+    await deleteAgreementFromServer(a.id);
+    renderDashboard();
+  };
+
+  initPad('A', a);
+  initPad('B', a);
+}
+
+/* ─── Global Milestone Action Handlers ─── */
+window.submitMilestoneDeliverable = async (agrId, mId) => {
+  const a = list.find(x => x.id === agrId);
+  if (!a) return;
+  const m = (a.milestones || []).find(x => x.id === mId);
+  if (!m) return;
+
+  const note = prompt(`Enter deliverable summary, staging URL, or GitHub repository link for "${m.title}":`);
+  if (!note || !note.trim()) return;
+
+  m.status = 'SUBMITTED';
+  m.deliverableNote = note.trim();
+  m.submittedAt = Date.now();
+  m.submittedBy = activeProfile;
+  a._notice = `⚡ ${activeProfile} submitted deliverable for ${m.title}!`;
+
+  saveLocalList(list);
+  await saveAgreementToServer(a);
+
+  showToast('Deliverable submitted for Client approval!');
+
+  const ask = confirm('Deliverable submitted!\n\nWould you like to notify the Client on WhatsApp?');
+  if (ask) {
+    const port = location.port ? `:${location.port}` : '';
+    const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
+    const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
+    const msg = `Hi ${a.partyA},\nI have completed and submitted "${m.title}" for our Working Agreement (Ref: ${a.id}).\nDeliverable: ${m.deliverableNote}\nPlease review and approve here:\n${viewUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  renderDocumentView(a.id);
+};
+
+window.approveMilestone = async (agrId, mId) => {
+  const a = list.find(x => x.id === agrId);
+  if (!a) return;
+  const m = (a.milestones || []).find(x => x.id === mId);
+  if (!m) return;
+
+  m.status = 'APPROVED';
+  m.approvedAt = Date.now();
+  m.approvedBy = activeProfile;
+  a._notice = `✓ ${activeProfile} approved deliverable for ${m.title}!`;
+
+  saveLocalList(list);
+  await saveAgreementToServer(a);
+
+  showToast(`Deliverable for ${m.title} approved in green!`);
+  renderDocumentView(a.id);
+};
+
+window.endorseMilestonePayout = async (agrId, mId) => {
+  const a = list.find(x => x.id === agrId);
+  if (!a) return;
+  const m = (a.milestones || []).find(x => x.id === mId);
+  if (!m) return;
+
+  m.status = 'PAID';
+  m.paidAt = Date.now();
+  a._notice = `✓ ${activeProfile} endorsed payout of ${money(m.amt)} for ${m.title}!`;
+
+  saveLocalList(list);
+  await saveAgreementToServer(a);
+
+  showToast(`Payout of ${money(m.amt)} endorsed and recorded!`);
+
+  const ask = confirm(`Payout of ${money(m.amt)} endorsed!\n\nSend payment confirmation to ${a.partyB} via WhatsApp?`);
+  if (ask) {
+    const port = location.port ? `:${location.port}` : '';
+    const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
+    const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
+    const msg = `Hi ${a.partyB},\nPayout of ${money(m.amt)} for "${m.title}" under Working Agreement (Ref: ${a.id}) has been endorsed and cleared!\nView updated ledger:\n${viewUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  renderDocumentView(a.id);
+};
+
+/* ─── 2B: Loan Agreement View (Lender & Borrower Sides) ─── */
+function renderLoanAgreementView(a, remoteSigningRole) {
+  const { total, paid, left } = calcTotals(a);
+  const pct = total > 0 ? Math.min(100, (paid / total) * 100).toFixed(0) : 0;
+  const st = agreementStatus(a);
+  const bothSigned = a.sigA && a.sigB;
+
+  const port = location.port ? `:${location.port}` : '';
+  const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
+  const remoteSignUrl = `${location.protocol}//${host}${port}/?action=sign&id=${encodeURIComponent(a.id)}&party=B`;
+  const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
+  const verifyUrl = `${location.protocol}//${host}${port}/?action=verify&id=${encodeURIComponent(a.id)}`;
+
+  const docHash = makeHash(`${a.id}|${a.partyA}|${a.partyB}|${a.amount}|${a.start}|${a.due}`);
+  const pendingPayments = (a.payments || []).filter(p => p.status === 'PENDING');
+
+  const isLender = matchName(activeProfile, a.partyA);
+  const isBorrower = matchName(activeProfile, a.partyB);
+  const counterpartName = isLender ? a.partyB : a.partyA;
+
+  const app = document.getElementById('appSlot');
+  app.innerHTML = `
+    <!-- Dual-Side Testing Banner -->
+    <div class="role-banner no-print">
+      <div class="role-banner-text">
+        Viewing as: <b>${esc(activeProfile)}</b> &nbsp;·&nbsp;
+        Role: <b>${isLender ? 'Lender / Giver of Money (Party A)' : isBorrower ? 'Borrower / Requester (Party B)' : 'Guest / Viewer'}</b>
+      </div>
+      <button class="btn-sm" id="btnSwitchToCounterpart">
+        🔄 Switch to ${esc(counterpartName)}
+      </button>
+    </div>
+
+    <!-- Back & Header Actions -->
+    <div class="flex space" style="margin-bottom:14px">
+      <button class="btn-sm" id="btnDocBack">← Dashboard</button>
+      <div class="flex">
+        <span class="badge ${st.class}">${st.text}</span>
+      </div>
+    </div>
+
+    <!-- Remote Signing Invite Box -->
+    ${!bothSigned && a.sigA ? `
+      <div class="card no-print" style="border:1.5px solid var(--brand);background:rgba(79, 70, 229, 0.04)">
+        <div class="flex space">
+          <div>
+            <div style="font-weight:800;font-size:14px;color:var(--brand)">🔗 Send Remote Signing Link to ${esc(a.partyB)}</div>
+            <div class="muted" style="margin-top:2px">
+              ${esc(a.partyB)} does not need to be with you. Send them this link — they review and sign directly on their phone.
+            </div>
+          </div>
+          <span class="badge warn">Pending Remote Sign</span>
+        </div>
+        <div class="sep"></div>
+        <div class="flex" style="gap:8px;flex-wrap:wrap">
+          <button class="btn-sm btn-whatsapp" id="btnShareInvite">📲 Share via WhatsApp</button>
+          <button class="btn-sm" id="btnCopyInvite">📋 Copy Signing Link</button>
+        </div>
+      </div>
+    ` : bothSigned && left <= 0.005 ? `
+      <div class="card flex space no-print" style="border:2px solid var(--ok);background:var(--ok-bg);color:var(--ok)">
+        <div>
+          <div style="font-weight:800;font-size:14px">✓ ALL OBLIGATIONS SATISFIED &amp; DISCHARGED</div>
+          <div style="font-size:12.5px;color:var(--ok)">The principal sum and accrued interest are 100% repaid and verified.</div>
+        </div>
+        <button class="btn-sm btn-success" id="btnShareSettled">📤 Share Settlement Certificate</button>
+      </div>
+    ` : ''}
+
+    <!-- Promissory Note Document -->
+    <div class="paper-document" id="printableNote">
+      <div class="doc-stamp">MUTUAL PROMISSORY NOTE &amp; COVENANT</div>
+      
+      <div class="doc-header">
+        <h1>PROMISSORY NOTE &amp; LOAN AGREEMENT</h1>
+        <div class="doc-id">Reference Number: ${esc(a.id)} · Place: ${esc(a.jurisdiction || 'India')}</div>
+      </div>
+
+      <div class="doc-clause">
+        THIS AGREEMENT is executed on this <b>${fdLong(a.start)}</b> by and between:
+      </div>
+
+      <div class="doc-clause">
+        <b>1. LENDER / CREDITOR:</b> <b>${esc(a.partyA)}</b>${a.partyACity ? `, residing at ${esc(a.partyACity)}` : ''} (hereinafter called the "Lender").
+      </div>
+
+      <div class="doc-clause">
+        <b>2. BORROWER / DEBTOR:</b> <b>${esc(a.partyB)}</b>${a.partyBCity ? `, residing at ${esc(a.partyBCity)}` : ''} (hereinafter called the "Borrower").
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">3. PROMISE TO PAY:</span>
+        FOR VALUE RECEIVED, the Borrower unconditionally promises to pay to the Lender, the principal sum of <b>${money(a.amount)}</b> (<b>${amountToWords(a.amount)}</b>) along with simple interest at <b>${a.rate > 0 ? a.rate + '% per annum' : 'Zero Percent (0% p.a.)'}</b>. Total calculated sum repayable is <b>${money(total)}</b>.
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">4. MATURITY &amp; REPAYMENT:</span>
+        The Borrower agrees to satisfy and repay this obligation in full on or before <b>${fdLong(a.due)}</b>.
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">5. PURPOSE &amp; CONSIDERATION:</span>
+        The funds disbursed under this instrument are granted for: <i>${esc(a.purpose || 'Personal / Working capital mutual assistance')}</i>.
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">6. LATE SETTLEMENT &amp; DEFAULT:</span>
+        ${a.late > 0 
+          ? `In the event the principal balance is not settled on or before maturity date, an overdue penalty charge of <b>${a.late}% per month</b> shall accrue on the unpaid balance.`
+          : `No additional penalty interest shall accrue. The Lender retains the right to initiate formal recovery procedures upon default.`}
+      </div>
+
+      <div class="doc-clause">
+        <span class="doc-clause-num">7. MUTUAL REPAYMENT ENDORSEMENTS:</span>
+        Both parties agree that no repayment claim shall be valid unless formally verified and endorsed by the Lender in this instrument's ledger.
+      </div>
+
+      <!-- Signature Blocks -->
+      <div class="sig-grid">
+        ${renderSignatureBox(a, 'A', a.partyA, 'Lender / Creditor', remoteSigningRole)}
+        ${renderSignatureBox(a, 'B', a.partyB, 'Borrower / Debtor', remoteSigningRole)}
+      </div>
+
+      <!-- Audit Certificate -->
+      ${bothSigned ? `
+        <div class="audit-seal">
+          <div class="audit-seal-title">🔐 Cryptographic Integrity &amp; Audit Certificate</div>
+          <div>DOCUMENT DIGEST : ${docHash}</div>
+          <div>PARTY A SEAL    : ${esc(a.partyA)} · Executed ${new Date(a.sigA.at).toUTCString()}</div>
+          <div>PARTY B SEAL    : ${esc(a.partyB)} · Executed ${new Date(a.sigB.at).toUTCString()}</div>
+          <div>INTEGRITY SEAL  : TAMPER-PROOF &amp; LOCKED · VERIFIED IN LEDGER</div>
+        </div>
+      ` : ''}
+
+      <!-- Repayments Schedule Table -->
+      ${(a.payments || []).length > 0 ? `
+        <div class="doc-ledger">
+          <div class="doc-ledger-title">Endorsed Repayment Ledger Schedule</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Reference / Method</th>
+                <th>Verification Endorsement</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${(a.payments || []).map(p => `
+                <tr>
+                  <td>${fd(p.date)}</td>
+                  <td><b>${money(p.amt)}</b></td>
+                  <td>${esc(p.note || 'Direct Settlement')}</td>
+                  <td>
+                    ${p.status === 'VERIFIED' || p.status === undefined ? `
+                      <span class="text-green">✓ VERIFIED BY ${esc(p.verifiedBy || a.partyA)}</span>
+                    ` : p.status === 'REJECTED' ? `
+                      <span style="color:var(--err)">✕ Rejected</span>
+                    ` : `
+                      <span style="color:var(--warn)">⏳ Pending Lender Verification</span>
+                    `}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="flex space" style="margin-top:12px;font-weight:700">
+            <span>Total Endorsed Recoveries: ${money(paid)}</span>
+            <span>Outstanding Remaining Balance: ${money(left)}</span>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Certificate of Debt Satisfaction & Discharge -->
+      ${bothSigned && left <= 0.005 ? `
+        <div class="settlement-seal">
+          <h3>CERTIFICATE OF DEBT SATISFACTION &amp; DISCHARGE</h3>
+          <p>
+            This certifies that the principal sum and all accrued covenants under Promissory Note <b>${esc(a.id)}</b> 
+            have been <b>FULL AND SATISFACTORILY REPAID</b> by the Borrower (<b>${esc(a.partyB)}</b>) and fully acknowledged by the Lender (<b>${esc(a.partyA)}</b>). 
+            This obligation is extinguished in its entirety.
+          </p>
+          <div style="font-size:11px;margin-top:8px;font-family:ui-monospace;letter-spacing:0.06em">
+            STATUS: EXTRACTED, DISCHARGED &amp; CLOSED · ZERO LIABILITY
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Statutory Evidence Annexure (Section 65B IT Act) -->
+      ${renderSection65BCertificate(a, verifyUrl, docHash)}
+    </div>
+
+    <!-- Repayments Management Card -->
+    <div class="card no-print">
+      <div class="flex space" style="margin-bottom:10px">
+        <div>
+          <div style="font-weight:800;font-size:15px">Repayment Ledger &amp; Verification</div>
+          <div class="muted">Outstanding Balance: <b>${money(left)}</b> / ${money(total)}</div>
+        </div>
+        <span class="badge ${left <= 0.005 ? 'ok' : 'filled'}">
+          ${left <= 0.005 ? '100% Repaid' : `${pct}% Paid`}
+        </span>
+      </div>
+
+      <!-- Lender-Only Action Banner if repayments are awaiting verification -->
+      ${pendingPayments.length > 0 && isLender ? `
+        <div class="card" style="border:1.5px solid var(--warn-border);background:var(--warn-bg);color:var(--warn);margin-bottom:14px">
+          <div style="font-weight:800;font-size:13.5px">⚡ REPAYMENT AWAITING YOUR LENDER ENDORSEMENT</div>
+          <div style="font-size:12.5px;margin-top:2px">
+            ${esc(a.partyB)} has submitted a repayment. Check your bank / UPI and click Verify to endorse the ledger:
+          </div>
+          <div style="margin-top:10px;display:grid;gap:8px">
+            ${pendingPayments.map(p => `
+              <div class="flex space" style="background:var(--paper);color:var(--tx);padding:10px 12px;border-radius:6px;border:1px solid var(--border)">
+                <div>
+                  <b style="font-size:15px">${money(p.amt)}</b>
+                  <div class="muted" style="font-size:12px">${esc(p.note || 'Payment')} · ${fd(p.date)}</div>
+                </div>
+                <div class="flex">
+                  <button class="btn-sm btn-success" onclick="verifyPayment('${a.id}', '${p.id}')">✓ Verify &amp; Endorse</button>
+                  <button class="btn-sm btn-danger" onclick="rejectPayment('${a.id}', '${p.id}')">✕ Reject</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- List of all payments -->
+      <div id="paymentList">
+        ${(a.payments || []).length ? (a.payments || []).map(p => `
+          <div class="flex space" style="padding:10px 0;border-top:1px solid var(--border)">
+            <div>
+              <b style="font-size:15px">${money(p.amt)}</b>
+              <span class="muted" style="margin-left:6px">${fd(p.date)} ${p.note ? '· ' + esc(p.note) : ''}</span>
+              <div style="font-size:11.5px;margin-top:2px">
+                ${p.status === 'VERIFIED' || p.status === undefined ? `
+                  <span class="text-green">✓ Verified by ${esc(p.verifiedBy || a.partyA)} on ${fd(p.verifiedAt || p.date)}</span>
+                ` : p.status === 'REJECTED' ? `
+                  <span style="color:var(--err)">✕ Rejected by Lender</span>
+                ` : `
+                  <span style="color:var(--warn)">⏳ Awaiting Lender Endorsement</span>
+                `}
+              </div>
+            </div>
+            <div>
+              ${p.status === 'VERIFIED' || p.status === undefined ? `
+                <span class="badge ok">✓ Verified</span>
+              ` : p.status === 'REJECTED' ? `
+                <span class="badge err">Rejected</span>
+              ` : `
+                <span class="badge warn">Pending</span>
+              `}
+            </div>
+          </div>`).join('') : '<div class="muted">No payments recorded yet.</div>'}
+      </div>
+
+      <!-- 1-Tap UPI Repayment Action -->
+      ${bothSigned && left > 0.005 ? `
+        <div style="background:linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(6, 182, 212, 0.08));border:1.5px solid rgba(79, 70, 229, 0.3);border-radius:10px;padding:14px;margin-top:14px">
+          <div class="flex space" style="flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-weight:800;font-size:14px;display:flex;align-items:center;gap:6px">
+                <span style="color:var(--brand);font-size:16px">⚡</span> Instant 1-Tap UPI Repayment
+              </div>
+              <div class="muted" style="font-size:12px;margin-top:2px">
+                Pay directly to ${esc(a.partyA)} via Google Pay, PhonePe, Paytm, or BHIM with auto-receipt reference.
+              </div>
+            </div>
+            <button class="btn-primary" style="background:var(--brand-grad);padding:9px 16px;font-size:13.5px;font-weight:800;box-shadow:0 4px 14px rgba(79,70,229,0.3)" onclick="openUpiPaymentModal('${a.id}', null, ${Math.min(left, a.amount)}, '${esc(a.partyA)}', '${esc(a.partyAUpi || '')}', 'Repayment for Note ${a.id}')">
+              ⚡ Pay via UPI (${money(Math.min(left, a.amount))})
+            </button>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Add Repayment Section (Borrower submits or Lender records) -->
+      ${bothSigned && left > 0.005 ? `
+        <div class="sep"></div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px">
+          ${isLender ? 'Record Received Payment (Lender Direct Entry)' : 'Submit Repayment to Lender'}
+        </div>
+        <div class="grid-2">
+          <div>
+            <label>Amount (₹)</label>
+            <input type="number" id="inPayAmt" placeholder="₹ Amount" min="1" max="${Math.ceil(left)}">
+          </div>
+          <div>
+            <label>Payment Mode / UPI Reference</label>
+            <input id="inPayNote" placeholder="e.g. UPI Ref: 4892019482 / GPay / IMPS">
+          </div>
+        </div>
+        <div class="flex" style="gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn-primary" id="btnSubmitRepayment">
+            ${isLender ? '✓ Record Verified Payment' : '+ Submit Repayment for Verification'}
+          </button>
+        </div>
+      ` : !bothSigned ? `
+        <div class="muted" style="margin-top:10px">Both signatures are required before repayments unlock.</div>
+      ` : ''}
+    </div>
+
+    <!-- Action Dock -->
+    <div class="action-dock no-print">
+      <button class="btn-sm" id="btnExportPDF">📥 Export PDF</button>
+      <button class="btn-sm" id="btnPrintDoc">🖨 Print</button>
+      <button class="btn-sm" id="btnVerifyQR" onclick="window.open('${verifyUrl}', '_blank')">🔍 Live QR Proof</button>
+      <button class="btn-sm btn-whatsapp" id="btnShareWhatsApp">💬 WhatsApp Reminder</button>
+      ${!bothSigned ? `<button class="btn-sm btn-danger" id="btnDeleteNote">Delete</button>` : ''}
+    </div>
+  `;
+
+  // Bind Actions
+  document.getElementById('btnDocBack').onclick = renderDashboard;
+  document.getElementById('btnPrintDoc').onclick = () => window.print();
+
+  document.getElementById('btnSwitchToCounterpart').onclick = () => {
+    activeProfile = counterpartName;
+    localStorage.setItem(PROFILE_KEY, activeProfile);
+    showToast(`Switched active profile to ${activeProfile}`);
+    renderDocumentView(a.id);
+  };
+
+  document.getElementById('btnExportPDF').onclick = () => {
+    const el = document.getElementById('printableNote');
+    const opt = {
+      margin:       [10, 14, 10, 14],
+      filename:     `${a.id}-${a.partyA}-and-${a.partyB}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(el).save();
+  };
+
+  document.getElementById('btnShareWhatsApp').onclick = () => sendWhatsAppReminder(a.id);
+
+  const bi = document.getElementById('btnShareInvite');
+  if (bi) bi.onclick = () => {
+    const msg = `Hi ${a.partyB},\n${a.partyA} has prepared our formal Promissory Note & Loan Agreement (Ref: ${a.id}) for ${money(a.amount)}.\nPlease review the clauses and affix your digital signature here:\n${remoteSignUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const ci = document.getElementById('btnCopyInvite');
+  if (ci) ci.onclick = async () => {
+    await navigator.clipboard.writeText(remoteSignUrl).catch(() => {});
+    showToast('Signing link copied to clipboard!');
+  };
+
+  const ss = document.getElementById('btnShareSettled');
+  if (ss) ss.onclick = () => {
+    const msg = `Hi ${a.partyB},\nCongratulations! Promissory Note (Ref: ${a.id}) is now 100% FULLY SETTLED & REPAID.\nView and download your official Certificate of Debt Satisfaction & Discharge:\n${viewUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const dn = document.getElementById('btnDeleteNote');
+  if (dn) dn.onclick = async () => {
+    if (!confirm('Permanently delete this draft agreement?')) return;
+    list = list.filter(x => x.id !== a.id);
+    saveLocalList(list);
+    await deleteAgreementFromServer(a.id);
+    renderDashboard();
+  };
+
+  const sr = document.getElementById('btnSubmitRepayment');
+  if (sr) sr.onclick = async () => {
+    const amt = +document.getElementById('inPayAmt').value;
+    if (!amt || amt <= 0) return alert('Enter a valid payment amount.');
+    const note = document.getElementById('inPayNote').value.trim();
+
+    const isLenderRecording = isLender;
+    const payItem = {
+      id: 'pay_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      amt,
+      date: today(),
+      note: note || 'Direct payment',
+      submittedBy: activeProfile,
+      status: isLenderRecording ? 'VERIFIED' : 'PENDING',
+      verifiedBy: isLenderRecording ? activeProfile : null,
+      verifiedAt: isLenderRecording ? Date.now() : null
+    };
+
+    a.payments = [...(a.payments || []), payItem];
+    a._notice = isLenderRecording 
+      ? `✓ ${activeProfile} recorded verified payment of ${money(amt)} for Note ${a.id}`
+      : `⚡ ${activeProfile} submitted repayment of ${money(amt)} for Note ${a.id}`;
+
+    saveLocalList(list);
+    await saveAgreementToServer(a);
+
+    showToast(isLenderRecording ? 'Payment verified and endorsed!' : 'Repayment submitted for Lender verification!');
+
+    if (!isLenderRecording) {
+      const ask = confirm('Repayment submitted!\n\nWould you like to notify the Lender via WhatsApp with the transaction reference?');
+      if (ask) {
+        const msg = `Hi ${a.partyA},\nI have submitted a repayment of ${money(amt)} (${note || 'Settlement'}) towards our Promissory Note (Ref: ${a.id}).\nPlease review and endorse it here:\n${viewUrl}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      }
+    }
+
+    renderDocumentView(a.id);
+  };
+
+  initPad('A', a);
+  initPad('B', a);
+}
+
+/* ─── Global Loan Verification Handlers ─── */
+window.verifyPayment = async (agrId, payId) => {
+  const a = list.find(x => x.id === agrId);
+  if (!a) return;
+  const p = (a.payments || []).find(x => x.id === payId);
+  if (!p) return;
+
+  p.status = 'VERIFIED';
+  p.verifiedBy = activeProfile;
+  p.verifiedAt = Date.now();
+  a._notice = `✓ ${activeProfile} endorsed payment of ${money(p.amt)} for Note ${a.id}`;
+
+  saveLocalList(list);
+  await saveAgreementToServer(a);
+
+  showToast(`Payment of ${money(p.amt)} verified & endorsed in green!`);
+  renderDocumentView(a.id);
+};
+
+window.rejectPayment = async (agrId, payId) => {
+  const a = list.find(x => x.id === agrId);
+  if (!a) return;
+  const p = (a.payments || []).find(x => x.id === payId);
+  if (!p) return;
+
+  if (!confirm(`Reject repayment claim of ${money(p.amt)}?`)) return;
+  p.status = 'REJECTED';
+  a._notice = `✕ Payment of ${money(p.amt)} was rejected by ${activeProfile}`;
+
+  saveLocalList(list);
+  await saveAgreementToServer(a);
+
+  showToast('Repayment record rejected.');
+  renderDocumentView(a.id);
+};
+
+/* ─── Universal Signature Box & Canvas (Role-Enforced) ─── */
+function renderSignatureBox(a, k, name, role, remoteSigningRole) {
+  const s = a['sig' + k];
+  if (s) {
+    return `
+    <div class="sig-cell verified">
+      <img src="${s.img}" alt="Digital Signature">
+      <div style="font-weight:800;font-size:13px;margin-top:6px;color:#0f172a">${esc(name)}</div>
+      <div style="font-size:11px;color:#059669;font-weight:700">✓ ${role} (SEALED)</div>
+      <div style="font-size:10px;color:#64748b;margin-top:2px">Digitally Endorsed: ${fdLong(s.at)}</div>
+      <div style="font-size:10px;font-family:ui-monospace;color:#047857">${s.stamp || 'VERIFIED IDENTITY'}</div>
+    </div>`;
+  }
+
+  // Strict identity enforcement:
+  // Eligible if remoteSigningRole === k, OR activeProfile/currentUser matches slot
+  const targetPartyName = k === 'A' ? a.partyA : a.partyB;
+  const isMatchVault = currentUser && (
+    (k === 'A' && ((a.partyAVaultId && a.partyAVaultId === currentUser.vaultId) || (a.partyAEmail && a.partyAEmail.toLowerCase() === (currentUser.email||'').toLowerCase()))) ||
+    (k === 'B' && ((a.partyBVaultId && a.partyBVaultId === currentUser.vaultId) || (a.partyBEmail && a.partyBEmail.toLowerCase() === (currentUser.email||'').toLowerCase())))
+  );
+  const isEligible = (remoteSigningRole === k) || isMatchVault || (!remoteSigningRole && matchName(activeProfile, targetPartyName));
+
+  if (!isEligible) {
+    return `
+    <div class="sig-cell no-print">
+      <div style="font-weight:700;font-size:12px;margin-bottom:4px">${esc(name)} (${role})</div>
+      <div class="muted" style="font-size:12px">Awaiting signature from ${esc(name)}…</div>
+      <div style="font-size:11px;color:var(--tx-faint);margin-top:6px">
+        Only ${esc(name)} can sign this block using their private signing invite.
+      </div>
+    </div>`;
+  }
+
+  return `
+  <div class="sig-cell no-print">
+    <div style="font-weight:700;font-size:12px;margin-bottom:6px">${esc(name)} (${role}) — Affix signature:</div>
+    <canvas class="pad-canvas" id="canvas${k}"></canvas>
+    <div class="flex space" style="margin-top:6px">
+      <button class="btn-sm" id="clear${k}">Clear</button>
+      <button class="btn-sm btn-primary" id="sign${k}">Sign as ${esc(name)}</button>
+    </div>
+  </div>`;
+}
+
+function initPad(k, a) {
+  const c = document.getElementById('canvas' + k);
+  if (!c) return;
+  const dpr = window.devicePixelRatio || 1;
+  const rect = c.getBoundingClientRect();
+  c.width = rect.width * dpr;
+  c.height = 95 * dpr;
+  const ctx = c.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.lineWidth = 2.4;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#0f172a';
+
+  let drawing = false, dirty = false;
+  const pos = e => {
+    const b = c.getBoundingClientRect();
+    return [e.clientX - b.left, e.clientY - b.top];
+  };
+
+  c.onpointerdown = e => {
+    drawing = true;
+    c.setPointerCapture(e.pointerId);
+    ctx.beginPath();
+    ctx.moveTo(...pos(e));
+  };
+  c.onpointermove = e => {
+    if (!drawing) return;
+    ctx.lineTo(...pos(e));
+    ctx.stroke();
+    dirty = true;
+  };
+  c.onpointerup = c.onpointercancel = () => { drawing = false; };
+
+  document.getElementById('clear' + k).onclick = () => { ctx.clearRect(0, 0, c.width, c.height); dirty = false; };
+  document.getElementById('sign' + k).onclick = async () => {
+    if (!dirty) return alert('Please draw your signature first.');
+    const t = document.createElement('canvas');
+    t.width = 320; t.height = 95;
+    const tc = t.getContext('2d');
+    tc.fillStyle = '#ffffff';
+    tc.fillRect(0, 0, 320, 95);
+    tc.drawImage(c, 0, 0, 320, 95);
+
+    const sigData = {
+      img: t.toDataURL('image/png'),
+      at: Date.now(),
+      stamp: `SEAL: ${Math.random().toString(36).slice(2, 8).toUpperCase()}`
+    };
+
+    a['sig' + k] = sigData;
+    a._notice = `⚡ ${k === 'A' ? a.partyA : a.partyB} signed Instrument ${a.id}!`;
+    saveLocalList(list);
+
+    await saveAgreementToServer(a);
+
+    showToast('Signature digitally sealed and endorsed!');
+    renderDocumentView(a.id);
+  };
+}
+
+/* ─── View 3A: Create Working Agreement Form ─── */
+function renderCreateWorkForm() {
+  let milestoneCount = 2;
+  let targetWorkBVaultId = null;
+  let targetWorkBEmail = null;
+  let targetWorkBUpi = null;
+  let targetWorkBQr = null;
+
+  document.getElementById('appSlot').innerHTML = `
+    <div class="flex space" style="margin-bottom:12px">
+      <button class="btn-sm" id="btnCancelCreate">← Cancel</button>
+      <span class="badge filled">Working Agreement &amp; SOW</span>
+    </div>
+
+    <div class="card anim-fade">
+      <div style="font-weight:800;font-size:18px;margin-bottom:4px">New Professional Working Agreement</div>
+      <div class="muted" style="margin-bottom:16px">Creates a binding Scope of Work with deliverables, client sign-offs, and IP assignment.</div>
+
+      <!-- Counterparty Lookup Box -->
+      <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+        <label style="margin-top:0">Direct Counterparty Match (Vault ID or Email)</label>
+        <div class="muted" style="font-size:12px;margin-bottom:8px">
+          Enter your contractor's Vault ID (e.g. VID-38110) or verified email to request their direct endorsement.
+        </div>
+        <div style="display:flex;gap:8px">
+          <input id="workLookupInput" placeholder="e.g. VID-38110 or rohan.verma@gmail.com" style="flex:1">
+          <button type="button" class="btn-sm btn-primary" id="btnWorkLookup" style="white-space:nowrap;padding:0 14px">🔍 Find User</button>
+        </div>
+        <div id="workLookupBadge" style="display:none;margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12.5px"></div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Client / Principal (Hiring Party)</label>
+          <input id="workClient" value="${esc(currentUser ? currentUser.fullName : activeProfile)}" placeholder="Company or full name">
+        </div>
+        <div>
+          <label>Client Jurisdiction / City</label>
+          <input id="workClientCity" value="Mumbai, India" placeholder="City, State">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Contractor / Service Provider</label>
+          <input id="workContractor" placeholder="Agency or freelancer name">
+        </div>
+        <div>
+          <label>Contractor Location / City</label>
+          <input id="workContractorCity" placeholder="City, State">
+        </div>
+      </div>
+
+      <label>Project Title</label>
+      <input id="workTitle" placeholder="e.g. Mobile Application &amp; Cloud Backend Engineering">
+
+      <label>Detailed Scope of Work (SOW)</label>
+      <textarea id="workScope" placeholder="Describe the core deliverables, technical stack, architecture requirements, and standards to be met…"></textarea>
+
+      <div class="grid-2">
+        <div>
+          <label>Engagement Start Date</label>
+          <input type="date" id="workStart" value="${today()}">
+        </div>
+        <div>
+          <label>Final Completion Target Date</label>
+          <input type="date" id="workDue">
+        </div>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="flex space" style="margin-bottom:10px">
+        <div>
+          <div style="font-weight:800;font-size:14px">Phased Milestones &amp; Deliverables</div>
+          <div class="muted">Payments unlock when each deliverable is formally approved by the client.</div>
+        </div>
+        <button class="btn-sm" id="btnAddMilestone">+ Add Phase</button>
+      </div>
+
+      <div id="milestonesContainer">
+        <div class="milestone-item" data-idx="0">
+          <div class="grid-2">
+            <div>
+              <label>Phase 1 Title</label>
+              <input class="m-title" value="Phase 1: Architecture, Wireframes &amp; UI Mockups">
+            </div>
+            <div>
+              <label>Phase 1 Amount (₹)</label>
+              <input type="number" class="m-amt" value="30000" min="1">
+            </div>
+          </div>
+          <label>Deliverable Specification</label>
+          <input class="m-desc" value="System architecture schemas, DB diagrams, high-fidelity Figma designs.">
+        </div>
+
+        <div class="milestone-item" data-idx="1">
+          <div class="grid-2">
+            <div>
+              <label>Phase 2 Title</label>
+              <input class="m-title" value="Phase 2: Core Engineering, API &amp; Production Deployment">
+            </div>
+            <div>
+              <label>Phase 2 Amount (₹)</label>
+              <input type="number" class="m-amt" value="50000" min="1">
+            </div>
+          </div>
+          <label>Deliverable Specification</label>
+          <input class="m-desc" value="Full-stack code, automated test suite, CI/CD pipeline, and staging release.">
+        </div>
+      </div>
+
+      <button class="btn-primary full" id="btnSaveWorkAgreement" style="margin-top:18px">
+        Generate Binding Working Agreement →
+      </button>
+    </div>
+  `;
+
+  document.getElementById('btnCancelCreate').onclick = renderDashboard;
+
+  const doWorkLookup = async () => {
+    const q = document.getElementById('workLookupInput').value.trim();
+    const badge = document.getElementById('workLookupBadge');
+    if (!q) return;
+    badge.style.display = 'block';
+    badge.className = 'badge filled';
+    badge.textContent = 'Searching Vault registry...';
+    try {
+      const res = await fetch(apiUrl(`/api/users/lookup?q=${encodeURIComponent(q)}`));
+      const data = await res.json();
+      if (data && data.ok && data.found && data.user) {
+        const u = data.user;
+        targetWorkBVaultId = u.vaultId;
+        targetWorkBEmail = u.email;
+        targetWorkBUpi = u.upiId || null;
+        targetWorkBQr = u.qrCode || null;
+        document.getElementById('workContractor').value = u.fullName;
+        badge.className = 'badge ok';
+        badge.innerHTML = `✓ Verified Vault User: <b>${esc(u.fullName)}</b> (🆔 ${esc(u.vaultId)} ${u.upiId ? `· UPI: ${esc(u.upiId)}` : ''})`;
+        showToast(`Matched counterparty ${u.fullName} (${u.vaultId})`);
+      } else {
+        targetWorkBVaultId = null;
+        targetWorkBEmail = null;
+        targetWorkBUpi = null;
+        targetWorkBQr = null;
+        badge.className = 'badge warn';
+        badge.textContent = 'No registered user found with that ID or Email. You can enter details manually.';
+      }
+    } catch {
+      badge.className = 'badge warn';
+      badge.textContent = 'Verification offline. You may proceed manually.';
+    }
+  };
+  document.getElementById('btnWorkLookup').onclick = doWorkLookup;
+  document.getElementById('workLookupInput').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); doWorkLookup(); } };
+
+  document.getElementById('btnAddMilestone').onclick = () => {
+    milestoneCount++;
+    const div = document.createElement('div');
+    div.className = 'milestone-item';
+    div.dataset.idx = milestoneCount - 1;
+    div.innerHTML = `
+      <div class="grid-2">
+        <div>
+          <label>Phase ${milestoneCount} Title</label>
+          <input class="m-title" placeholder="Phase ${milestoneCount} Title">
+        </div>
+        <div>
+          <label>Phase ${milestoneCount} Amount (₹)</label>
+          <input type="number" class="m-amt" placeholder="₹ Amount" min="1">
+        </div>
+      </div>
+      <label>Deliverable Specification</label>
+      <input class="m-desc" placeholder="Deliverable details and acceptance criteria">
+    `;
+    document.getElementById('milestonesContainer').appendChild(div);
+  };
+
+  document.getElementById('btnSaveWorkAgreement').onclick = async () => {
+    const client = document.getElementById('workClient').value.trim();
+    const contractor = document.getElementById('workContractor').value.trim();
+    const title = document.getElementById('workTitle').value.trim();
+    const scope = document.getElementById('workScope').value.trim();
+    const due = document.getElementById('workDue').value;
+
+    if (!client || !contractor || !title || !due) {
+      return alert('Please enter Client name, Contractor name, Project Title, and Target Date.');
+    }
+
+    const items = document.querySelectorAll('#milestonesContainer .milestone-item');
+    const milestones = [];
+    let totalBudget = 0;
+
+    items.forEach((item, i) => {
+      const t = item.querySelector('.m-title').value.trim();
+      const a = +item.querySelector('.m-amt').value || 0;
+      const d = item.querySelector('.m-desc').value.trim();
+      if (t && a > 0) {
+        milestones.push({
+          id: 'm_' + (i + 1),
+          title: t,
+          amt: a,
+          desc: d,
+          due,
+          status: 'PENDING',
+          deliverableNote: '',
+          submittedAt: null,
+          approvedAt: null,
+          paidAt: null
+        });
+        totalBudget += a;
+      }
+    });
+
+    if (milestones.length === 0) {
+      return alert('Please include at least one valid milestone phase with a positive amount.');
+    }
+
+    const agreement = {
+      id: 'SOW-' + Math.floor(1000 + Math.random() * 9000),
+      creatorId: currentUser ? currentUser.id : null,
+      createdBy: currentUser ? currentUser.username : null,
+      type: 'work',
+      title,
+      partyA: client,
+      partyAVaultId: currentUser ? currentUser.vaultId : null,
+      partyAEmail: currentUser ? currentUser.email : null,
+      partyAUpi: (currentUser && currentUser.upiId) ? currentUser.upiId : null,
+      partyAQr: (currentUser && currentUser.qrCode) ? currentUser.qrCode : null,
+      partyACity: document.getElementById('workClientCity').value.trim(),
+      partyB: contractor,
+      partyBVaultId: targetWorkBVaultId || null,
+      partyBEmail: targetWorkBEmail || null,
+      partyBUpi: targetWorkBUpi || null,
+      partyBQr: targetWorkBQr || null,
+      partyBCity: document.getElementById('workContractorCity').value.trim(),
+      scope,
+      amount: totalBudget,
+      start: document.getElementById('workStart').value,
+      due,
+      jurisdiction: document.getElementById('workClientCity').value.trim() || 'India',
+      milestones,
+      sigA: null,
+      sigB: null,
+      created: Date.now()
+    };
+
+    list.unshift(agreement);
+    saveLocalList(list);
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    await fetch(apiUrl('/api/agreements'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(agreement)
+    }).catch(() => {});
+
+    showToast(`Working Agreement ${agreement.id} created!`);
+    renderDocumentView(agreement.id);
+  };
+}
+
+/* ─── View 3B: Create Loan Agreement Form ─── */
+function renderCreateLoanForm() {
+  let targetLoanBVaultId = null;
+  let targetLoanBEmail = null;
+  let targetLoanBUpi = null;
+  let targetLoanBQr = null;
+
+  document.getElementById('appSlot').innerHTML = `
+    <div class="flex space" style="margin-bottom:12px">
+      <button class="btn-sm" id="btnCancelCreate">← Cancel</button>
+      <span class="badge ok">Mutual Loan Promissory Note</span>
+    </div>
+
+    <div class="card anim-fade">
+      <div style="font-weight:800;font-size:18px;margin-bottom:4px">New Mutual Loan Agreement</div>
+      <div class="muted" style="margin-bottom:16px">Creates a legally structured promissory instrument with remote sign &amp; mutual repayment endorsements.</div>
+
+      <!-- Counterparty Lookup Box -->
+      <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+        <label style="margin-top:0">Direct Borrower Match (Vault ID or Email)</label>
+        <div class="muted" style="font-size:12px;margin-bottom:8px">
+          Enter borrower's Vault ID (e.g. VID-38110) or verified email to request their direct endorsement.
+        </div>
+        <div style="display:flex;gap:8px">
+          <input id="loanLookupInput" placeholder="e.g. VID-38110 or rohan.verma@gmail.com" style="flex:1">
+          <button type="button" class="btn-sm btn-primary" id="btnLoanLookup" style="white-space:nowrap;padding:0 14px">🔍 Find User</button>
+        </div>
+        <div id="loanLookupBadge" style="display:none;margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12.5px"></div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Party A — Lender (Gives Money)</label>
+          <input id="newPartyA" value="${esc(currentUser ? currentUser.fullName : activeProfile)}" placeholder="Legal full name">
+        </div>
+        <div>
+          <label>Lender City / Jurisdiction</label>
+          <input id="newCityA" value="Mumbai, India" placeholder="City, State">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Party B — Borrower (Receives Money)</label>
+          <input id="newPartyB" placeholder="Legal full name">
+        </div>
+        <div>
+          <label>Borrower City / Location</label>
+          <input id="newCityB" placeholder="City, State">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Principal Loan Amount (₹)</label>
+          <input type="number" id="newAmount" placeholder="e.g. 50000" min="1">
+        </div>
+        <div>
+          <label>Annual Interest % (0 = No Interest)</label>
+          <input type="number" id="newRate" value="0" min="0" step="0.5">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Disbursement Date</label>
+          <input type="date" id="newStart" value="${today()}">
+        </div>
+        <div>
+          <label>Repay-By Maturity Date</label>
+          <input type="date" id="newDue">
+        </div>
+      </div>
+
+      <label>Overdue Late Penalty</label>
+      <select id="newLate">
+        <option value="0">No late fee</option>
+        <option value="1">1% per month on overdue balance</option>
+        <option value="1.5">1.5% per month on overdue balance</option>
+        <option value="2">2% per month on overdue balance</option>
+      </select>
+
+      <label>Loan Purpose / Consideration</label>
+      <input id="newPurpose" placeholder="e.g. Personal emergency assistance / working capital">
+
+      <button class="btn-primary full" id="btnSaveNote" style="margin-top:18px">
+        Generate Legal Instrument →
+      </button>
+    </div>
+  `;
+
+  document.getElementById('btnCancelCreate').onclick = renderDashboard;
+
+  const doLoanLookup = async () => {
+    const q = document.getElementById('loanLookupInput').value.trim();
+    const badge = document.getElementById('loanLookupBadge');
+    if (!q) return;
+    badge.style.display = 'block';
+    badge.className = 'badge filled';
+    badge.textContent = 'Searching Vault registry...';
+    try {
+      const res = await fetch(apiUrl(`/api/users/lookup?q=${encodeURIComponent(q)}`));
+      const data = await res.json();
+      if (data && data.ok && data.found && data.user) {
+        const u = data.user;
+        targetLoanBVaultId = u.vaultId;
+        targetLoanBEmail = u.email;
+        targetLoanBUpi = u.upiId || null;
+        targetLoanBQr = u.qrCode || null;
+        document.getElementById('newPartyB').value = u.fullName;
+        badge.className = 'badge ok';
+        badge.innerHTML = `✓ Verified Vault User: <b>${esc(u.fullName)}</b> (🆔 ${esc(u.vaultId)} ${u.upiId ? `· UPI: ${esc(u.upiId)}` : ''})`;
+        showToast(`Matched borrower ${u.fullName} (${u.vaultId})`);
+      } else {
+        targetLoanBVaultId = null;
+        targetLoanBEmail = null;
+        targetLoanBUpi = null;
+        targetLoanBQr = null;
+        badge.className = 'badge warn';
+        badge.textContent = 'No registered user found with that ID or Email. You can enter details manually.';
+      }
+    } catch {
+      badge.className = 'badge warn';
+      badge.textContent = 'Verification offline. You may proceed manually.';
+    }
+  };
+  document.getElementById('btnLoanLookup').onclick = doLoanLookup;
+  document.getElementById('loanLookupInput').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); doLoanLookup(); } };
+
+  document.getElementById('btnSaveNote').onclick = async () => {
+    const pA = document.getElementById('newPartyA').value.trim();
+    const pB = document.getElementById('newPartyB').value.trim();
+    const amt = +document.getElementById('newAmount').value;
+    const due = document.getElementById('newDue').value;
+
+    if (!pA || !pB || !amt || !due) return alert('Please enter both party names, principal amount, and maturity date.');
+    if (new Date(due) <= new Date(document.getElementById('newStart').value)) return alert('Maturity date must be after disbursement date.');
+
+    const note = {
+      id: 'NOTE-' + Math.floor(1000 + Math.random() * 9000),
+      creatorId: currentUser ? currentUser.id : null,
+      createdBy: currentUser ? currentUser.username : null,
+      type: 'loan',
+      partyA: pA,
+      partyAVaultId: currentUser ? currentUser.vaultId : null,
+      partyAEmail: currentUser ? currentUser.email : null,
+      partyAUpi: (currentUser && currentUser.upiId) ? currentUser.upiId : null,
+      partyAQr: (currentUser && currentUser.qrCode) ? currentUser.qrCode : null,
+      partyACity: document.getElementById('newCityA').value.trim(),
+      partyB: pB,
+      partyBVaultId: targetLoanBVaultId || null,
+      partyBEmail: targetLoanBEmail || null,
+      partyBUpi: targetLoanBUpi || null,
+      partyBQr: targetLoanBQr || null,
+      partyBCity: document.getElementById('newCityB').value.trim(),
+      amount: amt,
+      rate: +document.getElementById('newRate').value || 0,
+      start: document.getElementById('newStart').value,
+      due,
+      late: +document.getElementById('newLate').value || 0,
+      purpose: document.getElementById('newPurpose').value.trim(),
+      jurisdiction: document.getElementById('newCityA').value.trim() || 'India',
+      payments: [],
+      sigA: null,
+      sigB: null,
+      created: Date.now()
+    };
+
+    list.unshift(note);
+    saveLocalList(list);
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    await fetch(apiUrl('/api/agreements'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(note)
+    }).catch(() => {});
+
+    showToast(`Note ${note.id} created!`);
+    renderDocumentView(note.id);
+  };
+}
+
+/* ─── WhatsApp Reminder ─── */
+function sendWhatsAppReminder(id) {
+  const a = list.find(x => x.id === id);
+  if (!a) return;
+  const { total, left } = calcTotals(a);
+  const port = location.port ? `:${location.port}` : '';
+  const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
+  const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
+  
+  const text = a.type === 'work'
+    ? `Hi ${a.partyB},\nThis is regarding our Working Agreement (Ref: ${a.id}) for ${esc(a.title || 'Project')}.\nOutstanding balance: ${money(left)} / ${money(total)}.\nView current progress & milestone review:\n${viewUrl}`
+    : `Hi ${a.partyB},\nThis is a polite reminder regarding our mutual promissory note (Ref: ${a.id}) for ${money(a.amount)}.\nOutstanding balance: ${money(left)}\nDue date: ${fd(a.due)}.\nView current statement: ${viewUrl}`;
+
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+}
+
+/* ─── View: Public Legal Verification Portal (Section 65B Electronic Evidence) ─── */
+async function renderVerificationView(id) {
+  const app = document.getElementById('appSlot');
+  app.innerHTML = `
+    <div style="max-width:820px;margin:20px auto;padding:16px">
+      <div class="card flex center" style="padding:40px;text-align:center">
+        <div style="font-size:28px">⏳</div>
+        <div style="margin-top:10px;font-weight:700">Verifying Cryptographic Record...</div>
+        <div class="muted">Querying official electronic record repository for ${esc(id)}</div>
+      </div>
+    </div>
+  `;
+
+  let data = null;
+  try {
+    const res = await fetch(apiUrl(`/api/agreements/verify/${encodeURIComponent(id)}`));
+    data = await res.json();
+  } catch (err) {
+    console.error(err);
+  }
+
+  if (!data || !data.verified) {
+    app.innerHTML = `
+      <div style="max-width:640px;margin:30px auto;padding:16px">
+        <div class="card" style="border:1.5px solid var(--err);text-align:center;padding:32px 20px">
+          <div style="font-size:44px;color:var(--err)">⚠️</div>
+          <h2 style="margin:10px 0 6px;color:var(--err)">Record Not Found or Unverified</h2>
+          <p class="muted">No authentic electronic instrument matching ID <b>${esc(id)}</b> was found in the official registry.</p>
+          <div style="margin-top:20px">
+            <button class="btn-primary" onclick="${currentUser ? 'renderDashboard()' : 'location.href=\"/\"'}">← Return to Dashboard</button>
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const bothSigned = data.sigA && data.sigB;
+  const isWork = data.type === 'work';
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(window.location.href)}`;
+
+  app.innerHTML = `
+    <div style="max-width:820px;margin:16px auto;padding:0 12px 40px">
+      <!-- Back / Navigation Row -->
+      <div class="flex space no-print" style="margin-bottom:14px">
+        <button class="btn-sm" onclick="${currentUser ? 'renderDashboard()' : 'location.href=\"/\"'}">← ${currentUser ? 'Dashboard' : 'Thinkable Home'}</button>
+        <span class="badge ok">✓ Cryptographically Validated</span>
+      </div>
+
+      <!-- Trust & Verification Shield Banner -->
+      <div class="card" style="border:2px solid #059669;background:linear-gradient(135deg, rgba(5,150,105,0.06), rgba(16,185,129,0.02));padding:22px;border-radius:12px;margin-bottom:16px">
+        <div class="flex space" style="align-items:flex-start;gap:14px;flex-wrap:wrap">
+          <div style="display:flex;gap:14px;align-items:center">
+            <div style="width:54px;height:54px;border-radius:50%;background:#059669;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 4px 14px rgba(5,150,105,0.3)">
+              ✓
+            </div>
+            <div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <span style="font-size:18px;font-weight:900;letter-spacing:-0.02em">OFFICIAL ELECTRONIC RECORD VERIFIED</span>
+                <span class="badge ok" style="font-size:11px">Sec 65B(4) Admissible</span>
+              </div>
+              <div class="muted" style="font-size:13px;margin-top:4px">
+                Electronic instrument registered under Bharatiya Sakshya Adhiniyam 2023 &amp; Information Technology Act 2000.
+              </div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <span class="badge ${bothSigned ? 'ok' : 'warn'}" style="font-size:12px;padding:6px 10px">
+              ${bothSigned ? '✓ FULLY EXECUTED & BINDING' : '⏳ PARTIALLY EXECUTED'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Registry Details -->
+      <div class="card" style="padding:20px;border-radius:12px;margin-bottom:16px">
+        <div class="flex space" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-weight:800;font-size:16px;letter-spacing:-0.01em">
+              Electronic Evidentiary Certificate Matrix
+            </div>
+            <div class="muted" style="font-size:12px">Certified System Extract · Tamper-proof audit record</div>
+          </div>
+          <img src="${qrUrl}" alt="Verification QR Code" style="width:68px;height:68px;border:1px solid #cbd5e1;border-radius:6px;padding:3px;background:#fff" />
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:12px;margin-bottom:16px">
+          <div style="background:var(--pill);padding:12px 14px;border-radius:8px;border:1px solid var(--border)">
+            <div class="muted" style="font-size:11px;text-transform:uppercase;font-weight:700">Instrument Reference</div>
+            <div style="font-size:16px;font-weight:800;margin-top:3px">${esc(data.id)}</div>
+            <div class="muted" style="font-size:11.5px">${isWork ? 'Working Agreement (SOW)' : 'Promissory Note & Loan'}</div>
+          </div>
+
+          <div style="background:var(--pill);padding:12px 14px;border-radius:8px;border:1px solid var(--border)">
+            <div class="muted" style="font-size:11px;text-transform:uppercase;font-weight:700">Financial Consideration</div>
+            <div style="font-size:16px;font-weight:800;margin-top:3px">${money(data.amount)}</div>
+            <div class="muted" style="font-size:11.5px">${isWork ? 'Total Agreed Project Budget' : 'Principal Borrowed Sum'}</div>
+          </div>
+
+          <div style="background:var(--pill);padding:12px 14px;border-radius:8px;border:1px solid var(--border)">
+            <div class="muted" style="font-size:11px;text-transform:uppercase;font-weight:700">Registered Timestamp</div>
+            <div style="font-size:13.5px;font-weight:700;margin-top:3px">${data.serverTimestampUtc ? new Date(data.serverTimestampUtc).toUTCString() : new Date(data.created).toUTCString()}</div>
+            <div class="muted" style="font-size:11.5px">Server Clock UTC Stamped</div>
+          </div>
+        </div>
+
+        <!-- SHA-256 Digest Callout -->
+        <div style="background:var(--card-bg, #0f172a);color:#e2e8f0;padding:14px;border-radius:8px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.08)">
+          <div class="flex space" style="margin-bottom:4px">
+            <span style="font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:0.06em">
+              Canonical Cryptographic SHA-256 Digest
+            </span>
+            <button class="btn-sm" style="padding:2px 8px;font-size:11px" onclick="navigator.clipboard.writeText('${data.sha256Digest || ''}').then(() => showToast('SHA-256 hash copied!'))">📋 Copy Hash</button>
+          </div>
+          <div style="font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:13px;word-break:break-all;color:#38bdf8;font-weight:700">
+            ${data.sha256Digest || 'SHA-256 VERIFIED AT TIME OF AUDIT'}
+          </div>
+          <div style="font-size:11px;color:#64748b;margin-top:4px">
+            Tamper-proof mathematical checksum. Any alteration of amounts, dates, or parties permanently breaks this hash.
+          </div>
+        </div>
+
+        <!-- Contracting Parties Table -->
+        <div style="font-weight:800;font-size:13px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">
+          Parties &amp; Signatures
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px">
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:8px 10px;font-weight:700;background:var(--pill);width:25%">Party A (${isWork ? 'Client' : 'Lender'})</td>
+              <td style="padding:8px 10px">
+                <b>${esc(data.partyA)}</b> 
+                ${data.partyAVaultId ? `· Vault ID: <span class="badge">${esc(data.partyAVaultId)}</span>` : ''}
+                ${data.partyAEmail ? `· <span class="muted">${esc(data.partyAEmail)}</span>` : ''}
+                <div style="font-size:11.5px;color:var(--muted);margin-top:2px">
+                  ${data.sigA ? `✓ Endorsed: ${new Date(data.sigA.at).toUTCString()} · IP: ${esc(data.sigA.ip || 'Recorded')} · Stamp: ${esc(data.sigA.stamp || 'OK')}` : '⏳ Pending Digital Signature'}
+                </div>
+              </td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:8px 10px;font-weight:700;background:var(--pill)">Party B (${isWork ? 'Contractor' : 'Borrower'})</td>
+              <td style="padding:8px 10px">
+                <b>${esc(data.partyB)}</b> 
+                ${data.partyBVaultId ? `· Vault ID: <span class="badge">${esc(data.partyBVaultId)}</span>` : ''}
+                ${data.partyBEmail ? `· <span class="muted">${esc(data.partyBEmail)}</span>` : ''}
+                <div style="font-size:11.5px;color:var(--muted);margin-top:2px">
+                  ${data.sigB ? `✓ Endorsed: ${new Date(data.sigB.at).toUTCString()} · IP: ${esc(data.sigB.ip || 'Recorded')} · Stamp: ${esc(data.sigB.stamp || 'OK')}` : '⏳ Pending Digital Signature'}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Statutory Custodian Declaration -->
+        <div style="background:var(--pill);border-left:3px solid #059669;padding:12px 14px;border-radius:4px;font-size:12px;color:var(--tx);margin-bottom:16px">
+          <b>Statutory Custodian Declaration:</b> ${esc(data.custodianDeclaration || 'This digital record is produced in ordinary course of electronic record keeping pursuant to Section 65B(4) of the Indian Evidence Act, 1872 and Section 10A of the Information Technology Act, 2000. Server systems operated continuously without compromise to data integrity.')}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex space no-print" style="gap:10px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="renderDocumentView('${data.id}')">📄 Open Full Instrument</button>
+          <button class="btn-sm" onclick="window.print()">🖨 Print Certificate</button>
+          <button class="btn-sm btn-whatsapp" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('View official verified electronic certificate for ' + '${data.id}' + ': ' + window.location.href), '_blank')">💬 Share Verified Proof</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ─── URL Query Parsing for Remote Signing Links & Public Verification ─── */
+async function handleUrlActions() {
+  const params = new URLSearchParams(window.location.search);
+  const action = params.get('action');
+  const targetId = params.get('id');
+  const party = params.get('party'); // 'A' or 'B'
+
+  if (targetId) {
+    if (action === 'verify') {
+      await renderVerificationView(targetId);
+      return true;
+    }
+
+    if (!list.find(x => x.id === targetId)) {
+      try {
+        const r = await fetchAgreementFromServer(targetId);
+        if (r && r.ok) {
+          const item = await r.json();
+          list.unshift(item);
+          saveLocalList(list);
+        }
+      } catch {}
+    }
+
+    if (action === 'sign' && party) {
+      renderDocumentView(targetId, party);
+      return true;
+    } else if (action === 'view') {
+      renderDocumentView(targetId);
+      return true;
+    }
+  }
+  return false;
+}
+
+/* ─── Template Picker Modal ─── */
+const templateModal = document.getElementById('templateModal');
+document.getElementById('btnOpenNew').onclick = () => { templateModal.style.display = 'flex'; };
+document.getElementById('btnCloseTemplateModal').onclick = () => { templateModal.style.display = 'none'; };
+templateModal.onclick = e => { if (e.target === templateModal) templateModal.style.display = 'none'; };
+
+document.getElementById('pickTemplateWork').onclick = () => {
+  templateModal.style.display = 'none';
+  renderCreateWorkForm();
+};
+document.getElementById('pickTemplateLoan').onclick = () => {
+  templateModal.style.display = 'none';
+  renderCreateLoanForm();
+};
+
+/* ─── Global Agreement Request Handlers ─── */
+window.reviewAndSign = (id) => {
+  renderDocumentView(id, 'B');
+};
+
+window.declineAgreement = async (id) => {
+  if (!confirm('Are you sure you want to decline this agreement request?')) return;
+  const a = list.find(x => x.id === id);
+  if (a) {
+    a._notice = `✕ Instrument ${id} was declined by ${currentUser ? currentUser.fullName : 'counterparty'}`;
+    await deleteAgreementFromServer(id);
+  }
+  list = list.filter(x => x.id !== id);
+  saveLocalList(list);
+  showToast('Agreement request declined.');
+  renderDashboard();
+};
+
+/* ─── Copy Vault ID to Clipboard ─── */
+function copyVaultIdToClipboard() {
+  if (!currentUser || !currentUser.vaultId) {
+    showToast('Vault ID not available.');
+    return;
+  }
+  const vid = currentUser.vaultId;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(vid).then(() => {
+      showToast(`✓ Copied Vault ID: ${vid} to clipboard!`);
+    }).catch(() => {
+      prompt('Your Unique Vault ID:', vid);
+    });
+  } else {
+    prompt('Your Unique Vault ID:', vid);
+  }
+}
+
+const hPill = document.getElementById('hdrVaultIdPill');
+if (hPill) hPill.onclick = copyVaultIdToClipboard;
+const bCopyVid = document.getElementById('btnCopyProfileVaultId');
+if (bCopyVid) bCopyVid.onclick = copyVaultIdToClipboard;
+
+/* ─── Mobile Bottom Navigation Dock Handlers ─── */
+function setActiveMobileNav(id) {
+  document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+const mHome = document.getElementById('mNavHome');
+if (mHome) mHome.onclick = () => {
+  setActiveMobileNav('mNavHome');
+  if (currentUser) renderDashboard();
+  else renderAuthView('signin');
+};
+const mNew = document.getElementById('mNavNew');
+if (mNew) mNew.onclick = () => {
+  setActiveMobileNav('mNavNew');
+  if (!currentUser) return renderAuthView('signin');
+  templateModal.style.display = 'flex';
+};
+const mId = document.getElementById('mNavId');
+if (mId) mId.onclick = () => {
+  setActiveMobileNav('mNavId');
+  copyVaultIdToClipboard();
+};
+const mProfile = document.getElementById('mNavProfile');
+if (mProfile) mProfile.onclick = () => {
+  setActiveMobileNav('mNavProfile');
+  document.getElementById('btnUserModal').click();
+};
+
+/* ─── Account / Profile Modal & Scanner Upload ─── */
+const userModal = document.getElementById('userModal');
+let tempProfileQrBase64 = null;
+
+const profileQrInput = document.getElementById('profileQrInput');
+const profileQrPreviewWrap = document.getElementById('profileQrPreviewWrap');
+const profileQrPreview = document.getElementById('profileQrPreview');
+const profileQrFileName = document.getElementById('profileQrFileName');
+const btnRemoveProfileQr = document.getElementById('btnRemoveProfileQr');
+
+if (profileQrInput) {
+  profileQrInput.onchange = e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Scanner image is too large. Please select an image under 5MB.');
+      return;
+    }
+    if (profileQrFileName) profileQrFileName.textContent = file.name;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      // Resize to reasonable dimensions (max 500px) so database storage and sync stays lightning fast
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 500;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+          else { w = Math.round((w * maxDim) / h); h = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        tempProfileQrBase64 = canvas.toDataURL('image/jpeg', 0.85);
+        if (profileQrPreview) profileQrPreview.src = tempProfileQrBase64;
+        if (profileQrPreviewWrap) profileQrPreviewWrap.style.display = 'block';
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+}
+
+if (btnRemoveProfileQr) {
+  btnRemoveProfileQr.onclick = () => {
+    tempProfileQrBase64 = '';
+    if (profileQrInput) profileQrInput.value = '';
+    if (profileQrPreview) profileQrPreview.src = '';
+    if (profileQrPreviewWrap) profileQrPreviewWrap.style.display = 'none';
+    if (profileQrFileName) profileQrFileName.textContent = 'Scanner removed';
+  };
+}
+
+document.getElementById('btnUserModal').onclick = () => {
+  if (!currentUser) {
+    renderAuthView('signin');
+    return;
+  }
+  document.getElementById('profileAvatar').textContent = (currentUser.fullName || 'U')[0].toUpperCase();
+  document.getElementById('profileFullName').textContent = currentUser.fullName;
+  document.getElementById('profileHandle').textContent = `@${currentUser.username} · ${currentUser.email || 'Verified Account'}`;
+  const pVid = document.getElementById('profileVaultId');
+  if (pVid) pVid.textContent = currentUser.vaultId || 'VID-XXXXX';
+  const pUpi = document.getElementById('profileUpiInput');
+  if (pUpi) pUpi.value = (currentUser && currentUser.upiId) ? currentUser.upiId : '';
+
+  // Setup current saved QR scanner preview
+  tempProfileQrBase64 = (currentUser && currentUser.qrCode) ? currentUser.qrCode : null;
+  if (tempProfileQrBase64) {
+    if (profileQrPreview) profileQrPreview.src = tempProfileQrBase64;
+    if (profileQrPreviewWrap) profileQrPreviewWrap.style.display = 'block';
+    if (profileQrFileName) profileQrFileName.textContent = '✓ Saved QR Scanner';
+  } else {
+    if (profileQrPreviewWrap) profileQrPreviewWrap.style.display = 'none';
+    if (profileQrFileName) profileQrFileName.textContent = 'No scanner selected';
+  }
+
+  userModal.style.display = 'flex';
+};
+document.getElementById('btnCloseUserModal').onclick = () => { userModal.style.display = 'none'; };
+userModal.onclick = e => { if (e.target === userModal) userModal.style.display = 'none'; };
+
+/* ─── Personal Profile UPI VPA & QR Scanner Handler ─── */
+const btnSaveProfileUpi = document.getElementById('btnSaveProfileUpi');
+if (btnSaveProfileUpi) {
+  btnSaveProfileUpi.onclick = async () => {
+    const val = (document.getElementById('profileUpiInput').value || '').trim();
+    if (!val) return alert('Please enter your valid UPI handle (e.g. name@okaxis or mobile@paytm)');
+    const qrVal = (tempProfileQrBase64 !== null) ? tempProfileQrBase64 : ((currentUser && currentUser.qrCode) || '');
+
+    btnSaveProfileUpi.disabled = true;
+    btnSaveProfileUpi.textContent = 'Saving to Cloud...';
+    try {
+      const res = await fetch(apiUrl('/api/users/upi'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ upiId: val, qrCode: qrVal })
+      });
+      const d = await res.json();
+      if (d && d.ok) {
+        if (currentUser) {
+          currentUser.upiId = val;
+          currentUser.qrCode = qrVal;
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+        }
+        showToast('✓ UPI ID & Real Scanner saved to your Vault profile & Cloud DB!');
+      } else {
+        alert(d.error || 'Failed to save payment details');
+      }
+    } catch {
+      if (currentUser) {
+        currentUser.upiId = val;
+        currentUser.qrCode = qrVal;
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+      }
+      showToast('✓ Saved locally (Offline mode)!');
+    } finally {
+      btnSaveProfileUpi.disabled = false;
+      btnSaveProfileUpi.textContent = '💾 Save UPI ID & Real Scanner';
+    }
+  };
+}
+
+// Quick login as Suraj or Rohan for dual-side contract testing
+const quickSwitchAuth = async (u, p) => {
+  try {
+    const res = await fetch(apiUrl('/api/auth/login'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    const d = await res.json();
+    if (d && d.ok) {
+      authToken = d.token;
+      currentUser = d.user;
+      localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+      activeProfile = currentUser.fullName;
+      userModal.style.display = 'none';
+      showToast(`Switched active party to ${currentUser.fullName} (${currentUser.vaultId})`);
+      updateHeaderUser();
+      initSSE();
+      await syncWithServer();
+      if (currentId) renderDocumentView(currentId); else renderDashboard();
+    }
+  } catch {}
+};
+
+document.getElementById('btnSwitchSuraj').onclick = () => quickSwitchAuth('suraj', 'suraj123');
+document.getElementById('btnSwitchRohan').onclick = () => quickSwitchAuth('rohan', 'rohan123');
+document.getElementById('btnLogoutUser').onclick = window.logoutUser;
+
+/* ─── Instant 1-Tap UPI Payment Sheet (NPCI / GPay / PhonePe / Paytm / BHIM) ─── */
+const upiModal = document.getElementById('upiModal');
+let upiPayContext = {
+  agrId: null,
+  milestoneId: null,
+  payeeName: '',
+  note: ''
+};
+
+function getUpiQrUrl(vpa, payeeName, amount, note) {
+  const uri = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(payeeName)}&am=${Number(amount).toFixed(2)}&tn=${encodeURIComponent((note || 'Thinkable Settlement').slice(0, 40))}&cu=INR`;
+  return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(uri)}`;
+}
+
+window.openUpiPaymentModal = (agrId, milestoneId, defaultAmount, payeeName, defaultUpiId, note) => {
+  upiPayContext = {
+    agrId,
+    milestoneId,
+    payeeName: payeeName || 'Recipient',
+    note: note || 'Thinkable Settlement'
+  };
+
+  document.getElementById('upiPayeeName').textContent = upiPayContext.payeeName;
+  document.getElementById('upiDisplayAmount').textContent = money(defaultAmount);
+  document.getElementById('upiAmountInput').value = defaultAmount;
+
+  let targetVpa = defaultUpiId || '';
+  let targetQr = null;
+
+  const matched = list.find(x => x.id === agrId);
+  if (matched) {
+    if (matched.partyA === payeeName) {
+      if (!targetVpa && matched.partyAUpi) targetVpa = matched.partyAUpi;
+      if (matched.partyAQr) targetQr = matched.partyAQr;
+    } else if (matched.partyB === payeeName) {
+      if (!targetVpa && matched.partyBUpi) targetVpa = matched.partyBUpi;
+      if (matched.partyBQr) targetQr = matched.partyBQr;
+    }
+  }
+
+  // If testing dual-role or current user is payee
+  if (!targetQr && currentUser && currentUser.fullName === payeeName && currentUser.qrCode) {
+    targetQr = currentUser.qrCode;
+  }
+  if (!targetVpa && currentUser && currentUser.fullName === payeeName && currentUser.upiId) {
+    targetVpa = currentUser.upiId;
+  }
+
+  const vpaText = document.getElementById('upiTargetVpaText');
+  if (vpaText) vpaText.textContent = targetVpa || 'Scan QR Code Below';
+  document.getElementById('upiTargetVpa').value = targetVpa;
+  document.getElementById('upiUtrInput').value = '';
+
+  const qrImg = document.getElementById('upiQrImage');
+  const qrBadge = document.getElementById('upiQrBadge');
+  const qrCaption = document.getElementById('upiQrCaption');
+
+  if (targetQr) {
+    // Payee uploaded their authentic scanner screenshot!
+    if (qrImg) qrImg.src = targetQr;
+    if (qrBadge) qrBadge.innerHTML = `📷 <b>Verified Scanner QR</b> uploaded by ${esc(upiPayContext.payeeName)}`;
+    if (qrCaption) qrCaption.textContent = 'Scan this screenshot directly with PhonePe, Google Pay, or Paytm';
+  } else if (targetVpa) {
+    // Generate dynamic QR prefilled with amount
+    if (qrImg) qrImg.src = getUpiQrUrl(targetVpa, upiPayContext.payeeName, defaultAmount, upiPayContext.note);
+    if (qrBadge) qrBadge.innerHTML = `📷 Scan with ANY UPI App (Google Pay / PhonePe / Paytm)`;
+    if (qrCaption) qrCaption.textContent = `Amount (${money(defaultAmount)}) & Payee are auto-filled upon scan`;
+  } else {
+    if (qrImg) qrImg.src = '';
+    if (qrBadge) qrBadge.textContent = 'UPI ID Not Set By Payee';
+    if (qrCaption) qrCaption.textContent = 'Please ask payee to save their UPI ID or scan their scanner';
+  }
+
+  upiModal.style.display = 'flex';
+};
+
+document.getElementById('btnCloseUpiModal').onclick = () => {
+  upiModal.style.display = 'none';
+};
+upiModal.onclick = e => {
+  if (e.target === upiModal) upiModal.style.display = 'none';
+};
+
+const btnCopyVpa = document.getElementById('btnCopyVpa');
+if (btnCopyVpa) {
+  btnCopyVpa.onclick = async () => {
+    const vpa = document.getElementById('upiTargetVpa').value;
+    if (!vpa) return;
+    await navigator.clipboard.writeText(vpa).catch(() => {});
+    showToast(`✓ Copied ${vpa} to clipboard!`);
+  };
+}
+
+function launchUpiApp() {
+  const vpa = document.getElementById('upiTargetVpa').value.trim();
+  const amt = +document.getElementById('upiAmountInput').value;
+  if (!vpa) {
+    alert('Recipient UPI ID is not available. Please ask payee to provide their UPI VPA or scan their uploaded QR scanner.');
+    return;
+  }
+  if (!amt || amt <= 0) {
+    alert('Please enter a valid amount.');
+    return;
+  }
+  const name = upiPayContext.payeeName || 'Recipient';
+  const note = (upiPayContext.note || 'Thinkable Settlement').slice(0, 40);
+  const upiQuery = `pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(name)}&am=${amt.toFixed(2)}&tn=${encodeURIComponent(note)}&cu=INR`;
+  const uri = `upi://pay?${upiQuery}`;
+
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    window.location.href = uri;
+    setTimeout(() => {
+      showToast('UPI app launched! Enter the 12-digit UTR once payment completes.');
+      const utrIn = document.getElementById('upiUtrInput');
+      if (utrIn) utrIn.focus();
+    }, 1000);
+  } else {
+    // Desktop: UPI protocols are mobile-only; automatically copy UPI ID and prompt user smoothly
+    navigator.clipboard.writeText(vpa).catch(() => {});
+    showToast(`✓ Payee UPI ID (${vpa}) copied to clipboard!`);
+    alert(`📱 Desktop Notice:\n\nUPI Apps (Google Pay, PhonePe, Paytm) operate on mobile phones.\n\n1. Scan the QR code shown on screen using your phone's UPI app.\n2. OR: Payee UPI ID (${vpa}) has been copied to your clipboard for your netbanking!\n\nAfter paying, paste the 12-digit UTR reference below.`);
+    const utrIn = document.getElementById('upiUtrInput');
+    if (utrIn) utrIn.focus();
+  }
+}
+
+const btnLaunchUpiDefault = document.getElementById('btnLaunchUpiDefault');
+if (btnLaunchUpiDefault) btnLaunchUpiDefault.onclick = () => launchUpiApp();
+
+// Submit 12-digit UTR payment receipt for live endorsement
+document.getElementById('btnSubmitUpiReceipt').onclick = async () => {
+  const utr = (document.getElementById('upiUtrInput').value || '').trim();
+  if (!utr || utr.length < 6) {
+    return alert('Please enter a valid 12-digit UPI Reference / UTR number from your payment receipt.');
+  }
+
+  const amt = +document.getElementById('upiAmountInput').value;
+  const vpa = document.getElementById('upiTargetVpa').value.trim();
+  const a = list.find(x => x.id === upiPayContext.agrId);
+  if (!a) return;
+
+  if (vpa) {
+    if (a.partyA === upiPayContext.payeeName && !a.partyAUpi) a.partyAUpi = vpa;
+    if (a.partyB === upiPayContext.payeeName && !a.partyBUpi) a.partyBUpi = vpa;
+  }
+
+  if (a.type === 'work' && upiPayContext.milestoneId) {
+    const m = (a.milestones || []).find(x => x.id === upiPayContext.milestoneId);
+    if (m) {
+      m.status = 'PAID';
+      m.paidAt = Date.now();
+      m.paidBy = activeProfile;
+      m.utr = utr;
+      a._notice = `⚡ ${activeProfile} paid ${money(m.amt)} via UPI (UTR: ${utr}) for ${m.title}!`;
+    }
+  } else {
+    const isLenderRecording = matchName(activeProfile, a.partyA);
+    const payItem = {
+      id: 'pay_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      amt,
+      date: today(),
+      note: `UPI Transfer · UTR: ${utr} (${vpa || 'Direct'})`,
+      submittedBy: activeProfile,
+      status: isLenderRecording ? 'VERIFIED' : 'PENDING',
+      verifiedBy: isLenderRecording ? activeProfile : null,
+      verifiedAt: isLenderRecording ? Date.now() : null,
+      utr: utr
+    };
+    a.payments = [...(a.payments || []), payItem];
+    a._notice = isLenderRecording
+      ? `✓ ${activeProfile} verified UPI payment of ${money(amt)} (UTR: ${utr})`
+      : `⚡ ${activeProfile} submitted UPI repayment of ${money(amt)} (UTR: ${utr}) for verification`;
+  }
+
+  saveLocalList(list);
+  await saveAgreementToServer(a);
+
+  upiModal.style.display = 'none';
+  showToast(`✓ UPI Payment of ${money(amt)} (UTR: ${utr}) recorded!`);
+
+  const ask = confirm(`Payment of ${money(amt)} recorded with UTR: ${utr}!\n\nWould you like to send this instant receipt to ${upiPayContext.payeeName} on WhatsApp?`);
+  if (ask) {
+    const port = location.port ? `:${location.port}` : '';
+    const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
+    const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
+    const msg = `Hi ${upiPayContext.payeeName},\nI have transferred ${money(amt)} via UPI (Ref / UTR: ${utr}) for Agreement (Ref: ${a.id}).\nPlease view and verify the updated cryptographic record:\n${viewUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  renderDocumentView(a.id);
+};
+
+/* ─── Clean Light Default / Pure Black Dark Mode Toggle ─── */
+const btnTheme = document.getElementById('btnToggleTheme');
+function applyThemeMode(mode) {
+  document.documentElement.dataset.theme = mode;
+  localStorage.setItem('promissory_theme_mode', mode);
+  btnTheme.textContent = mode === 'dark' ? '☀️ Light' : '🌙 Dark';
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.setAttribute('content', mode === 'dark' ? '#000000' : '#ffffff');
+}
+btnTheme.onclick = () => {
+  const cur = document.documentElement.dataset.theme || 'light';
+  const nxt = cur === 'dark' ? 'light' : 'dark';
+  applyThemeMode(nxt);
+  showToast(`Switched to ${nxt} mode`);
+};
+const savedMode = localStorage.getItem('promissory_theme_mode') || 'light';
+applyThemeMode(savedMode);
+
+document.getElementById('goHome').onclick = () => {
+  if (currentUser) renderDashboard();
+  else renderAuthView('signin');
+};
+
+// Boot application with Real Auth
+(async () => {
+  const isAuthed = await verifyAuth();
+  initSSE();
+  await syncWithServer();
+  const handled = await handleUrlActions();
+  if (!handled) {
+    if (isAuthed) renderDashboard();
+    else renderAuthView('signin');
+  }
+})();
+</script>
+</body>
+</html>

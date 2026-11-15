@@ -1,0 +1,67 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.thinkable.vault'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.thinkable.vault"
+        minSdk 24
+        targetSdk 34
+        versionCode 2
+        versionName "1.0.1"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    // ── Release Signing Configuration ──
+    // Before building a release APK/AAB, create a keystore and set these
+    // environment variables (or update this block to reference your keystore file):
+    //   KEYSTORE_PATH  — absolute path to your .jks / .keystore file
+    //   KEYSTORE_PASS  — keystore password
+    //   KEY_ALIAS      — key alias inside the keystore
+    //   KEY_PASS       — key password
+    //
+    // Generate a keystore (run once):
+    //   keytool -genkey -v -keystore thinkable-release.jks \
+    //     -keyalg RSA -keysize 2048 -validity 10000 \
+    //     -alias thinkable
+    //
+    signingConfigs {
+        release {
+            storeFile     file(System.getenv("KEYSTORE_PATH") ?: "thinkable-release.jks")
+            storePassword System.getenv("KEYSTORE_PASS") ?: ""
+            keyAlias      System.getenv("KEY_ALIAS")     ?: "thinkable"
+            keyPassword   System.getenv("KEY_PASS")      ?: ""
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            versionNameSuffix "-debug"
+            debuggable true
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.webkit:webkit:1.10.0'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+}
