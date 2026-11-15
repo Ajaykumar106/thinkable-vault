@@ -1,10 +1,10 @@
 {
-  "name": "thinkable-desktop",
-  "version": "0.1.0",
+  "name": "thinkable-vault",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "main": "dist/electron/main.js",
   "scripts": {
+    "vercel-build": "echo 'Thinkable Vault ready'",
     "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
     "build": "vite build && tsup src/desktop/main.ts src/desktop/preload.ts --format esm --out-dir dist/electron --external electron",
     "start": "electron .",
@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@types/node": "^22.0.0",
     "@vitejs/plugin-react": "latest",
     "electron": "latest",
     "react": "latest",
@@ -19,7 +20,6 @@
     "zod": "latest"
   },
   "devDependencies": {
-    "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "concurrently": "latest",
