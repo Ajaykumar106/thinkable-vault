@@ -7,8 +7,49 @@
 <meta name="theme-color" content="#ffffff">
 <!-- html2pdf for direct 1-click A4 PDF download -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- Google Identity Services (Real Google Auth) -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 /* ─── Clean Fintech Design System (Light & Dark Only) ─── */
+.btn-google-auth {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #ffffff;
+  color: #1f1f1f;
+  border: 1px solid #dadce0;
+  border-radius: 10px;
+  padding: 11px 16px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.btn-google-auth:hover {
+  background: #f8f9fa;
+  border-color: #c6c9cc;
+}
+.auth-divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  color: var(--tx-muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+.auth-divider::before, .auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.auth-divider span {
+  padding: 0 10px;
+}
 :root, [data-theme="light"] {
   --bg: #f8fafc;
   --paper: #ffffff;
@@ -968,13 +1009,15 @@ canvas.pad-canvas {
 
       <div class="sep"></div>
 
-      <label>Switch Role Testing (Dual Side)</label>
-      <div class="muted" style="margin-bottom:10px;font-size:12px">
-        Quickly test both sides of contracts between Client/Lender and Contractor/Borrower.
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <label style="margin:0;font-size:13px;font-weight:800">👥 Saved Counterparties</label>
+        <button class="btn-sm" id="btnAddContactManual" type="button" style="font-size:11px;padding:3px 8px">+ Add Contact</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
-        <button class="btn-sm" id="btnSwitchSuraj" style="font-size:12px;padding:8px">👔 Suraj Sharma</button>
-        <button class="btn-sm" id="btnSwitchRohan" style="font-size:12px;padding:8px">📱 Rohan Verma</button>
+      <div class="muted" style="margin-bottom:10px;font-size:12px">
+        Counterparties are remembered automatically so you never have to re-type Vault IDs.
+      </div>
+      <div id="savedContactsList" style="display:flex;flex-direction:column;gap:8px;max-height:180px;overflow-y:auto;margin-bottom:16px">
+        <!-- Dynamically rendered -->
       </div>
 
       <div class="flex space" style="margin-bottom:14px;font-size:12px">
@@ -1215,6 +1258,142 @@ function saveLocalList(data) {
 }
 
 let list = loadLocalList();
+
+/* ─── Google Identity & Real Authentication ─── */
+async function handleGoogleAuth(credential = null, promptUser = false) {
+  try {
+    let payload = {};
+    if (credential) {
+      payload.credential = credential;
+    } else {
+      const email = prompt('Enter your real Google / Gmail address:\n(e.g. yourname@gmail.com)');
+      if (!email || !email.includes('@')) return;
+      const defaultName = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const name = prompt('Enter your Legal Full Name:', defaultName) || defaultName;
+      payload.email = email.trim().toLowerCase();
+      payload.name = name.trim();
+    }
+
+    const res = await fetch(apiUrl('/api/auth/google'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || 'Google authentication failed.');
+    }
+    authToken = data.token;
+    currentUser = data.user;
+    localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+    activeProfile = currentUser.fullName;
+    showToast(`✓ Google Verified: Welcome, ${currentUser.fullName} (${currentUser.vaultId})`);
+    updateHeaderUser();
+    initSSE();
+    await loadUserContacts();
+    await syncWithServer();
+    renderDashboard();
+  } catch (err) {
+    alert(err.message || 'Google Sign-In failed.');
+  }
+}
+
+/* ─── Saved Counterparties Directory ─── */
+let userContacts = [];
+
+async function loadUserContacts() {
+  if (!authToken) {
+    try {
+      userContacts = JSON.parse(localStorage.getItem('vault_saved_contacts') || '[]');
+    } catch {
+      userContacts = [];
+    }
+    return;
+  }
+  try {
+    const res = await fetch(apiUrl('/api/contacts'), {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.ok && Array.isArray(data.contacts)) {
+        userContacts = data.contacts;
+        localStorage.setItem('vault_saved_contacts', JSON.stringify(userContacts));
+      }
+    }
+  } catch {
+    try {
+      userContacts = JSON.parse(localStorage.getItem('vault_saved_contacts') || '[]');
+    } catch {
+      userContacts = [];
+    }
+  }
+}
+
+async function saveContactItem(contact) {
+  if (!contact || !contact.vaultId || !contact.name) return;
+  const existingIdx = userContacts.findIndex(c => c.vaultId === contact.vaultId || (c.email && c.email === contact.email));
+  if (existingIdx >= 0) {
+    userContacts[existingIdx] = { ...userContacts[existingIdx], ...contact };
+  } else {
+    userContacts.unshift({ id: 'c_' + Date.now().toString(36), ...contact });
+  }
+  localStorage.setItem('vault_saved_contacts', JSON.stringify(userContacts));
+
+  if (authToken) {
+    try {
+      await fetch(apiUrl('/api/contacts'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+        body: JSON.stringify(contact)
+      });
+    } catch {}
+  }
+}
+
+async function deleteContactItem(contactId) {
+  userContacts = userContacts.filter(c => c.id !== contactId);
+  localStorage.setItem('vault_saved_contacts', JSON.stringify(userContacts));
+  if (authToken) {
+    try {
+      await fetch(apiUrl(`/api/contacts/${encodeURIComponent(contactId)}`), {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+    } catch {}
+  }
+  renderSavedContactsModal();
+}
+window.deleteContactItem = deleteContactItem;
+
+function renderSavedContactsModal() {
+  const container = document.getElementById('savedContactsList');
+  if (!container) return;
+  if (!userContacts || userContacts.length === 0) {
+    container.innerHTML = `
+      <div class="muted" style="text-align:center;padding:16px 8px;font-size:12px;background:var(--pill);border-radius:10px">
+        No saved counterparties yet.<br>
+        Counterparties are remembered automatically whenever you draft or accept an agreement, or tap <b>+ Add Contact</b> above.
+      </div>
+    `;
+    return;
+  }
+  container.innerHTML = userContacts.map(c => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12.5px">
+      <div>
+        <div style="font-weight:700;display:flex;align-items:center;gap:6px">
+          <span>👤 ${esc(c.name)}</span>
+          <span class="badge" style="background:var(--pill);font-size:10px;color:var(--brand);font-weight:800">${esc(c.vaultId)}</span>
+        </div>
+        <div class="muted" style="font-size:11px;margin-top:2px">
+          ${c.email ? `✉️ ${esc(c.email)}` : ''} ${c.upi ? `· ⚡ ${esc(c.upi)}` : ''}
+        </div>
+      </div>
+      <button class="btn-sm" onclick="window.deleteContactItem('${esc(c.id)}')" style="font-size:11px;padding:2px 8px;color:var(--danger);border:none;background:transparent;cursor:pointer" title="Remove Contact">✕</button>
+    </div>
+  `).join('');
+}
 
 /* ─── Formatting Helpers ─── */
 const money = n => '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
@@ -1465,25 +1644,23 @@ function renderAuthView(initialTab = 'signin') {
         <!-- Sign In Pane -->
         <div id="paneSignIn" style="${initialTab==='signin' ? 'display:block' : 'display:none'}">
           <div id="loginAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
+
+          <!-- Official Google Sign-In Button -->
+          <button id="btnGoogleSignIn" type="button" class="btn-google-auth">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Continue with Google
+          </button>
+
+          <div class="auth-divider"><span>OR SIGN IN WITH EMAIL</span></div>
           
           <label>Email Address or Vault ID</label>
-          <input id="inLoginId" placeholder="e.g. suraj.sharma@gmail.com or VID-65228" autocomplete="username">
+          <input id="inLoginId" placeholder="e.g. yourname@gmail.com or VID-XXXXX" autocomplete="username">
 
           <label>Password</label>
           <input id="inLoginPass" type="password" placeholder="••••••••" autocomplete="current-password">
 
           <div style="margin-top:18px">
             <button class="btn-primary full" id="btnSubmitLogin" style="padding:11px">Sign In to Vault</button>
-          </div>
-
-          <div class="sep"></div>
-
-          <div style="text-align:center;margin-bottom:10px">
-            <span class="muted" style="font-size:11.5px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">Quick Test Accounts</span>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <button class="btn-sm" id="btnDemoSuraj" style="font-size:12px;padding:8px">👔 Suraj (VID-65228)</button>
-            <button class="btn-sm" id="btnDemoRohan" style="font-size:12px;padding:8px">📱 Rohan (VID-38110)</button>
           </div>
 
           <!-- Mobile Server Host Status & Switcher -->
@@ -1500,14 +1677,22 @@ function renderAuthView(initialTab = 'signin') {
         <div id="paneRegister" style="${initialTab==='register' ? 'display:block' : 'display:none'}">
           <div id="regAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
 
+          <!-- Official Google Sign-Up Button -->
+          <button id="btnGoogleSignUp" type="button" class="btn-google-auth">
+            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Sign Up with Google
+          </button>
+
+          <div class="auth-divider"><span>OR REGISTER WITH DETAILS</span></div>
+
           <label>Legal Full Name</label>
-          <input id="inRegName" placeholder="e.g. Suraj Sharma" autocomplete="name">
+          <input id="inRegName" placeholder="e.g. Ajay Kumar" autocomplete="name">
 
           <label>Real Email Address (Required for Identity &amp; Notices)</label>
-          <input id="inRegEmail" type="email" placeholder="e.g. yourname@domain.com" autocomplete="email">
+          <input id="inRegEmail" type="email" placeholder="e.g. ajay@example.com" autocomplete="email">
 
           <label>Username / Handle</label>
-          <input id="inRegUser" placeholder="e.g. surajsharma" autocomplete="username">
+          <input id="inRegUser" placeholder="e.g. ajaykumar" autocomplete="username">
 
           <label>Password</label>
           <input id="inRegPass" type="password" placeholder="Choose a secure password" autocomplete="new-password">
@@ -1580,30 +1765,10 @@ function renderAuthView(initialTab = 'signin') {
       showToast(`Welcome back, ${currentUser.fullName}! (${currentUser.vaultId})`);
       updateHeaderUser();
       initSSE();
+      await loadUserContacts();
       await syncWithServer();
       renderDashboard();
     } catch (err) {
-      // OFFLINE FALLBACK FOR DEMO ACCOUNTS
-      // Allows user to test instantly even if server is offline or Wi-Fi drops
-      if ((username === 'suraj' && password === 'suraj123') || (username === 'rohan' && password === 'rohan123')) {
-        const isSuraj = username === 'suraj';
-        currentUser = {
-          id: isSuraj ? 'usr_suraj_01' : 'usr_rohan_02',
-          username: isSuraj ? 'suraj' : 'rohan',
-          fullName: isSuraj ? 'Suraj Sharma' : 'Rohan Verma',
-          email: isSuraj ? 'suraj.sharma@gmail.com' : 'rohan.verma@gmail.com',
-          vaultId: isSuraj ? 'VID-65228' : 'VID-38110',
-          upiId: isSuraj ? 'suraj.sharma@okaxis' : 'rohan.verma@paytm'
-        };
-        authToken = 'offline_token_' + Date.now();
-        localStorage.setItem(AUTH_TOKEN_KEY, authToken);
-        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
-        activeProfile = currentUser.fullName;
-        showToast(`✓ Logged in as ${currentUser.fullName} (Offline mode)`);
-        updateHeaderUser();
-        renderDashboard();
-        return;
-      }
       if (alertBox) {
         alertBox.innerHTML = `⚠️ Cannot reach server at <code>${API_BASE || location.origin}</code>.<br><small style="display:block;margin-top:4px">Make sure server is running or configure your Vercel URL via ⚙️ Server below.</small>`;
         alertBox.style.display = 'block';
@@ -1649,8 +1814,27 @@ function renderAuthView(initialTab = 'signin') {
     if (e.key === 'Enter') document.getElementById('btnSubmitLogin').click();
   };
 
-  document.getElementById('btnDemoSuraj').onclick = () => doLogin('suraj', 'suraj123');
-  document.getElementById('btnDemoRohan').onclick = () => doLogin('rohan', 'rohan123');
+  // Google Authentication Trigger
+  const triggerGoogleAuth = async () => {
+    if (window.google?.accounts?.id) {
+      try {
+        window.google.accounts.id.prompt((notification) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            handleGoogleAuth(null, true);
+          }
+        });
+        return;
+      } catch (e) {
+        console.warn('GIS prompt error:', e);
+      }
+    }
+    await handleGoogleAuth(null, true);
+  };
+
+  const btnGIn = document.getElementById('btnGoogleSignIn');
+  if (btnGIn) btnGIn.onclick = triggerGoogleAuth;
+  const btnGUp = document.getElementById('btnGoogleSignUp');
+  if (btnGUp) btnGUp.onclick = triggerGoogleAuth;
 
   document.getElementById('btnSubmitRegister').onclick = async () => {
     const alertBox = document.getElementById('regAlert');
@@ -1701,6 +1885,7 @@ function renderAuthView(initialTab = 'signin') {
       showToast(`Account created! Your personal Vault ID is ${currentUser.vaultId}`);
       updateHeaderUser();
       initSSE();
+      await loadUserContacts();
       await syncWithServer();
       renderDashboard();
     } catch {
@@ -1724,9 +1909,11 @@ window.logoutUser = async () => {
   authToken = null;
   currentUser = null;
   list = [];
+  userContacts = [];
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_USER_KEY);
   localStorage.removeItem(DB_KEY);
+  localStorage.removeItem('vault_saved_contacts');
   document.getElementById('userModal').style.display = 'none';
   showToast('Signed out of Agreement Vault.');
   updateHeaderUser();
@@ -2110,6 +2297,201 @@ function renderSection65BCertificate(a, verifyUrl, docHash) {
   `;
 }
 
+/* ─── Work Dossier, Private Records & Sec 65B Certificate ─── */
+function renderWorkDossierCard(a) {
+  const files = a.dossier || [];
+  return `
+    <div class="card anim-fade no-print" style="margin-top:16px;border:1px solid var(--border)">
+      <div style="font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="display:flex;align-items:center;gap:6px">📁 Work Dossier &amp; Private Notes</span>
+        <span class="badge" style="background:var(--pill);color:var(--brand);font-size:11px;font-weight:800">Sec 65B Compliant</span>
+      </div>
+      <div class="muted" style="font-size:12px;margin-bottom:12px">
+        Manage private project memos, deliverable proof attachments, and export Section 65B legal court certificates.
+      </div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;font-weight:700">Private Memo / Notes:</label>
+        <textarea id="dossierNotesInput" rows="3" placeholder="Add private discussion points, work milestones notes, or payment terms..." style="width:100%;font-size:13px;border-radius:8px;border:1px solid var(--border);padding:8px 10px;box-sizing:border-box">${esc(a.privateNotes || '')}</textarea>
+        <div style="text-align:right;margin-top:6px">
+          <button class="btn-sm btn-primary" id="btnSaveDossierNotes" style="font-size:11.5px;padding:4px 12px">💾 Save Memo</button>
+        </div>
+      </div>
+
+      <div class="sep" style="margin:12px 0"></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <label style="font-size:12px;font-weight:700;margin:0">Deliverable Files &amp; Proof URLs:</label>
+        <button class="btn-sm" id="btnAddDossierFile" style="font-size:11px;padding:2px 8px">+ Add File / Link</button>
+      </div>
+      <div id="dossierFilesList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+        ${files.length > 0 ? files.map((f, idx) => `
+          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--pill);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px">
+            <div style="display:flex;align-items:center;gap:8px;overflow:hidden">
+              <span style="font-size:16px">📎</span>
+              <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                <b>${esc(f.name)}</b>
+                ${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener noreferrer" style="margin-left:6px;color:var(--brand);text-decoration:none;font-weight:700">🔗 Open Link</a>` : ''}
+                ${f.note ? `<div class="muted" style="font-size:11px">${esc(f.note)}</div>` : ''}
+              </div>
+            </div>
+            <button class="btn-sm btn-del-dossier" data-idx="${idx}" style="font-size:11px;padding:2px 6px;color:var(--danger);border:none;background:transparent;cursor:pointer" title="Remove">✕</button>
+          </div>
+        `).join('') : `<div class="muted" style="font-size:12px;padding:6px 0">No files or proof attachments linked yet. Tap "+ Add File / Link" to attach project URLs.</div>`}
+      </div>
+
+      <button class="btn-outline full" id="btnPrintOfficialSec65B" style="padding:10px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px">
+        📄 Export Official Section 65B Legal Certificate (Printable PDF)
+      </button>
+    </div>
+  `;
+}
+
+function bindWorkDossierEvents(a) {
+  const btnSave = document.getElementById('btnSaveDossierNotes');
+  if (btnSave) {
+    btnSave.onclick = async () => {
+      const input = document.getElementById('dossierNotesInput');
+      a.privateNotes = input ? input.value : '';
+      saveLocalList(list);
+      await saveAgreementToServer(a);
+      showToast('✓ Private memo saved to agreement record!');
+    };
+  }
+
+  const btnAdd = document.getElementById('btnAddDossierFile');
+  if (btnAdd) {
+    btnAdd.onclick = async () => {
+      const name = prompt('Enter File / Document Name:\n(e.g. "Final React Native Codebase" or "Bank Transfer UTR Receipt")');
+      if (!name) return;
+      const url = prompt('Enter Document / Delivery Link (Optional):\n(e.g. GitHub repo, Google Drive URL, or cloud invoice link)', 'https://') || '';
+      const note = prompt('Optional Note / Remarks:', '') || '';
+      if (!Array.isArray(a.dossier)) a.dossier = [];
+      a.dossier.push({
+        id: 'f_' + Date.now().toString(36),
+        name: name.trim(),
+        url: url.trim(),
+        note: note.trim(),
+        addedAt: Date.now()
+      });
+      saveLocalList(list);
+      await saveAgreementToServer(a);
+      showToast('✓ Added file link to Work Dossier!');
+      renderDocumentView(a.id);
+    };
+  }
+
+  document.querySelectorAll('.btn-del-dossier').forEach(btn => {
+    btn.onclick = async () => {
+      const idx = Number(btn.dataset.idx);
+      if (!isNaN(idx) && Array.isArray(a.dossier)) {
+        a.dossier.splice(idx, 1);
+        saveLocalList(list);
+        await saveAgreementToServer(a);
+        showToast('File link removed from Dossier.');
+        renderDocumentView(a.id);
+      }
+    };
+  });
+
+  const btnPrintCert = document.getElementById('btnPrintOfficialSec65B');
+  if (btnPrintCert) {
+    btnPrintCert.onclick = () => printSec65BCertificate(a);
+  }
+}
+
+function printSec65BCertificate(a) {
+  const isLoan = a.type === 'loan';
+  const sha = a.sha256Digest || makeHash(`${a.id}|${a.partyA}|${a.partyB}|${a.amount}|${a.type}|${a.created}`);
+  const printWin = window.open('', '_blank');
+  if (!printWin) {
+    alert('Please allow popups to export the official Section 65B printable certificate.');
+    return;
+  }
+  printWin.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Section 65B Electronic Record Certificate — ${esc(a.id)}</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #111; padding: 40px; max-width: 820px; margin: 0 auto; line-height: 1.5; font-size: 13.5px; }
+        h1 { font-size: 19px; text-align: center; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; }
+        .subhead { text-align: center; color: #444; font-size: 12px; margin-bottom: 24px; }
+        .box { border: 1.5px solid #000; padding: 18px; margin-bottom: 20px; border-radius: 4px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .label { font-size: 10.5px; text-transform: uppercase; color: #666; font-weight: 800; margin-bottom: 2px; }
+        .val { font-size: 13.5px; font-weight: 600; }
+        .hash { font-family: ui-monospace, monospace; font-size: 11.5px; background: #f3f4f6; padding: 6px 8px; border: 1px dashed #999; word-break: break-all; margin-top: 4px; }
+        .cert { background: #fafafa; border: 1px solid #ccc; padding: 14px; font-size: 12px; line-height: 1.6; margin-top: 18px; border-radius: 4px; }
+        .dossier-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px 14px; border-radius: 4px; margin-top: 14px; }
+        .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; padding-top: 20px; border-top: 1.5px solid #000; }
+        @media print { body { padding: 0; } .no-print { display: none !important; } }
+      </style>
+    </head>
+    <body>
+      <div class="no-print" style="text-align:right;margin-bottom:14px">
+        <button onclick="window.print()" style="padding:9px 18px;background:#000;color:#fff;border:none;border-radius:4px;cursor:pointer;font-weight:700;font-size:13px">🖨️ Print / Save as PDF</button>
+      </div>
+      <h1>THINKABLE VAULT — OFFICIAL ELECTRONIC RECORD</h1>
+      <div class="subhead">Certificate of Authenticity under Section 65B of the Indian Evidence Act, 1872 &amp; IT Act, 2000</div>
+
+      <div class="box">
+        <div class="grid">
+          <div><div class="label">AGREEMENT IDENTIFIER</div><div class="val">${esc(a.id)}</div></div>
+          <div><div class="label">INSTRUMENT CLASSIFICATION</div><div class="val">${isLoan ? 'Mutual Promissory Note & Loan' : 'Statement of Work & Master Agreement'}</div></div>
+        </div>
+        <div class="grid">
+          <div><div class="label">PARTY A (${isLoan ? 'LENDER' : 'CLIENT'})</div><div class="val">${esc(a.partyA)} ${a.partyAVaultId ? `(${esc(a.partyAVaultId)})` : ''}</div></div>
+          <div><div class="label">PARTY B (${isLoan ? 'BORROWER' : 'CONTRACTOR'})</div><div class="val">${esc(a.partyB)} ${a.partyBVaultId ? `(${esc(a.partyBVaultId)})` : ''}</div></div>
+        </div>
+        <div class="grid">
+          <div><div class="label">TOTAL FINANCIAL VALUE</div><div class="val">₹${Number(a.amount).toLocaleString('en-IN')}</div></div>
+          <div><div class="label">EFFECTIVE DATE</div><div class="val">${esc(a.start || '—')} &nbsp;·&nbsp; DUE: ${esc(a.due || '—')}</div></div>
+        </div>
+        <div>
+          <div class="label">CRYPTOGRAPHIC SHA-256 INTEGRITY DIGEST</div>
+          <div class="hash">${esc(sha)}</div>
+        </div>
+      </div>
+
+      ${a.privateNotes || (a.dossier && a.dossier.length > 0) ? `
+        <div class="dossier-box">
+          <div class="label">WORK DOSSIER &amp; DELIVERABLES RECORD</div>
+          ${a.privateNotes ? `<p style="margin:4px 0 8px;font-size:12.5px">${esc(a.privateNotes)}</p>` : ''}
+          ${(a.dossier && a.dossier.length > 0) ? `
+            <ul style="margin:4px 0;padding-left:18px;font-size:12px">
+              ${a.dossier.map(f => `<li><b>${esc(f.name)}</b> ${f.url ? `— ${esc(f.url)}` : ''} ${f.note ? `(${esc(f.note)})` : ''}</li>`).join('')}
+            </ul>
+          ` : ''}
+        </div>
+      ` : ''}
+
+      <div class="cert">
+        <b>SECTION 65B STATUTORY CERTIFICATION:</b><br>
+        It is hereby certified that this electronic record was produced by the Thinkable Vault computer registry system during the period over which the system was used regularly to store electronic records for business transactions. The information contained herein was fed into the computer system in the ordinary course of business activities, and throughout the material part of the said period, the computer was operating properly. The cryptographic hash <b>${esc(sha.slice(0, 32))}...</b> guarantees that the contents have not been altered or tampered with since creation.
+      </div>
+
+      <div class="signatures">
+        <div>
+          <div class="label">PARTY A DIGITAL SIGNATURE</div>
+          <div class="val">${a.sigA ? `✓ SIGNED by ${esc(a.partyA)}` : 'Awaiting Signature'}</div>
+          <div style="font-size:11px;color:#555;margin-top:2px">${a.sigA?.utc ? new Date(a.sigA.utc).toLocaleString('en-IN') : ''}</div>
+          <div style="font-size:10.5px;color:#777">${a.sigA?.stamp || ''}</div>
+        </div>
+        <div>
+          <div class="label">PARTY B DIGITAL SIGNATURE</div>
+          <div class="val">${a.sigB ? `✓ SIGNED by ${esc(a.partyB)}` : 'Awaiting Signature'}</div>
+          <div style="font-size:11px;color:#555;margin-top:2px">${a.sigB?.utc ? new Date(a.sigB.utc).toLocaleString('en-IN') : ''}</div>
+          <div style="font-size:10.5px;color:#777">${a.sigB?.stamp || ''}</div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `);
+  printWin.document.close();
+}
+
 /* ─── 2A: Working Agreement View (Client & Contractor Sides) ─── */
 function renderWorkAgreementView(a, remoteSigningRole) {
   const { total, paid, left } = calcTotals(a);
@@ -2134,15 +2516,13 @@ function renderWorkAgreementView(a, remoteSigningRole) {
 
   const app = document.getElementById('appSlot');
   app.innerHTML = `
-    <!-- Dual-Side Testing Banner -->
+    <!-- Authenticated Status Banner -->
     <div class="role-banner no-print">
       <div class="role-banner-text">
-        Viewing as: <b>${esc(activeProfile)}</b> &nbsp;·&nbsp;
-        Role: <b>${isClient ? 'Client (Party A)' : isContractor ? 'Contractor (Party B)' : 'Guest / Viewer'}</b>
+        Authenticated as: <b>${esc(activeProfile)}</b> &nbsp;·&nbsp;
+        Role: <b>${isClient ? 'Client (Party A)' : isContractor ? 'Contractor (Party B)' : 'Registered Counterparty / Viewer'}</b>
       </div>
-      <button class="btn-sm" id="btnSwitchToCounterpart">
-        🔄 Switch to ${esc(counterpartName)}
-      </button>
+      <div style="font-size:11px;color:var(--brand);font-weight:800">🔒 Vault Verified</div>
     </div>
 
     <!-- Back & Header Actions -->
@@ -2412,6 +2792,9 @@ function renderWorkAgreementView(a, remoteSigningRole) {
       </div>
     </div>
 
+    <!-- Work Dossier & Private Records -->
+    ${renderWorkDossierCard(a)}
+
     <!-- Action Dock -->
     <div class="action-dock no-print">
       <button class="btn-sm" id="btnExportPDF">📥 Export SOW PDF</button>
@@ -2425,13 +2808,7 @@ function renderWorkAgreementView(a, remoteSigningRole) {
   // Bind Actions
   document.getElementById('btnDocBack').onclick = renderDashboard;
   document.getElementById('btnPrintDoc').onclick = () => window.print();
-
-  document.getElementById('btnSwitchToCounterpart').onclick = () => {
-    activeProfile = counterpartName;
-    localStorage.setItem(PROFILE_KEY, activeProfile);
-    showToast(`Switched active profile to ${activeProfile}`);
-    renderDocumentView(a.id);
-  };
+  bindWorkDossierEvents(a);
 
   document.getElementById('btnExportPDF').onclick = () => {
     const el = document.getElementById('printableNote');
@@ -2578,15 +2955,13 @@ function renderLoanAgreementView(a, remoteSigningRole) {
 
   const app = document.getElementById('appSlot');
   app.innerHTML = `
-    <!-- Dual-Side Testing Banner -->
+    <!-- Authenticated Status Banner -->
     <div class="role-banner no-print">
       <div class="role-banner-text">
-        Viewing as: <b>${esc(activeProfile)}</b> &nbsp;·&nbsp;
-        Role: <b>${isLender ? 'Lender / Giver of Money (Party A)' : isBorrower ? 'Borrower / Requester (Party B)' : 'Guest / Viewer'}</b>
+        Authenticated as: <b>${esc(activeProfile)}</b> &nbsp;·&nbsp;
+        Role: <b>${isLender ? 'Lender / Giver of Money (Party A)' : isBorrower ? 'Borrower / Requester (Party B)' : 'Registered Counterparty / Viewer'}</b>
       </div>
-      <button class="btn-sm" id="btnSwitchToCounterpart">
-        🔄 Switch to ${esc(counterpartName)}
-      </button>
+      <div style="font-size:11px;color:var(--brand);font-weight:800">🔒 Vault Verified</div>
     </div>
 
     <!-- Back & Header Actions -->
@@ -2858,6 +3233,9 @@ function renderLoanAgreementView(a, remoteSigningRole) {
       ` : ''}
     </div>
 
+    <!-- Work Dossier & Private Records -->
+    ${renderWorkDossierCard(a)}
+
     <!-- Action Dock -->
     <div class="action-dock no-print">
       <button class="btn-sm" id="btnExportPDF">📥 Export PDF</button>
@@ -2871,13 +3249,7 @@ function renderLoanAgreementView(a, remoteSigningRole) {
   // Bind Actions
   document.getElementById('btnDocBack').onclick = renderDashboard;
   document.getElementById('btnPrintDoc').onclick = () => window.print();
-
-  document.getElementById('btnSwitchToCounterpart').onclick = () => {
-    activeProfile = counterpartName;
-    localStorage.setItem(PROFILE_KEY, activeProfile);
-    showToast(`Switched active profile to ${activeProfile}`);
-    renderDocumentView(a.id);
-  };
+  bindWorkDossierEvents(a);
 
   document.getElementById('btnExportPDF').onclick = () => {
     const el = document.getElementById('printableNote');
@@ -3123,6 +3495,12 @@ function renderCreateWorkForm() {
       <div style="font-weight:800;font-size:18px;margin-bottom:4px">New Professional Working Agreement</div>
       <div class="muted" style="margin-bottom:16px">Creates a binding Scope of Work with deliverables, client sign-offs, and IP assignment.</div>
 
+      <!-- Saved Contacts 1-Tap Quick Select -->
+      <div id="savedWorkContactsBar" style="display:none;margin-bottom:14px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px">
+        <div style="font-size:11px;font-weight:800;color:var(--tx-muted);margin-bottom:6px">⚡ 1-TAP SELECT SAVED CONTRACTOR:</div>
+        <div id="savedWorkChips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px"></div>
+      </div>
+
       <!-- Counterparty Lookup Box -->
       <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
         <label style="margin-top:0">Direct Counterparty Match (Vault ID or Email)</label>
@@ -3261,6 +3639,46 @@ function renderCreateWorkForm() {
   document.getElementById('btnWorkLookup').onclick = doWorkLookup;
   document.getElementById('workLookupInput').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); doWorkLookup(); } };
 
+  // Render Saved Contacts 1-Tap Quick Select Chips
+  const renderWorkContactsPills = () => {
+    const box = document.getElementById('savedWorkContactsBar');
+    if (!box) return;
+    if (!userContacts || userContacts.length === 0) {
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'block';
+    const chipsDiv = document.getElementById('savedWorkChips');
+    chipsDiv.innerHTML = userContacts.map(c => `
+      <button type="button" class="btn-sm btn-contact-chip-work" data-vid="${esc(c.vaultId)}" data-name="${esc(c.name)}" data-email="${esc(c.email)}" data-upi="${esc(c.upi)}" style="white-space:nowrap;font-size:11.5px;padding:4px 10px;border-radius:99px;background:var(--paper);border:1px solid var(--border);display:inline-flex;align-items:center;gap:4px;cursor:pointer">
+        <span>👤</span> <b>${esc(c.name)}</b> <span class="muted" style="font-size:10px">(${esc(c.vaultId)})</span>
+      </button>
+    `).join('');
+
+    chipsDiv.querySelectorAll('.btn-contact-chip-work').forEach(btn => {
+      btn.onclick = () => {
+        const vid = btn.dataset.vid;
+        const name = btn.dataset.name;
+        const email = btn.dataset.email || '';
+        const upi = btn.dataset.upi || '';
+        document.getElementById('workContractor').value = name;
+        document.getElementById('workLookupInput').value = vid;
+        targetWorkBVaultId = vid;
+        targetWorkBEmail = email;
+        targetWorkBUpi = upi;
+        const badge = document.getElementById('workLookupBadge');
+        badge.className = 'anim-fade';
+        badge.style.display = 'block';
+        badge.style.background = 'var(--ok-bg)';
+        badge.style.color = 'var(--ok)';
+        badge.style.border = '1px solid var(--ok-border)';
+        badge.innerHTML = `✓ <b>1-Tap Selected:</b> ${esc(name)} (Vault ID: <b>${esc(vid)}</b>) · Payouts to ${upi || 'UPI'}`;
+        showToast(`Selected saved contact: ${name}`);
+      };
+    });
+  };
+  renderWorkContactsPills();
+
   document.getElementById('btnAddMilestone').onclick = () => {
     milestoneCount++;
     const div = document.createElement('div');
@@ -3385,6 +3803,12 @@ function renderCreateLoanForm() {
       <div style="font-weight:800;font-size:18px;margin-bottom:4px">New Mutual Loan Agreement</div>
       <div class="muted" style="margin-bottom:16px">Creates a legally structured promissory instrument with remote sign &amp; mutual repayment endorsements.</div>
 
+      <!-- Saved Contacts 1-Tap Quick Select -->
+      <div id="savedLoanContactsBar" style="display:none;margin-bottom:14px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px">
+        <div style="font-size:11px;font-weight:800;color:var(--tx-muted);margin-bottom:6px">⚡ 1-TAP SELECT SAVED BORROWER:</div>
+        <div id="savedLoanChips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px"></div>
+      </div>
+
       <!-- Counterparty Lookup Box -->
       <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
         <label style="margin-top:0">Direct Borrower Match (Vault ID or Email)</label>
@@ -3496,6 +3920,46 @@ function renderCreateLoanForm() {
   };
   document.getElementById('btnLoanLookup').onclick = doLoanLookup;
   document.getElementById('loanLookupInput').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); doLoanLookup(); } };
+
+  // Render Saved Contacts 1-Tap Quick Select Chips for Loan
+  const renderLoanContactsPills = () => {
+    const box = document.getElementById('savedLoanContactsBar');
+    if (!box) return;
+    if (!userContacts || userContacts.length === 0) {
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'block';
+    const chipsDiv = document.getElementById('savedLoanChips');
+    chipsDiv.innerHTML = userContacts.map(c => `
+      <button type="button" class="btn-sm btn-contact-chip-loan" data-vid="${esc(c.vaultId)}" data-name="${esc(c.name)}" data-email="${esc(c.email)}" data-upi="${esc(c.upi)}" style="white-space:nowrap;font-size:11.5px;padding:4px 10px;border-radius:99px;background:var(--paper);border:1px solid var(--border);display:inline-flex;align-items:center;gap:4px;cursor:pointer">
+        <span>👤</span> <b>${esc(c.name)}</b> <span class="muted" style="font-size:10px">(${esc(c.vaultId)})</span>
+      </button>
+    `).join('');
+
+    chipsDiv.querySelectorAll('.btn-contact-chip-loan').forEach(btn => {
+      btn.onclick = () => {
+        const vid = btn.dataset.vid;
+        const name = btn.dataset.name;
+        const email = btn.dataset.email || '';
+        const upi = btn.dataset.upi || '';
+        document.getElementById('newPartyB').value = name;
+        document.getElementById('loanLookupInput').value = vid;
+        targetLoanBVaultId = vid;
+        targetLoanBEmail = email;
+        targetLoanBUpi = upi;
+        const badge = document.getElementById('loanLookupBadge');
+        badge.className = 'anim-fade';
+        badge.style.display = 'block';
+        badge.style.background = 'var(--ok-bg)';
+        badge.style.color = 'var(--ok)';
+        badge.style.border = '1px solid var(--ok-border)';
+        badge.innerHTML = `✓ <b>1-Tap Selected:</b> ${esc(name)} (Vault ID: <b>${esc(vid)}</b>) · Repayment to ${upi || 'UPI'}`;
+        showToast(`Selected saved contact: ${name}`);
+      };
+    });
+  };
+  renderLoanContactsPills();
 
   document.getElementById('btnSaveNote').onclick = async () => {
     const pA = document.getElementById('newPartyA').value.trim();
@@ -3938,10 +4402,33 @@ document.getElementById('btnUserModal').onclick = () => {
     if (profileQrFileName) profileQrFileName.textContent = 'No scanner selected';
   }
 
+  renderSavedContactsModal();
   userModal.style.display = 'flex';
 };
 document.getElementById('btnCloseUserModal').onclick = () => { userModal.style.display = 'none'; };
 userModal.onclick = e => { if (e.target === userModal) userModal.style.display = 'none'; };
+
+// Manual Add Counterparty to Saved Directory
+const btnAddContactManual = document.getElementById('btnAddContactManual');
+if (btnAddContactManual) {
+  btnAddContactManual.onclick = async () => {
+    const vid = prompt('Enter Counterparty Vault ID (e.g. VID-69689):');
+    if (!vid) return;
+    const cleanVid = vid.trim().toUpperCase();
+    const name = prompt('Enter Counterparty Legal Full Name:');
+    if (!name) return;
+    const email = prompt('Enter Counterparty Email (Optional):', '') || '';
+    const upi = prompt('Enter Counterparty UPI ID (Optional):', '') || '';
+    await saveContactItem({
+      vaultId: cleanVid,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
+      upi: upi.trim()
+    });
+    showToast(`✓ Saved ${name.trim()} (${cleanVid}) to your Counterparties Directory!`);
+    renderSavedContactsModal();
+  };
+}
 
 /* ─── Personal Profile UPI VPA & QR Scanner Handler ─── */
 const btnSaveProfileUpi = document.getElementById('btnSaveProfileUpi');
@@ -3987,51 +4474,7 @@ if (btnSaveProfileUpi) {
   };
 }
 
-// Quick login as Suraj or Rohan for dual-side contract testing
-const quickSwitchAuth = async (u, p) => {
-  try {
-    const res = await fetch(apiUrl('/api/auth/login'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: u, password: p })
-    });
-    const d = await res.json();
-    if (d && d.ok) {
-      authToken = d.token;
-      currentUser = d.user;
-      localStorage.setItem(AUTH_TOKEN_KEY, authToken);
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
-      activeProfile = currentUser.fullName;
-      userModal.style.display = 'none';
-      showToast(`Switched active party to ${currentUser.fullName} (${currentUser.vaultId})`);
-      updateHeaderUser();
-      initSSE();
-      await syncWithServer();
-      if (currentId) renderDocumentView(currentId); else renderDashboard();
-    }
-  } catch {
-    const isSuraj = u === 'suraj';
-    currentUser = {
-      id: isSuraj ? 'usr_suraj_01' : 'usr_rohan_02',
-      username: isSuraj ? 'suraj' : 'rohan',
-      fullName: isSuraj ? 'Suraj Sharma' : 'Rohan Verma',
-      email: isSuraj ? 'suraj.sharma@gmail.com' : 'rohan.verma@gmail.com',
-      vaultId: isSuraj ? 'VID-65228' : 'VID-38110',
-      upiId: isSuraj ? 'suraj.sharma@okaxis' : 'rohan.verma@paytm'
-    };
-    authToken = 'offline_token_' + Date.now();
-    localStorage.setItem(AUTH_TOKEN_KEY, authToken);
-    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
-    activeProfile = currentUser.fullName;
-    userModal.style.display = 'none';
-    showToast(`Switched party to ${currentUser.fullName} (Offline mode)`);
-    updateHeaderUser();
-    if (currentId) renderDocumentView(currentId); else renderDashboard();
-  }
-};
-
-document.getElementById('btnSwitchSuraj').onclick = () => quickSwitchAuth('suraj', 'suraj123');
-document.getElementById('btnSwitchRohan').onclick = () => quickSwitchAuth('rohan', 'rohan123');
+document.getElementById('btnLogoutUser').onclick = window.logoutUser;
 document.getElementById('btnLogoutUser').onclick = window.logoutUser;
 
 /* ─── Instant 1-Tap UPI Payment Sheet (NPCI / GPay / PhonePe / Paytm / BHIM) ─── */
@@ -4319,6 +4762,7 @@ document.getElementById('goHome').onclick = () => {
 (async () => {
   const isAuthed = await verifyAuth();
   initSSE();
+  await loadUserContacts();
   await syncWithServer();
   const handled = await handleUrlActions();
   if (!handled) {

@@ -35,6 +35,7 @@ const USR_FILE  = path.join(DATA_DIR, 'users.json');
 const AUTH_FILE = path.join(DATA_DIR, 'auth_users.json');
 const SESS_FILE = path.join(DATA_DIR, 'sessions.json');
 const LOG_FILE  = path.join(DATA_DIR, 'activity.json');
+const CONTACTS_FILE = path.join(DATA_DIR, 'contacts.json');
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -110,6 +111,8 @@ function rowToAgreement(r) {
     sigB: r.sig_b,
     milestones: r.milestones || [],
     payments: r.payments || [],
+    privateNotes: r.private_notes || '',
+    dossier: Array.isArray(r.dossier) ? r.dossier : [],
     sha256Digest: r.sha256_digest,
     clientIp: r.client_ip,
     userAgent: r.user_agent,
@@ -339,7 +342,8 @@ const db = {
           party_b, party_b_vault_id, party_b_email, party_b_city, party_b_upi, party_b_qr,
           amount, rate, start_date, due_date, late_fee,
           purpose, scope, jurisdiction, sig_a, sig_b,
-          milestones, payments, sha256_digest, client_ip, user_agent, created_at_ms
+          milestones, payments, sha256_digest, client_ip, user_agent, created_at_ms,
+          private_notes, dossier
         ) VALUES (
           ${escapeSql(a.id)},
           ${escapeSql(a.type || 'loan')},
@@ -373,13 +377,17 @@ const db = {
           ${escapeSql(a.sha256Digest || '')},
           ${escapeSql(a.clientIp || '')},
           ${escapeSql(a.userAgent || '')},
-          ${escapeSql(a.created || Date.now())}
+          ${escapeSql(a.created || Date.now())},
+          ${escapeSql(a.privateNotes || '')},
+          ${escapeSql(a.dossier || [])}
         ) ON CONFLICT (id) DO UPDATE SET
           title = EXCLUDED.title,
           sig_a = EXCLUDED.sig_a,
           sig_b = EXCLUDED.sig_b,
           milestones = EXCLUDED.milestones,
           payments = EXCLUDED.payments,
+          private_notes = EXCLUDED.private_notes,
+          dossier = EXCLUDED.dossier,
           sha256_digest = EXCLUDED.sha256_digest,
           party_a_upi = COALESCE(NULLIF(EXCLUDED.party_a_upi, ''), agreements.party_a_upi),
           party_a_qr = COALESCE(NULLIF(EXCLUDED.party_a_qr, ''), agreements.party_a_qr),
@@ -398,6 +406,68 @@ const db = {
     if (isCloudConnected) {
       await queryNeon(`DELETE FROM agreements WHERE id = ${escapeSql(id)};`);
     }
+  },
+
+  /* ── User Contacts Operations (Saved Counterparties Directory) ── */
+  async getUserContacts(userId) {
+    if (isCloudConnected) {
+      const rows = await queryNeon(`SELECT * FROM user_contacts WHERE user_id = ${escapeSql(userId)} ORDER BY created_at DESC;`);
+      if (rows) {
+        return rows.map(r => ({
+          id: r.id,
+          userId: r.user_id,
+          name: r.contact_name,
+          vaultId: r.contact_vault_id,
+          email: r.contact_email || '',
+          upi: r.contact_upi || '',
+          createdAt: r.created_at ? new Date(r.created_at).getTime() : Date.now()
+        }));
+      }
+    }
+    const local = loadLocal(CONTACTS_FILE, []);
+    return local.filter(c => c.userId === userId);
+  },
+
+  async saveUserContact(userId, contact) {
+    const id = contact.id || ('cnt_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+    const clean = {
+      id,
+      userId,
+      name: (contact.name || '').trim(),
+      vaultId: (contact.vaultId || '').trim().toUpperCase(),
+      email: (contact.email || '').trim().toLowerCase(),
+      upi: (contact.upi || '').trim(),
+      createdAt: Date.now()
+    };
+    const local = loadLocal(CONTACTS_FILE, []);
+    const existingIdx = local.findIndex(c => c.userId === userId && (c.vaultId === clean.vaultId || (c.email && c.email === clean.email)));
+    if (existingIdx >= 0) {
+      local[existingIdx] = { ...local[existingIdx], ...clean, id: local[existingIdx].id };
+    } else {
+      local.unshift(clean);
+    }
+    saveLocal(CONTACTS_FILE, local);
+
+    if (isCloudConnected) {
+      await queryNeon(`
+        INSERT INTO user_contacts (id, user_id, contact_name, contact_vault_id, contact_email, contact_upi)
+        VALUES (${escapeSql(clean.id)}, ${escapeSql(clean.userId)}, ${escapeSql(clean.name)}, ${escapeSql(clean.vaultId)}, ${escapeSql(clean.email)}, ${escapeSql(clean.upi)})
+        ON CONFLICT (id) DO UPDATE SET
+          contact_name = EXCLUDED.contact_name,
+          contact_email = EXCLUDED.contact_email,
+          contact_upi = EXCLUDED.contact_upi;
+      `);
+    }
+    return clean;
+  },
+
+  async deleteUserContact(userId, contactId) {
+    const local = loadLocal(CONTACTS_FILE, []);
+    saveLocal(CONTACTS_FILE, local.filter(c => !(c.userId === userId && c.id === contactId)));
+    if (isCloudConnected) {
+      await queryNeon(`DELETE FROM user_contacts WHERE user_id = ${escapeSql(userId)} AND id = ${escapeSql(contactId)};`);
+    }
+    return true;
   },
 
   /* ── Audit Log Operations ── */
