@@ -12,7 +12,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@types/node": "^22.0.0",
     "@vitejs/plugin-react": "latest",
     "electron": "latest",
     "react": "latest",
@@ -20,6 +19,7 @@
     "zod": "latest"
   },
   "devDependencies": {
+    "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "concurrently": "latest",
