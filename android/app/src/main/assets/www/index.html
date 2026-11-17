@@ -1260,6 +1260,26 @@ function saveLocalList(data) {
 let list = loadLocalList();
 
 /* ─── Google Identity & Real Authentication ─── */
+const GOOGLE_CLIENT_ID = '764495154731-vunqpl6gvo75hcc1a73f8nm4sbuccjk0.apps.googleusercontent.com';
+
+function initGoogleAuth() {
+  if (!window.google?.accounts?.id) return;
+  try {
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: async (response) => {
+        if (response && response.credential) {
+          await handleGoogleAuth(response.credential);
+        }
+      },
+      auto_select: false,
+      cancel_on_tap_outside: true
+    });
+  } catch (err) {
+    console.warn('[GIS Init Error]', err);
+  }
+}
+
 async function handleGoogleAuth(credential = null, promptUser = false) {
   try {
     let payload = {};
@@ -1814,12 +1834,23 @@ function renderAuthView(initialTab = 'signin') {
     if (e.key === 'Enter') document.getElementById('btnSubmitLogin').click();
   };
 
-  // Google Authentication Trigger
+  // Google Authentication Trigger with Real OAuth Client ID
   const triggerGoogleAuth = async () => {
     if (window.google?.accounts?.id) {
       try {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: async (response) => {
+            if (response && response.credential) {
+              await handleGoogleAuth(response.credential);
+            }
+          },
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
         window.google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            console.log('One-tap not displayed, reason:', notification.getNotDisplayedReason?.());
             handleGoogleAuth(null, true);
           }
         });
@@ -1895,6 +1926,8 @@ function renderAuthView(initialTab = 'signin') {
       btn.textContent = 'Create Account & Mint Vault ID';
     }
   };
+
+  initGoogleAuth();
 }
 
 window.logoutUser = async () => {
