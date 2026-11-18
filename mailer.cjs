@@ -103,6 +103,7 @@ function formatInr(num) {
 
 function getAgreementCreatedTemplate(agr, config) {
   const isLoan = agr.type === 'loan';
+  const title = agr.title || (isLoan ? 'Mutual Loan Agreement' : 'Working Agreement & SOW');
   const roleName = isLoan ? 'Borrower' : 'Contractor / Deliverer';
   const creatorRole = isLoan ? 'Lender' : 'Client / Employer';
   const viewUrl = `${config.appUrl}/?action=view&id=${encodeURIComponent(agr.id)}`;
@@ -118,7 +119,7 @@ function getAgreementCreatedTemplate(agr, config) {
     <div class="metrics-card">
       <div class="metric-row">
         <span class="metric-label">Instrument Title</span>
-        <span class="metric-val">${agr.title}</span>
+        <span class="metric-val">${title}</span>
       </div>
       <div class="metric-row">
         <span class="metric-label">Instrument ID</span>
@@ -148,7 +149,7 @@ function getAgreementCreatedTemplate(agr, config) {
   `;
 
   return {
-    subject: `[Action Required] New Agreement Drafted: ${agr.title} (${agr.id})`,
+    subject: `[Action Required] New Agreement Drafted: ${title} (${agr.id})`,
     preheader: `${agr.partyA} has drafted a legal instrument with you for ${formatInr(agr.amount)}. Review and sign now.`,
     badge: 'Draft Instrument · Signing Required',
     badgeColor: '#4361ee',
@@ -160,19 +161,21 @@ function getAgreementCreatedTemplate(agr, config) {
 }
 
 function getAgreementSignedTemplate(agr, signerName, config) {
+  const isLoan = agr.type === 'loan';
+  const title = agr.title || (isLoan ? 'Mutual Loan Agreement' : 'Working Agreement & SOW');
   const viewUrl = `${config.appUrl}/?action=view&id=${encodeURIComponent(agr.id)}`;
   const bodyContent = `
     <p style="font-size:15px;color:#334155;margin-top:0">
       Dear Vault Member,
     </p>
     <p style="font-size:14px;color:#475569">
-      Mutual digital endorsement has been successfully completed for <b>${agr.title}</b> (${agr.id}). The agreement is now fully active, legally binding, and secured in the Vault.
+      Mutual digital endorsement has been successfully completed for <b>${title}</b> (${agr.id}). The agreement is now fully active, legally binding, and secured in the Vault.
     </p>
 
     <div class="metrics-card">
       <div class="metric-row">
         <span class="metric-label">Agreement Title</span>
-        <span class="metric-val">${agr.title}</span>
+        <span class="metric-val">${title}</span>
       </div>
       <div class="metric-row">
         <span class="metric-label">Agreement ID</span>
@@ -198,8 +201,8 @@ function getAgreementSignedTemplate(agr, signerName, config) {
   `;
 
   return {
-    subject: `[Mutually Executed] Agreement Active: ${agr.title} (${agr.id})`,
-    preheader: `Both parties have digitally endorsed ${agr.title}. The contract is now active and legally binding.`,
+    subject: `[Mutually Executed] Agreement Active: ${title} (${agr.id})`,
+    preheader: `Both parties have digitally endorsed ${title}. The contract is now active and legally binding.`,
     badge: '✓ Mutually Executed · Legally Binding',
     badgeColor: '#059669',
     bodyContent,
@@ -276,6 +279,182 @@ function getPaymentProofTemplate(agr, payment, config) {
     actionUrl: viewUrl,
     actionText: 'View Cryptographic Payment Audit →',
     footerNote: `🏦 UTR: ${utr} · Timestamp: ${dateStr} · Section 65B Certificate generation enabled.`
+  };
+}
+
+function getAgreementReminderTemplate(agr, hoursLeft, config) {
+  const isLoan = agr.type === 'loan';
+  const viewUrl = `${config.appUrl}/?action=view&id=${encodeURIComponent(agr.id)}`;
+  const hoursText = hoursLeft <= 1 ? 'Under 1 hour' : `${hoursLeft} hours`;
+
+  const bodyContent = `
+    <div style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;padding:16px;margin-bottom:18px">
+      <div style="font-weight:800;color:#991b1b;font-size:14.5px;display:flex;align-items:center;gap:6px">
+        ⏳ 12-HOUR SLA ACCEPTANCE WINDOW ACTIVE
+      </div>
+      <div style="font-size:13px;color:#b91c1c;margin-top:4px">
+        This legal instrument requires your acceptance within 12 hours. <b>${hoursText} remaining</b> before terms expire.
+      </div>
+    </div>
+
+    <p style="font-size:15px;color:#334155;margin-top:0">
+      Hello <b>${agr.partyB || 'Valued Counterparty'}</b>,
+    </p>
+    <p style="font-size:14px;color:#475569">
+      This is a scheduled 2-hour status notification regarding the pending agreement drafted by <b>${agr.partyA}</b> (${agr.partyAVaultId || 'Party A'}).
+    </p>
+
+    <div class="metrics-card">
+      <div class="metric-row">
+        <span class="metric-label">Instrument Title</span>
+        <span class="metric-val">${agr.title}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Instrument ID</span>
+        <span class="metric-val" style="font-family:monospace">${agr.id}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Total Principal</span>
+        <span class="metric-val" style="color:#059669;font-size:15px">${formatInr(agr.amount)}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Lender</span>
+        <span class="metric-val">${agr.partyA}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Remaining Time</span>
+        <span class="metric-val" style="color:#b91c1c;font-weight:800">${hoursText}</span>
+      </div>
+    </div>
+
+    <p style="font-size:13.5px;color:#475569">
+      Affix your digital signature below to execute this binding contract and confirm your promissory repayment undertaking.
+    </p>
+  `;
+
+  return {
+    subject: `[⏰ 12h SLA Reminder - ${hoursText} Left] Action Required: ${agr.title} (${agr.id})`,
+    preheader: `Periodic reminder: ${hoursText} remaining to review and accept the loan agreement for ${formatInr(agr.amount)} from ${agr.partyA}.`,
+    badge: `⏰ 12h SLA Reminder · ${hoursText} Remaining`,
+    badgeColor: '#dc2626',
+    bodyContent,
+    actionUrl: viewUrl,
+    actionText: 'Review & Accept Agreement Now →',
+    footerNote: `🔒 Automated periodic reminder dispatched pursuant to Thinkable Agreement Vault SLA Protocol.`
+  };
+}
+
+function getPromissoryAcceptedTemplate(agr, undertaking, config) {
+  const viewUrl = `${config.appUrl}/?action=view&id=${encodeURIComponent(agr.id)}`;
+  const bodyContent = `
+    <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:18px;margin-bottom:18px">
+      <div style="font-weight:800;color:#166534;font-size:15px">
+        🎉 LOAN AGREEMENT ACCEPTED &amp; PROMISSORY UNDERTAKING EXECUTED
+      </div>
+      <div style="font-size:13.5px;color:#15803d;margin-top:6px;font-style:italic">
+        "${undertaking || 'I promise to repay the loan sum and interest according to schedule. Thank you!'}"
+      </div>
+    </div>
+
+    <p style="font-size:15px;color:#334155;margin-top:0">
+      Dear <b>${agr.partyA}</b>,
+    </p>
+    <p style="font-size:14px;color:#475569">
+      Great news! <b>${agr.partyB}</b> (${agr.partyBVaultId || 'Borrower'}) has reviewed, accepted, and digitally sealed Mutual Loan Agreement <b>${agr.id}</b> with their formal promissory undertaking.
+    </p>
+
+    <div class="metrics-card">
+      <div class="metric-row">
+        <span class="metric-label">Agreement ID</span>
+        <span class="metric-val" style="font-family:monospace">${agr.id}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Borrower</span>
+        <span class="metric-val"><b>${agr.partyB}</b> <small>(${agr.partyBVaultId || 'Party B'})</small></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Principal Disbursed</span>
+        <span class="metric-val" style="color:#059669;font-weight:800;font-size:15px">${formatInr(agr.amount)}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Maturity Date</span>
+        <span class="metric-val">${agr.due}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Legal Status</span>
+        <span class="metric-val" style="color:#059669">✓ Executed &amp; Legally Enforceable</span>
+      </div>
+    </div>
+  `;
+
+  return {
+    subject: `[🎉 Agreement Accepted] ${agr.partyB} signed Loan Note ${agr.id} with Promissory Pledge`,
+    preheader: `${agr.partyB} accepted the loan agreement of ${formatInr(agr.amount)} and executed promissory undertaking.`,
+    badge: '✓ Formally Accepted &amp; Executed',
+    badgeColor: '#059669',
+    bodyContent,
+    actionUrl: viewUrl,
+    actionText: 'View Fully Executed Note &amp; Ledger →',
+    footerNote: `📜 Section 65B Certificate active. Promissory undertaking recorded in immutable audit log.`
+  };
+}
+
+function getInstalmentVerifiedTemplate(agr, payment, clearedMonth, totalMonths, remainingBalance, config) {
+  const viewUrl = `${config.appUrl}/?action=view&id=${encodeURIComponent(agr.id)}`;
+  const amt = Number(payment.amt || payment.amount || 0);
+  const monthText = clearedMonth && totalMonths ? `Month ${clearedMonth} of ${totalMonths}` : 'Instalment';
+
+  const bodyContent = `
+    <div style="background:#ecfdf5;border:1.5px solid #a7f3d0;border-radius:12px;padding:18px;margin-bottom:18px">
+      <div style="font-weight:800;color:#065f46;font-size:15px">
+        ✓ REPAYMENT ENDORSED &amp; VERIFIED BY LENDER
+      </div>
+      <div style="font-size:13.5px;color:#047857;margin-top:6px">
+        Your payment of <b>${formatInr(amt)}</b> has been formally verified by <b>${agr.partyA}</b>. ${clearedMonth && totalMonths ? `<b>${monthText} cleared!</b>` : ''}
+      </div>
+    </div>
+
+    <div class="amount-hero">
+      <div class="amount-label">Verified Repayment</div>
+      <div class="amount-value">${formatInr(amt)}</div>
+      <div style="font-size:12.5px;color:#15803d;font-weight:700;margin-top:6px">Remaining Balance: ${formatInr(remainingBalance)}</div>
+    </div>
+
+    <div class="metrics-card">
+      <div class="metric-row">
+        <span class="metric-label">Agreement Reference</span>
+        <span class="metric-val" style="font-family:monospace">${agr.id}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Lender (Endorser)</span>
+        <span class="metric-val"><b>${agr.partyA}</b> <small>(${agr.partyAVaultId || 'Party A'})</small></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Borrower</span>
+        <span class="metric-val"><b>${agr.partyB}</b> <small>(${agr.partyBVaultId || 'Party B'})</small></span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Payment Reference</span>
+        <span class="metric-val" style="font-family:monospace">${payment.note || payment.utr || 'Direct Payment'}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Remaining Balance</span>
+        <span class="metric-val" style="color:${remainingBalance <= 0.01 ? '#059669' : '#dc2626'};font-weight:800">
+          ${remainingBalance <= 0.01 ? '✓ FULLY SATISFIED (₹0.00)' : formatInr(remainingBalance)}
+        </span>
+      </div>
+    </div>
+  `;
+
+  return {
+    subject: `[✓ Payment Verified by Lender] ${formatInr(amt)} Confirmed for ${agr.id} (${monthText} Cleared)`,
+    preheader: `Lender ${agr.partyA} has verified your repayment of ${formatInr(amt)}. Remaining balance: ${formatInr(remainingBalance)}.`,
+    badge: '✓ Lender Verified &amp; Endorsed',
+    badgeColor: '#059669',
+    bodyContent,
+    actionUrl: viewUrl,
+    actionText: 'View Updated Loan Ledger &amp; Balance →',
+    footerNote: `🏦 Endorsement recorded in cryptographic ledger. Section 65B Electronic Certificate updated.`
   };
 }
 
@@ -500,6 +679,12 @@ async function processQueue() {
         templateData = getAgreementSignedTemplate(job.agreement, job.signerName, config);
       } else if (job.type === 'payment_proof') {
         templateData = getPaymentProofTemplate(job.agreement, job.payment, config);
+      } else if (job.type === 'agreement_reminder') {
+        templateData = getAgreementReminderTemplate(job.agreement, job.hoursLeft, config);
+      } else if (job.type === 'promissory_accepted') {
+        templateData = getPromissoryAcceptedTemplate(job.agreement, job.undertaking, config);
+      } else if (job.type === 'instalment_verified') {
+        templateData = getInstalmentVerifiedTemplate(job.agreement, job.payment, job.clearedMonth, job.totalMonths, job.remainingBalance, config);
       } else {
         console.warn('[Mailer] Unknown email job type:', job.type);
         continue;
@@ -685,6 +870,63 @@ const mailer = {
       }
     }
     processQueue().catch(() => {});
+  },
+
+  /**
+   * Dispatch 2-hour periodic SLA reminder to designated signee
+   */
+  notifyAgreementReminder(agreement, hoursRemaining) {
+    if (!agreement) return;
+    if (agreement.partyBEmail && agreement.partyBEmail.includes('@')) {
+      emailQueue.push({
+        type: 'agreement_reminder',
+        agreement,
+        hoursLeft: hoursRemaining,
+        recipientEmail: agreement.partyBEmail.trim().toLowerCase(),
+        recipientName: agreement.partyB,
+        recipientVaultId: agreement.partyBVaultId
+      });
+      processQueue().catch(() => {});
+    }
+  },
+
+  /**
+   * Dispatch formal acceptance notification with borrower promissory oath
+   */
+  notifyAgreementPromissoryAccepted(agreement, undertakingText) {
+    if (!agreement) return;
+    if (agreement.partyAEmail && agreement.partyAEmail.includes('@')) {
+      emailQueue.push({
+        type: 'promissory_accepted',
+        agreement,
+        undertaking: undertakingText,
+        recipientEmail: agreement.partyAEmail.trim().toLowerCase(),
+        recipientName: agreement.partyA,
+        recipientVaultId: agreement.partyAVaultId
+      });
+      processQueue().catch(() => {});
+    }
+  },
+
+  /**
+   * Dispatch lender verification endorsement receipt for an instalment
+   */
+  notifyInstalmentVerified(agreement, payment, clearedMonth, totalMonths, remainingBalance) {
+    if (!agreement || !payment) return;
+    if (agreement.partyBEmail && agreement.partyBEmail.includes('@')) {
+      emailQueue.push({
+        type: 'instalment_verified',
+        agreement,
+        payment,
+        clearedMonth,
+        totalMonths,
+        remainingBalance,
+        recipientEmail: agreement.partyBEmail.trim().toLowerCase(),
+        recipientName: agreement.partyB,
+        recipientVaultId: agreement.partyBVaultId
+      });
+      processQueue().catch(() => {});
+    }
   },
 
   /**

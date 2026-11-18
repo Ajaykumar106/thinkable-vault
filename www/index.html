@@ -851,8 +851,8 @@ canvas.pad-canvas {
 
 <div class="app-container">
   <header class="app-header">
-    <div class="brand" id="goHome">
-      <div class="brand-icon">AV</div>
+    <div class="brand" id="goHome" style="cursor:pointer;display:flex;align-items:center;gap:9px">
+      <img src="/icons/favicon.png" alt="Logo" style="width:28px;height:28px;border-radius:7px;object-fit:cover;box-shadow:0 2px 8px rgba(67,56,202,0.4)">
       <span>AGREEMENT VAULT</span>
     </div>
     <div class="header-actions">
@@ -919,15 +919,20 @@ canvas.pad-canvas {
     </div>
 
     <div class="template-grid">
+      <div class="template-card" id="pickTemplateLoan">
+        <div class="template-icon">🤝</div>
+        <div class="template-title">Disburse Loan (Lender ➔ Borrower)</div>
+        <div class="template-desc">Lender issues promissory agreement with 1-tap friend autofill, 6-month EMI schedule, and mutual repayment ledger.</div>
+      </div>
+      <div class="template-card" id="pickTemplateLoanRequest">
+        <div class="template-icon">🙋‍♂️</div>
+        <div class="template-title">Apply / Request Loan (Borrower ➔ Lender)</div>
+        <div class="template-desc">mPokket-style loan application: Borrower requests funds, selects 6-month EMI tenure, purpose, and submits to Lender.</div>
+      </div>
       <div class="template-card" id="pickTemplateWork">
         <div class="template-icon">💼</div>
         <div class="template-title">Working Agreement &amp; SOW</div>
         <div class="template-desc">Client ⇄ Contractor scope of work, milestone deliverables, client approval sign-offs, and full IP transfer.</div>
-      </div>
-      <div class="template-card" id="pickTemplateLoan">
-        <div class="template-icon">🤝</div>
-        <div class="template-title">Mutual Loan Agreement</div>
-        <div class="template-desc">Lender ⇄ Borrower promissory note, principal, interest rate, repayment endorsements, and debt discharge.</div>
       </div>
     </div>
   </div>
@@ -1486,6 +1491,207 @@ const today = () => new Date().toISOString().slice(0, 10);
 const fd = d => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 const fdLong = d => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let dashboardViewMode = 'list';
+let selectedCalendarDate = new Date();
+let selectedBorrowerFilter = null;
+
+window.setBorrowerFilter = (name) => {
+  selectedBorrowerFilter = name;
+  renderDashboard();
+};
+
+function renderSlaBadge(a) {
+  if (a.sigA && a.sigB) return '';
+  const now = Date.now();
+  const expiresAt = a.expiresAt || ((a.created || now) + 12 * 3600 * 1000);
+  const diff = expiresAt - now;
+  if (diff <= 0) {
+    return `<span class="badge err" style="font-size:10px;padding:2px 6px">⏳ 12h SLA: Expired</span>`;
+  }
+  const hours = Math.floor(diff / (3600 * 1000));
+  const mins = Math.floor((diff % (3600 * 1000)) / (60 * 1000));
+  return `<span class="badge warn" style="font-size:10px;font-weight:800;padding:2px 6px;letter-spacing:0.02em">⏳ 12h SLA: ${hours}h ${mins}m left</span>`;
+}
+
+function calcLoanKFS(a) {
+  const P = +a.amount || 0;
+  const rate = +a.rate || 0;
+  const mode = a.repaymentMode || 'bullet';
+  const startD = a.start ? new Date(a.start) : new Date();
+
+  let months = 1;
+  if (mode === 'emi_3') months = 3;
+  else if (mode === 'emi_6') months = 6;
+  else if (mode === 'emi_12') months = 12;
+  else if (a.due) {
+    months = Math.max(1, Math.round((new Date(a.due) - startD) / (30 * 864e5)));
+  }
+
+  const totalInterest = Math.round(P * (rate / 100) * (months / 12));
+  const totalRepayable = P + totalInterest;
+  const emiAmount = Math.round(totalRepayable / months);
+
+  // Scheduled instalments
+  let schedule = [];
+  if (a.installments && a.installments.length > 0) {
+    schedule = a.installments;
+  } else {
+    for (let i = 1; i <= months; i++) {
+      const d = new Date(startD);
+      d.setMonth(d.getMonth() + i);
+      const isLast = i === months;
+      const amt = isLast ? (totalRepayable - emiAmount * (months - 1)) : emiAmount;
+      schedule.push({
+        idx: i,
+        month: `Month ${i} of ${months}`,
+        dueDate: d.toISOString().split('T')[0],
+        amt,
+        status: 'PENDING'
+      });
+    }
+  }
+
+  const paidPayments = (a.payments || []).filter(p => p.status === 'VERIFIED' || p.status === undefined);
+  const totalPaid = paidPayments.reduce((s, p) => s + (+p.amt || 0), 0);
+  const remainingBalance = Math.max(0, totalRepayable - totalPaid);
+
+  return {
+    principal: P,
+    rate,
+    mode,
+    months,
+    totalInterest,
+    totalRepayable,
+    emiAmount,
+    totalPaid,
+    remainingBalance,
+    schedule
+  };
+}
+
+function renderCalendarView(agreements) {
+  const year = selectedCalendarDate.getFullYear();
+  const month = selectedCalendarDate.getMonth();
+  const monthName = selectedCalendarDate.toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const eventsByDate = {};
+  for (const a of agreements) {
+    if (a.start) {
+      if (!eventsByDate[a.start]) eventsByDate[a.start] = [];
+      eventsByDate[a.start].push({ type: 'start', title: `🤝 Disbursed ${money(a.amount)} to ${a.partyB}`, agrId: a.id, agr: a });
+    }
+    if (a.repaymentMode && a.repaymentMode.startsWith('emi_')) {
+      const kfs = calcLoanKFS(a);
+      for (const inst of kfs.schedule) {
+        if (inst.dueDate) {
+          if (!eventsByDate[inst.dueDate]) eventsByDate[inst.dueDate] = [];
+          eventsByDate[inst.dueDate].push({ type: 'emi', title: `📅 ${inst.month}: ${money(inst.amt)} due (${a.partyB})`, agrId: a.id, agr: a });
+        }
+      }
+    } else if (a.due) {
+      if (!eventsByDate[a.due]) eventsByDate[a.due] = [];
+      eventsByDate[a.due].push({ type: 'due', title: `🎯 Maturity: ${money(a.amount)} due from ${a.partyB}`, agrId: a.id, agr: a });
+    }
+    for (const p of (a.payments || [])) {
+      if (p.date) {
+        if (!eventsByDate[p.date]) eventsByDate[p.date] = [];
+        eventsByDate[p.date].push({
+          type: p.status === 'VERIFIED' ? 'payment_verified' : 'payment_pending',
+          title: `${p.status === 'VERIFIED' ? '✓ Repayment' : '⏳ Pending'} ${money(p.amt)} (${p.verifiedBy || a.partyB})`,
+          agrId: a.id,
+          agr: a
+        });
+      }
+    }
+  }
+
+  const selectedDateStr = selectedCalendarDate.toISOString().split('T')[0];
+  const dayEvents = eventsByDate[selectedDateStr] || [];
+
+  return `
+    <div class="card anim-fade" style="padding:18px">
+      <!-- Calendar Controls -->
+      <div class="flex space" style="margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="font-weight:900;font-size:16px;color:var(--tx);display:flex;align-items:center;gap:6px">
+          <span>📅</span> Portfolio Ledger Calendar: <b>${monthName}</b>
+        </div>
+        <div class="flex" style="gap:6px">
+          <button class="btn-sm" id="calPrevMonth">◀ Prev</button>
+          <button class="btn-sm" id="calToday">Today</button>
+          <button class="btn-sm" id="calNextMonth">Next ▶</button>
+        </div>
+      </div>
+
+      <!-- Color Legend -->
+      <div style="display:flex;gap:12px;font-size:11px;margin-bottom:14px;flex-wrap:wrap;background:var(--pill);padding:8px 12px;border-radius:8px">
+        <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#10b981"></span> Disbursed</span>
+        <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#6366f1"></span> EMI Due Date</span>
+        <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#059669"></span> Repayment Verified</span>
+        <span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b"></span> Repayment Pending</span>
+      </div>
+
+      <!-- Days Grid Header -->
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-weight:800;font-size:11px;color:var(--tx-muted);margin-bottom:6px">
+        <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+      </div>
+
+      <!-- Month Day Cells -->
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+        ${Array.from({ length: firstDayIndex }).map(() => `<div></div>`).join('')}
+        ${Array.from({ length: daysInMonth }).map((_, i) => {
+          const dayNum = i + 1;
+          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+          const evts = eventsByDate[dateStr] || [];
+          const isToday = dateStr === today();
+          const isSelected = dateStr === selectedDateStr;
+
+          const hasStart = evts.some(e => e.type === 'start');
+          const hasDue = evts.some(e => e.type === 'due' || e.type === 'emi');
+          const hasVerified = evts.some(e => e.type === 'payment_verified');
+          const hasPending = evts.some(e => e.type === 'payment_pending');
+
+          return `
+            <div class="cal-day-cell" data-date="${dateStr}" style="cursor:pointer;padding:8px 4px;min-height:54px;border-radius:8px;background:${isSelected ? 'rgba(79,70,229,0.14)' : isToday ? 'rgba(16,185,129,0.08)' : 'var(--paper)'};border:${isSelected ? '2px solid var(--brand)' : isToday ? '1.5px solid var(--ok)' : '1px solid var(--border)'};text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:space-between">
+              <span style="font-weight:${isSelected || isToday ? '900' : '600'};font-size:12.5px;color:${isSelected ? 'var(--brand)' : isToday ? 'var(--ok)' : 'var(--tx)'}">${dayNum}</span>
+              <div style="display:flex;gap:3px;margin-top:4px">
+                ${hasStart ? `<span style="width:6px;height:6px;border-radius:50%;background:#10b981" title="Disbursement"></span>` : ''}
+                ${hasDue ? `<span style="width:6px;height:6px;border-radius:50%;background:#6366f1" title="EMI Due"></span>` : ''}
+                ${hasVerified ? `<span style="width:6px;height:6px;border-radius:50%;background:#059669" title="Verified Paid"></span>` : ''}
+                ${hasPending ? `<span style="width:6px;height:6px;border-radius:50%;background:#f59e0b" title="Pending Repayment"></span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- Day Events Detail Drawer -->
+      <div style="margin-top:18px;padding-top:14px;border-top:1.5px dashed var(--border)">
+        <div style="font-weight:800;font-size:13.5px;margin-bottom:8px">
+          Schedule &amp; Ledger Events for <b>${fd(selectedDateStr)}</b> (${dayEvents.length} Event${dayEvents.length === 1 ? '' : 's'})
+        </div>
+        ${dayEvents.length === 0 ? `
+          <div class="muted" style="font-size:12px;padding:8px 0">No loans, instalments, or repayments scheduled on this date. Click any date above with indicator dots.</div>
+        ` : `
+          <div style="display:grid;gap:8px">
+            ${dayEvents.map(e => `
+              <div class="flex space" style="padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:8px;flex-wrap:wrap;gap:8px">
+                <div>
+                  <div style="font-weight:700;font-size:13px">${esc(e.title)}</div>
+                  <div class="muted" style="font-size:11.5px">Ref: <b>${esc(e.agrId)}</b> · ${esc(e.agr.partyA)} ⇄ ${esc(e.agr.partyB)}</div>
+                </div>
+                <button class="btn-sm btn-primary" onclick="renderDocumentView('${e.agrId}')">Inspect Note →</button>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
 
 function daysRemaining(dateStr) {
   if (!dateStr) return 0;
@@ -2111,6 +2317,20 @@ function renderDashboard() {
     });
   }
 
+  // Multi-Borrower / Multi-Counterparty extraction
+  const uniqueBorrowers = [];
+  for (const a of list) {
+    if (a.partyB) {
+      const existing = uniqueBorrowers.find(b => b.name === a.partyB);
+      if (existing) existing.count++;
+      else uniqueBorrowers.push({ name: a.partyB, count: 1 });
+    }
+  }
+
+  if (selectedBorrowerFilter) {
+    filtered = filtered.filter(a => a.partyB === selectedBorrowerFilter || a.partyA === selectedBorrowerFilter);
+  }
+
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase().trim();
     filtered = filtered.filter(a => 
@@ -2213,95 +2433,158 @@ function renderDashboard() {
       </div>
     </div>
 
-    <!-- Filter Tabs & Real-time Search -->
-    <div class="filter-row">
-      <div class="tab-pills">
-        <button class="tab-btn ${activeTab === 'all' ? 'active' : ''}" data-tab="all">All (${list.length})</button>
-        <button class="tab-btn ${activeTab === 'work' ? 'active' : ''}" data-tab="work">💼 Working SOW (${list.filter(x => x.type === 'work').length})</button>
-        <button class="tab-btn ${activeTab === 'loan' ? 'active' : ''}" data-tab="loan">🤝 Loans (${list.filter(x => x.type !== 'work').length})</button>
-        <button class="tab-btn ${activeTab === 'action' ? 'active' : ''}" data-tab="action">
-          Needs Action ${pendingActionCount > 0 ? `(${pendingActionCount})` : ''}
-        </button>
-        <button class="tab-btn ${activeTab === 'settled' ? 'active' : ''}" data-tab="settled">Completed</button>
+    <!-- View Switcher & Multi-Borrower Portfolio Bar -->
+    <div class="view-switch-bar" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;gap:4px;background:var(--pill);padding:4px;border-radius:8px;border:1px solid var(--border)">
+        <button class="btn-sm ${dashboardViewMode === 'list' ? 'btn-primary' : ''}" id="btnSwitchListView" style="font-size:12px;padding:5px 14px;border-radius:6px;font-weight:700">📋 List View</button>
+        <button class="btn-sm ${dashboardViewMode === 'calendar' ? 'btn-primary' : ''}" id="btnSwitchCalendarView" style="font-size:12px;padding:5px 14px;border-radius:6px;font-weight:700">📅 Calendar &amp; Schedule</button>
       </div>
-      <input class="search-input" id="inSearch" placeholder="Search contracts, parties, SOW…" value="${esc(searchQuery)}">
+      ${uniqueBorrowers.length > 0 ? `
+        <div style="font-size:12px;color:var(--tx-muted);display:flex;align-items:center;gap:6px">
+          <span>👥</span> <b>${uniqueBorrowers.length} Counterpart${uniqueBorrowers.length === 1 ? 'y' : 'ies'}</b> in Vault
+        </div>
+      ` : ''}
     </div>
 
-    <!-- Agreements List -->
-    ${filtered.length === 0 ? `
-      <div class="card" style="text-align:center;padding:44px 16px">
-        <div style="font-size:16px;font-weight:700;margin-bottom:4px">No agreements found</div>
-        <div class="muted" style="margin-bottom:16px">Create a professional working agreement (SOW) or a mutual loan promissory note.</div>
-        <button class="btn-primary" id="btnEmptyNew">+ Draft Agreement</button>
+    <!-- Multi-Borrower Filter Pills -->
+    ${uniqueBorrowers.length > 1 ? `
+      <div class="borrower-chips-bar" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;align-items:center">
+        <span style="font-size:10.5px;font-weight:800;color:var(--tx-muted);white-space:nowrap">FILTER:</span>
+        <button class="btn-sm ${selectedBorrowerFilter === null ? 'btn-primary' : ''}" style="border-radius:99px;font-size:11px;padding:3px 10px;white-space:nowrap" onclick="window.setBorrowerFilter(null)">All (${list.length})</button>
+        ${uniqueBorrowers.map(b => `
+          <button class="btn-sm ${selectedBorrowerFilter === b.name ? 'btn-primary' : ''}" style="border-radius:99px;font-size:11px;padding:3px 10px;white-space:nowrap" onclick="window.setBorrowerFilter('${esc(b.name)}')">
+            👤 ${esc(b.name)} <span class="badge ${selectedBorrowerFilter === b.name ? 'filled' : 'ok'}" style="font-size:9px;padding:1px 5px">${b.count}</span>
+          </button>
+        `).join('')}
       </div>
-    ` : filtered.map(a => {
-      const st = agreementStatus(a);
-      const { total, paid, left } = calcTotals(a);
-      const pct = total > 0 ? Math.min(100, (paid / total) * 100).toFixed(0) : 0;
-      const isWork = a.type === 'work';
+    ` : ''}
 
-      const isPartyA = matchName(activeProfile, a.partyA);
-      const isPartyB = matchName(activeProfile, a.partyB);
-      const roleTag = isWork 
-        ? (isPartyA ? 'CLIENT' : isPartyB ? 'CONTRACTOR' : 'VIEWER') 
-        : (isPartyA ? 'LENDER' : isPartyB ? 'BORROWER' : 'VIEWER');
-
-      const borderStripe = left <= 0.005 
-        ? 'border-left: 4px solid var(--ok);' 
-        : (!a.sigA || !a.sigB)
-        ? 'border-left: 4px solid var(--warn);'
-        : 'border-left: 4px solid var(--brand);';
-
-      return `
-      <div class="card contract-card clickable" data-open="${a.id}" style="${borderStripe}">
-        <!-- Row 1: Badges & Status Header -->
-        <div class="contract-card-header">
-          <div class="contract-badges">
-            <span class="badge ${isWork ? 'filled' : 'ok'}">${isWork ? '💼 SOW' : '🤝 LOAN'}</span>
-            <span class="badge role-tag">${roleTag}</span>
-          </div>
-          <span class="badge ${st.class} contract-status-pill">${st.text}</span>
+    ${dashboardViewMode === 'calendar' ? renderCalendarView(filtered) : `
+      <!-- Filter Tabs & Real-time Search -->
+      <div class="filter-row">
+        <div class="tab-pills">
+          <button class="tab-btn ${activeTab === 'all' ? 'active' : ''}" data-tab="all">All (${list.length})</button>
+          <button class="tab-btn ${activeTab === 'work' ? 'active' : ''}" data-tab="work">💼 Working SOW (${list.filter(x => x.type === 'work').length})</button>
+          <button class="tab-btn ${activeTab === 'loan' ? 'active' : ''}" data-tab="loan">🤝 Loans (${list.filter(x => x.type !== 'work').length})</button>
+          <button class="tab-btn ${activeTab === 'action' ? 'active' : ''}" data-tab="action">
+            Needs Action ${pendingActionCount > 0 ? `(${pendingActionCount})` : ''}
+          </button>
+          <button class="tab-btn ${activeTab === 'settled' ? 'active' : ''}" data-tab="settled">Completed</button>
         </div>
+        <input class="search-input" id="inSearch" placeholder="Search contracts, parties, SOW…" value="${esc(searchQuery)}">
+      </div>
 
-        <!-- Row 2: Headline / Counterparties (Full Width) -->
-        <div class="contract-card-body">
-          ${isWork ? `
-            <div class="contract-title">💼 ${esc(a.title || 'Working Agreement & SOW')}</div>
-            <div class="contract-meta">
-              <span class="contract-party"><b>${esc(a.partyA)}</b> <span class="role-sub">(Client)</span></span>
-              <span class="meta-sep">&amp;</span>
-              <span class="contract-party"><b>${esc(a.partyB)}</b> <span class="role-sub">(Contractor)</span></span>
-            </div>
-          ` : `
-            <div class="contract-parties-row">
-              <span class="party-name">${esc(a.partyA)}</span>
-              <span class="party-arrow">⇄</span>
-              <span class="party-name">${esc(a.partyB)}</span>
-            </div>
-            <div class="contract-meta">
-              <span class="meta-item"><b class="tx-highlight">${money(a.amount)}</b> principal</span>
-              <span class="meta-dot">·</span>
-              <span class="meta-item">Due <b>${fd(a.due)}</b></span>
-              ${a.rate ? `<span class="meta-dot">·</span> <span class="meta-item"><b>${a.rate}%</b> p.a.</span>` : ''}
-            </div>
-          `}
+      <!-- Agreements List -->
+      ${filtered.length === 0 ? `
+        <div class="card" style="text-align:center;padding:44px 16px">
+          <div style="font-size:16px;font-weight:700;margin-bottom:4px">No agreements found</div>
+          <div class="muted" style="margin-bottom:16px">Create a professional working agreement (SOW) or a mutual loan promissory note.</div>
+          <button class="btn-primary" id="btnEmptyNew">+ Draft Agreement</button>
         </div>
+      ` : filtered.map(a => {
+        const st = agreementStatus(a);
+        const { total, paid, left } = calcTotals(a);
+        const pct = total > 0 ? Math.min(100, (paid / total) * 100).toFixed(0) : 0;
+        const isWork = a.type === 'work';
 
-        <!-- Row 3: Financial Progress & Ledger -->
-        <div class="contract-card-footer">
-          <div class="flex space" style="font-size:12px;margin-bottom:6px">
-            <span class="muted">Balance: <b class="tx-main">${money(left)}</b> / ${money(total)}</span>
-            <span class="pct-pill ${left <= 0.005 ? 'complete' : ''}">${pct}% fulfilled</span>
+        const isPartyA = matchName(activeProfile, a.partyA);
+        const isPartyB = matchName(activeProfile, a.partyB);
+        const roleTag = isWork 
+          ? (isPartyA ? 'CLIENT' : isPartyB ? 'CONTRACTOR' : 'VIEWER') 
+          : (isPartyA ? 'LENDER' : isPartyB ? 'BORROWER' : 'VIEWER');
+
+        const borderStripe = left <= 0.005 
+          ? 'border-left: 4px solid var(--ok);' 
+          : (!a.sigA || !a.sigB)
+          ? 'border-left: 4px solid var(--warn);'
+          : 'border-left: 4px solid var(--brand);';
+
+        return `
+        <div class="card contract-card clickable" data-open="${a.id}" style="${borderStripe}">
+          <!-- Row 1: Badges & Status Header -->
+          <div class="contract-card-header">
+            <div class="contract-badges">
+              <span class="badge ${isWork ? 'filled' : 'ok'}">${isWork ? '💼 SOW' : '🤝 LOAN'}</span>
+              ${!isWork && a.repaymentMode ? `<span class="badge" style="background:rgba(99,102,241,0.1);color:#4f46e5;font-weight:800;font-size:10px">${a.repaymentMode === 'emi_6' ? '6M EMI' : a.repaymentMode === 'emi_3' ? '3M EMI' : a.repaymentMode === 'emi_12' ? '12M EMI' : 'LUMP SUM'}</span>` : ''}
+              <span class="badge role-tag">${roleTag}</span>
+            </div>
+            <div class="flex" style="gap:4px;align-items:center">
+              ${renderSlaBadge(a)}
+              <span class="badge ${st.class} contract-status-pill">${st.text}</span>
+            </div>
           </div>
-          <div class="bar-track">
-            <div class="bar-fill ${left <= 0.005 ? 'complete' : ''}" style="width:${pct}%"></div>
+
+          <!-- Row 2: Headline / Counterparties (Full Width) -->
+          <div class="contract-card-body">
+            ${isWork ? `
+              <div class="contract-title">💼 ${esc(a.title || 'Working Agreement & SOW')}</div>
+              <div class="contract-meta">
+                <span class="contract-party"><b>${esc(a.partyA)}</b> <span class="role-sub">(Client)</span></span>
+                <span class="meta-sep">&amp;</span>
+                <span class="contract-party"><b>${esc(a.partyB)}</b> <span class="role-sub">(Contractor)</span></span>
+              </div>
+            ` : `
+              <div class="contract-parties-row">
+                <span class="party-name">${esc(a.partyA)}</span>
+                <span class="party-arrow">⇄</span>
+                <span class="party-name">${esc(a.partyB)}</span>
+              </div>
+              <div class="contract-meta">
+                <span class="meta-item"><b class="tx-highlight">${money(a.amount)}</b> principal</span>
+                <span class="meta-dot">·</span>
+                <span class="meta-item">Due <b>${fd(a.due)}</b></span>
+                ${a.rate ? `<span class="meta-dot">·</span> <span class="meta-item"><b>${a.rate}%</b> p.a.</span>` : ''}
+              </div>
+            `}
           </div>
-        </div>
-      </div>`;
-    }).join('')}
+
+          <!-- Row 3: Financial Progress & Ledger -->
+          <div class="contract-card-footer">
+            <div class="flex space" style="font-size:12px;margin-bottom:6px">
+              <span class="muted">Balance: <b class="tx-main">${money(left)}</b> / ${money(total)}</span>
+              <span class="pct-pill ${left <= 0.005 ? 'complete' : ''}">${pct}% fulfilled</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill ${left <= 0.005 ? 'complete' : ''}" style="width:${pct}%"></div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    `}
     <!-- Bottom Spacer so cards scroll cleanly above mobile dock -->
     <div style="height:96px"></div>
   `;
+
+  // Bind View Switcher
+  const btnList = document.getElementById('btnSwitchListView');
+  if (btnList) btnList.onclick = () => { dashboardViewMode = 'list'; renderDashboard(); };
+  const btnCal = document.getElementById('btnSwitchCalendarView');
+  if (btnCal) btnCal.onclick = () => { dashboardViewMode = 'calendar'; renderDashboard(); };
+
+  // Bind Calendar Controls
+  if (dashboardViewMode === 'calendar') {
+    const pM = document.getElementById('calPrevMonth');
+    if (pM) pM.onclick = () => {
+      selectedCalendarDate.setMonth(selectedCalendarDate.getMonth() - 1);
+      renderDashboard();
+    };
+    const nM = document.getElementById('calNextMonth');
+    if (nM) nM.onclick = () => {
+      selectedCalendarDate.setMonth(selectedCalendarDate.getMonth() + 1);
+      renderDashboard();
+    };
+    const td = document.getElementById('calToday');
+    if (td) td.onclick = () => {
+      selectedCalendarDate = new Date();
+      renderDashboard();
+    };
+    document.querySelectorAll('.cal-day-cell').forEach(cell => {
+      cell.onclick = () => {
+        selectedCalendarDate = new Date(cell.dataset.date);
+        renderDashboard();
+      };
+    });
+  }
 
   // Bind Events
   document.querySelectorAll('.tab-btn').forEach(b => {
@@ -3102,6 +3385,7 @@ window.endorseMilestonePayout = async (agrId, mId) => {
 
 /* ─── 2B: Loan Agreement View (Lender & Borrower Sides) ─── */
 function renderLoanAgreementView(a, remoteSigningRole) {
+  const kfs = calcLoanKFS(a);
   const { total, paid, left } = calcTotals(a);
   const pct = total > 0 ? Math.min(100, (paid / total) * 100).toFixed(0) : 0;
   const st = agreementStatus(a);
@@ -3128,7 +3412,10 @@ function renderLoanAgreementView(a, remoteSigningRole) {
         Authenticated as: <b>${esc(activeProfile)}</b> &nbsp;·&nbsp;
         Role: <b>${isLender ? 'Lender / Giver of Money (Party A)' : isBorrower ? 'Borrower / Requester (Party B)' : 'Registered Counterparty / Viewer'}</b>
       </div>
-      <div style="font-size:11px;color:var(--brand);font-weight:800">🔒 Vault Verified</div>
+      <div class="flex" style="gap:6px;align-items:center">
+        ${renderSlaBadge(a)}
+        <div style="font-size:11px;color:var(--brand);font-weight:800">🔒 Vault Verified</div>
+      </div>
     </div>
 
     <!-- Back & Header Actions -->
@@ -3197,6 +3484,92 @@ function renderLoanAgreementView(a, remoteSigningRole) {
         <span class="doc-clause-num">4. MATURITY &amp; REPAYMENT:</span>
         The Borrower agrees to satisfy and repay this obligation in full on or before <b>${fdLong(a.due)}</b>.
       </div>
+
+      <!-- mPokket-Caliber Key Fact Statement (KFS) -->
+      <div class="kfs-box" style="margin:20px 0;border:2px solid #312e81;border-radius:10px;padding:16px;background:#f8fafc">
+        <div class="flex space" style="border-bottom:1.5px solid #e2e8f0;padding-bottom:10px;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:11px;font-weight:900;letter-spacing:0.1em;text-transform:uppercase;color:#4338ca">KEY FACT STATEMENT (KFS)</div>
+            <div style="font-size:15px;font-weight:800;color:#0f172a">Digital Lending Summary &amp; EMI Schedule</div>
+          </div>
+          <div class="flex" style="gap:6px;align-items:center">
+            ${renderSlaBadge(a)}
+            <span class="badge ok" style="font-size:10px">${kfs.mode === 'emi_6' ? '6-Month EMI' : kfs.mode === 'emi_3' ? '3-Month EMI' : kfs.mode === 'emi_12' ? '12-Month EMI' : 'Lump-Sum'}</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px">
+          <div style="background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0">
+            <div style="font-size:11px;color:#64748b;font-weight:700">PRINCIPAL SUM</div>
+            <div style="font-size:16px;font-weight:900;color:#0f172a;margin-top:2px">${money(kfs.principal)}</div>
+          </div>
+          <div style="background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0">
+            <div style="font-size:11px;color:#64748b;font-weight:700">TENURE &amp; EMIs</div>
+            <div style="font-size:16px;font-weight:900;color:#4338ca;margin-top:2px">${kfs.months} Months</div>
+          </div>
+          <div style="background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0">
+            <div style="font-size:11px;color:#64748b;font-weight:700">MONTHLY EMI</div>
+            <div style="font-size:16px;font-weight:900;color:#059669;margin-top:2px">${money(kfs.emiAmount)} / mo</div>
+          </div>
+          <div style="background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0">
+            <div style="font-size:11px;color:#64748b;font-weight:700">ANNUAL APR / RATE</div>
+            <div style="font-size:16px;font-weight:900;color:#0f172a;margin-top:2px">${kfs.rate}% p.a.</div>
+          </div>
+          <div style="background:#fff;padding:10px 12px;border-radius:8px;border:1px solid #e2e8f0">
+            <div style="font-size:11px;color:#64748b;font-weight:700">TOTAL REPAYABLE</div>
+            <div style="font-size:16px;font-weight:900;color:#0f172a;margin-top:2px">${money(kfs.totalRepayable)}</div>
+          </div>
+        </div>
+
+        <!-- Detailed EMI Schedule Breakdown Table -->
+        <div style="font-size:12px;font-weight:800;color:#334155;margin-bottom:6px">EMIS &amp; REPAYMENT INSTALMENTS TIMELINE</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="background:#edf2f7;text-align:left">
+              <th style="padding:6px 8px;border-bottom:1px solid #cbd5e1">Instalment</th>
+              <th style="padding:6px 8px;border-bottom:1px solid #cbd5e1">Due Date</th>
+              <th style="padding:6px 8px;border-bottom:1px solid #cbd5e1">Amount Due</th>
+              <th style="padding:6px 8px;border-bottom:1px solid #cbd5e1">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${kfs.schedule.map((item, idx) => {
+              const isPastDue = new Date(item.dueDate) < new Date() && kfs.remainingBalance > 0;
+              const isCleared = (kfs.totalPaid >= (item.amt * (idx + 1)));
+              return `
+                <tr style="border-bottom:1px solid #e2e8f0">
+                  <td style="padding:6px 8px;font-weight:700">${esc(item.month || `Month ${item.idx || idx + 1}`)}</td>
+                  <td style="padding:6px 8px">${fd(item.dueDate)}</td>
+                  <td style="padding:6px 8px;font-weight:800">${money(item.amt)}</td>
+                  <td style="padding:6px 8px">
+                    ${isCleared ? `
+                      <span class="badge ok" style="font-size:9.5px">✓ Cleared</span>
+                    ` : isPastDue ? `
+                      <span class="badge err" style="font-size:9.5px">Overdue</span>
+                    ` : `
+                      <span class="badge filled" style="font-size:9.5px">⏳ Scheduled</span>
+                    `}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      ${a.borrowerUndertaking ? `
+        <div class="doc-clause" style="background:#f0fdf4;border-left:4px solid #16a34a;padding:12px 14px;border-radius:4px;margin:14px 0">
+          <div style="font-size:11px;font-weight:900;color:#166534;text-transform:uppercase;letter-spacing:0.06em">
+            ✍️ STATUTORY PROMISSORY UNDERTAKING (SEC 4 NEGOTIABLE INSTRUMENTS ACT)
+          </div>
+          <div style="font-size:13.5px;color:#14532d;font-style:italic;margin-top:4px;line-height:1.5">
+            "${esc(a.borrowerUndertaking)}"
+          </div>
+          <div style="font-size:10.5px;color:#15803d;margin-top:4px">
+            Affirmed and digitally sealed by <b>${esc(a.partyB)}</b> on ${fdLong(a.sigB?.at || a.created)}.
+          </div>
+        </div>
+      ` : ''}
 
       <div class="doc-clause">
         <span class="doc-clause-num">5. PURPOSE &amp; CONSIDERATION:</span>
@@ -3512,13 +3885,42 @@ window.verifyPayment = async (agrId, payId) => {
   p.status = 'VERIFIED';
   p.verifiedBy = activeProfile;
   p.verifiedAt = Date.now();
-  a._notice = `✓ ${activeProfile} endorsed payment of ${money(p.amt)} for Note ${a.id}`;
+
+  const kfs = calcLoanKFS(a);
+  const paidPays = (a.payments || []).filter(x => x.status === 'VERIFIED');
+  const clearedMonth = paidPays.length;
+  const totalMonths = kfs.months || 6;
+  const remainingBal = Math.max(0, kfs.totalRepayable - paidPays.reduce((s, x) => s + (+x.amt || 0), 0));
+
+  a._notice = `✓ ${activeProfile} verified & endorsed payment of ${money(p.amt)} for Note ${a.id}`;
 
   saveLocalList(list);
   await saveAgreementToServer(a);
 
-  showToast(`Payment of ${money(p.amt)} verified & endorsed in green!`);
+  showToast(`✓ Payment of ${money(p.amt)} verified! Remaining: ${money(remainingBal)}`);
   renderDocumentView(a.id);
+
+  const askWa = confirm(
+    `✓ Repayment of ${money(p.amt)} Verified & Endorsed!\n\n` +
+    `Cleared: Month ${clearedMonth} of ${totalMonths}\n` +
+    `Remaining Balance: ${money(remainingBal)}\n\n` +
+    `Send official payment verification receipt to ${a.partyB} on WhatsApp?`
+  );
+  if (askWa) {
+    const port = location.port ? `:${location.port}` : '';
+    const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
+    const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
+    const phone = (a.partyBPhone || '').replace(/[^0-9+]/g, '');
+    const phoneParam = phone ? `phone=${encodeURIComponent(phone)}&` : '';
+    const msg = `Namaste ${a.partyB}! 🤝\n` +
+      `✓ Payment Verified & Endorsed by Lender ${a.partyA}!\n\n` +
+      `💰 Amount Verified: ${money(p.amt)}\n` +
+      `📊 Month ${clearedMonth} of ${totalMonths} Cleared\n` +
+      `📉 Remaining Balance: ${money(remainingBal)}\n` +
+      `📜 Updated Ledger & Sec 65B Receipt:\n${viewUrl}\n\n` +
+      `Thinkable Agreement Vault.`;
+    window.open(`https://api.whatsapp.com/send/?${phoneParam}text=${encodeURIComponent(msg)}`, '_blank');
+  }
 };
 
 window.rejectPayment = async (agrId, payId) => {
@@ -3626,6 +4028,18 @@ function initPad(k, a) {
     tc.fillStyle = '#ffffff';
     tc.fillRect(0, 0, 320, 95);
     tc.drawImage(c, 0, 0, 320, 95);
+
+    if (k === 'B' && a.type === 'loan') {
+      const defaultOath = `I, ${a.partyB}, promise to repay the sum of ${money(a.amount)} along with agreed interest to ${a.partyA} according to the agreed schedule. Thank you for the trust.`;
+      const customOath = prompt(
+        `🤝 Confirm Statutory Promissory Undertaking to Lender ${a.partyA}:\n\n` +
+        `"I promise to repay according to schedule. Thank you!"\n\n` +
+        `Press OK to confirm or customize:`,
+        defaultOath
+      );
+      if (customOath === null) return;
+      a.borrowerUndertaking = customOath.trim() || defaultOath;
+    }
 
     const sigData = {
       img: t.toDataURL('image/png'),
@@ -4058,6 +4472,22 @@ function renderCreateLoanForm() {
 
       <div class="grid-2">
         <div>
+          <label>Repayment Schedule Mode</label>
+          <select id="newRepaymentMode">
+            <option value="emi_6" selected>6 Monthly EMIs (mPokket style)</option>
+            <option value="emi_3">3 Monthly EMIs</option>
+            <option value="emi_12">12 Monthly EMIs</option>
+            <option value="bullet">Lump-Sum at Maturity</option>
+          </select>
+        </div>
+        <div id="loanEmiPreviewBox" style="background:#f8fafc;border:1px solid #c7d2fe;border-radius:8px;padding:8px 12px;display:flex;flex-direction:column;justify-content:center">
+          <div style="font-size:10.5px;font-weight:800;color:#4338ca;letter-spacing:0.04em">ESTIMATED MONTHLY EMI:</div>
+          <div id="loanEmiPreviewVal" style="font-size:16px;font-weight:900;color:#059669">₹0 / month</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
           <label>Disbursement Date</label>
           <input type="date" id="newStart" value="${today()}">
         </div>
@@ -4085,6 +4515,33 @@ function renderCreateLoanForm() {
   `;
 
   document.getElementById('btnCancelCreate').onclick = renderDashboard;
+
+  const updateLoanEmiPreview = () => {
+    const amt = +document.getElementById('newAmount').value || 0;
+    const rate = +document.getElementById('newRate').value || 0;
+    const mode = document.getElementById('newRepaymentMode').value;
+    const months = mode === 'emi_6' ? 6 : (mode === 'emi_3' ? 3 : (mode === 'emi_12' ? 12 : 1));
+    const interest = Math.round(amt * (rate / 100) * (months / 12));
+    const total = amt + interest;
+    const emi = Math.round(total / months);
+    const box = document.getElementById('loanEmiPreviewVal');
+    if (box) box.textContent = `${money(emi)} / mo (${months} mos)`;
+
+    const dueInput = document.getElementById('newDue');
+    if (dueInput && (!dueInput.value || dueInput.dataset.autoSet === 'true')) {
+      const startD = new Date(document.getElementById('newStart').value || today());
+      startD.setMonth(startD.getMonth() + months);
+      dueInput.value = startD.toISOString().split('T')[0];
+      dueInput.dataset.autoSet = 'true';
+    }
+  };
+
+  document.getElementById('newAmount').oninput = updateLoanEmiPreview;
+  document.getElementById('newRate').oninput = updateLoanEmiPreview;
+  document.getElementById('newRepaymentMode').onchange = updateLoanEmiPreview;
+  document.getElementById('newStart').onchange = updateLoanEmiPreview;
+  document.getElementById('newDue').oninput = () => { document.getElementById('newDue').dataset.autoSet = 'false'; };
+  updateLoanEmiPreview();
 
   const doLoanLookup = async () => {
     const q = document.getElementById('loanLookupInput').value.trim();
@@ -4176,11 +4633,34 @@ function renderCreateLoanForm() {
     if (!pA || !pB || !amt || !due) return alert('Please enter both party names, principal amount, and maturity date.');
     if (new Date(due) <= new Date(document.getElementById('newStart').value)) return alert('Maturity date must be after disbursement date.');
 
+    const mode = document.getElementById('newRepaymentMode').value;
+    const months = mode === 'emi_6' ? 6 : (mode === 'emi_3' ? 3 : (mode === 'emi_12' ? 12 : 1));
+    const rate = +document.getElementById('newRate').value || 0;
+    const interest = Math.round(amt * (rate / 100) * (months / 12));
+    const totalRepayable = amt + interest;
+    const emiAmt = Math.round(totalRepayable / months);
+
+    const installments = [];
+    const startD = new Date(document.getElementById('newStart').value);
+    for (let i = 1; i <= months; i++) {
+      const d = new Date(startD);
+      d.setMonth(d.getMonth() + i);
+      const isLast = i === months;
+      installments.push({
+        idx: i,
+        month: `Month ${i} of ${months}`,
+        dueDate: d.toISOString().split('T')[0],
+        amt: isLast ? (totalRepayable - emiAmt * (months - 1)) : emiAmt,
+        status: 'PENDING'
+      });
+    }
+
     const note = {
       id: 'NOTE-' + Math.floor(1000 + Math.random() * 9000),
       creatorId: currentUser ? currentUser.id : null,
       createdBy: currentUser ? currentUser.username : null,
       type: 'loan',
+      title: 'Mutual Loan Agreement & Promissory Note',
       partyA: pA,
       partyAVaultId: currentUser ? currentUser.vaultId : null,
       partyAEmail: currentUser ? currentUser.email : null,
@@ -4195,9 +4675,12 @@ function renderCreateLoanForm() {
       partyBQr: targetLoanBQr || null,
       partyBCity: document.getElementById('newCityB').value.trim(),
       amount: amt,
-      rate: +document.getElementById('newRate').value || 0,
+      rate,
       start: document.getElementById('newStart').value,
       due,
+      repaymentMode: mode,
+      installments,
+      expiresAt: Date.now() + (12 * 3600 * 1000), // 12-hour SLA window
       late: +document.getElementById('newLate').value || 0,
       purpose: document.getElementById('newPurpose').value.trim(),
       jurisdiction: document.getElementById('newCityA').value.trim() || 'India',
@@ -4223,6 +4706,295 @@ function renderCreateLoanForm() {
     const askWa = confirm(`🎉 Loan Agreement ${note.id} for ${money(note.amount)} created!\n\nAuto-Gmail legal notice dispatched to ${pBEmail || 'borrower'}.\n\nWould you like to send the instant digital contract link to ${pB} on WhatsApp now?`);
     if (askWa) {
       sendAgreementWhatsAppNotice(note, pBPhone);
+    }
+
+    renderDocumentView(note.id);
+  };
+}
+
+/* ─── View 3C: Apply / Request Loan as Borrower (mPokket style) ─── */
+function renderCreateLoanRequestForm() {
+  let targetLenderVaultId = null;
+  let targetLenderEmail = null;
+  let targetLenderUpi = null;
+  let targetLenderQr = null;
+
+  document.getElementById('appSlot').innerHTML = `
+    <div class="flex space" style="margin-bottom:12px">
+      <button class="btn-sm" id="btnCancelLoanReq">← Cancel</button>
+      <span class="badge filled">Borrower Loan Application</span>
+    </div>
+
+    <div class="card anim-fade">
+      <div style="font-weight:800;font-size:18px;margin-bottom:4px">Apply / Request Loan from Lender</div>
+      <div class="muted" style="margin-bottom:16px">mPokket-style digital loan request: Select lender, choose 6-month EMI tenure, purpose, and submit application.</div>
+
+      <!-- Saved Lenders 1-Tap Quick Select -->
+      <div id="savedLendersBar" style="display:none;margin-bottom:14px;padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:10px">
+        <div style="font-size:11px;font-weight:800;color:var(--tx-muted);margin-bottom:6px">⚡ 1-TAP SELECT SAVED LENDER:</div>
+        <div id="savedLenderChips" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:2px"></div>
+      </div>
+
+      <!-- Counterparty Lookup Box -->
+      <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
+        <label style="margin-top:0">Search Lender (Vault ID or Email)</label>
+        <div class="muted" style="font-size:12px;margin-bottom:8px">
+          Enter lender's Vault ID (e.g. VID-10020) or verified email to request funds from them.
+        </div>
+        <div style="display:flex;gap:8px">
+          <input id="lenderLookupInput" placeholder="e.g. VID-10020 or lender@gmail.com" style="flex:1">
+          <button type="button" class="btn-sm btn-primary" id="btnLenderLookup" style="white-space:nowrap;padding:0 14px">🔍 Find Lender</button>
+        </div>
+        <div id="lenderLookupBadge" style="display:none;margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12.5px"></div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Party A — Lender Name (Gives Money)</label>
+          <input id="reqPartyA" placeholder="Legal full name of lender">
+        </div>
+        <div>
+          <label>Lender Email (for Instant Legal Notice)</label>
+          <input type="email" id="reqPartyAEmail" placeholder="e.g. lender@gmail.com">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Party B — Borrower Name (You)</label>
+          <input id="reqPartyB" value="${esc(currentUser ? currentUser.fullName : activeProfile)}" readonly style="background:var(--pill)">
+        </div>
+        <div>
+          <label>Your WhatsApp Phone (for Updates &amp; Alerts)</label>
+          <input type="tel" id="reqPartyBPhone" value="${esc(currentUser ? currentUser.phone || '' : '')}" placeholder="e.g. +91 98765 43210">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Requested Principal Amount (₹)</label>
+          <input type="number" id="reqAmount" placeholder="e.g. 30000" min="1" value="30000">
+        </div>
+        <div>
+          <label>Repayment Schedule Mode</label>
+          <select id="reqRepaymentMode">
+            <option value="emi_6" selected>6 Monthly EMIs (mPokket style)</option>
+            <option value="emi_3">3 Monthly EMIs</option>
+            <option value="emi_12">12 Monthly EMIs</option>
+            <option value="bullet">Lump-Sum at Maturity</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label>Agreed Annual Interest %</label>
+          <input type="number" id="reqRate" value="0" min="0" step="0.5">
+        </div>
+        <div>
+          <label>Your UPI ID (Where Lender Sends Funds)</label>
+          <input id="reqPartyBUpi" value="${esc(currentUser ? currentUser.upiId || '' : '')}" placeholder="e.g. borrower@okhdfcbank">
+        </div>
+      </div>
+
+      <label>Purpose of Loan Application</label>
+      <input id="reqPurpose" placeholder="e.g. Laptop purchase / Medical assistance / Higher education">
+
+      <!-- Live KFS Preview Box -->
+      <div id="reqKfsPreview" style="margin-top:14px;padding:14px;background:#f8fafc;border:1.5px solid #c7d2fe;border-radius:10px">
+        <div style="font-size:11px;font-weight:900;color:#4338ca;letter-spacing:0.06em">⚡ LIVE KEY FACT STATEMENT (KFS) PREVIEW</div>
+        <div class="flex space" style="margin-top:8px;font-size:13.5px;flex-wrap:wrap;gap:8px">
+          <span>Monthly EMI: <b id="reqPreviewEmi" style="color:#059669;font-size:16px">₹5,000 / month</b></span>
+          <span>Tenure: <b id="reqPreviewTenure">6 Months</b></span>
+          <span>Total Repayable: <b id="reqPreviewTotal">₹30,000</b></span>
+        </div>
+      </div>
+
+      <button class="btn-primary full" id="btnSubmitLoanReq" style="margin-top:18px;background:var(--brand-grad);font-weight:800;font-size:15px;padding:12px">
+        🚀 Submit Loan Application to Lender →
+      </button>
+    </div>
+  `;
+
+  document.getElementById('btnCancelLoanReq').onclick = renderDashboard;
+
+  const updateReqPreview = () => {
+    const amt = +document.getElementById('reqAmount').value || 0;
+    const rate = +document.getElementById('reqRate').value || 0;
+    const mode = document.getElementById('reqRepaymentMode').value;
+    const months = mode === 'emi_6' ? 6 : (mode === 'emi_3' ? 3 : (mode === 'emi_12' ? 12 : 1));
+    const interest = Math.round(amt * (rate / 100) * (months / 12));
+    const total = amt + interest;
+    const emi = Math.round(total / months);
+
+    document.getElementById('reqPreviewEmi').textContent = `${money(emi)} / mo`;
+    document.getElementById('reqPreviewTenure').textContent = `${months} Month${months > 1 ? 's' : ''}`;
+    document.getElementById('reqPreviewTotal').textContent = money(total);
+  };
+
+  document.getElementById('reqAmount').oninput = updateReqPreview;
+  document.getElementById('reqRate').oninput = updateReqPreview;
+  document.getElementById('reqRepaymentMode').onchange = updateReqPreview;
+  updateReqPreview();
+
+  const doLenderLookup = async () => {
+    const q = document.getElementById('lenderLookupInput').value.trim();
+    const badge = document.getElementById('lenderLookupBadge');
+    if (!q) return;
+    badge.style.display = 'block';
+    badge.className = 'badge filled';
+    badge.textContent = 'Searching Vault registry...';
+    try {
+      const res = await fetch(apiUrl(`/api/users/lookup?q=${encodeURIComponent(q)}`));
+      const data = await res.json();
+      if (data && data.ok && data.found && data.user) {
+        const u = data.user;
+        targetLenderVaultId = u.vaultId;
+        targetLenderEmail = u.email;
+        targetLenderUpi = u.upiId || null;
+        targetLenderQr = u.qrCode || null;
+        document.getElementById('reqPartyA').value = u.fullName;
+        if (document.getElementById('reqPartyAEmail')) document.getElementById('reqPartyAEmail').value = u.email || '';
+        badge.className = 'badge ok';
+        badge.innerHTML = `✓ Verified Lender: <b>${esc(u.fullName)}</b> (🆔 ${esc(u.vaultId)})`;
+        showToast(`Matched lender ${u.fullName} (${u.vaultId})`);
+      } else {
+        targetLenderVaultId = null;
+        targetLenderEmail = null;
+        targetLenderUpi = null;
+        targetLenderQr = null;
+        badge.className = 'badge warn';
+        badge.textContent = 'No registered lender found with that ID or Email. You can enter details manually.';
+      }
+    } catch {
+      badge.className = 'badge warn';
+      badge.textContent = 'Verification offline. You may proceed manually.';
+    }
+  };
+  document.getElementById('btnLenderLookup').onclick = doLenderLookup;
+  document.getElementById('lenderLookupInput').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); doLenderLookup(); } };
+
+  // Render Saved Lenders Chips
+  const renderLenderChips = () => {
+    const box = document.getElementById('savedLendersBar');
+    if (!box) return;
+    if (!userContacts || userContacts.length === 0) {
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'block';
+    const chipsDiv = document.getElementById('savedLenderChips');
+    chipsDiv.innerHTML = userContacts.map(c => `
+      <button type="button" class="btn-sm btn-contact-chip-lender" data-vid="${esc(c.vaultId)}" data-name="${esc(c.name)}" data-email="${esc(c.email)}" data-upi="${esc(c.upi)}" style="white-space:nowrap;font-size:11.5px;padding:4px 10px;border-radius:99px;background:var(--paper);border:1px solid var(--border);display:inline-flex;align-items:center;gap:4px;cursor:pointer">
+        <span>👤</span> <b>${esc(c.name)}</b> <span class="muted" style="font-size:10px">(${esc(c.vaultId)})</span>
+      </button>
+    `).join('');
+
+    chipsDiv.querySelectorAll('.btn-contact-chip-lender').forEach(btn => {
+      btn.onclick = () => {
+        const vid = btn.dataset.vid;
+        const name = btn.dataset.name;
+        const email = btn.dataset.email || '';
+        document.getElementById('reqPartyA').value = name;
+        document.getElementById('lenderLookupInput').value = vid;
+        targetLenderVaultId = vid;
+        targetLenderEmail = email;
+        if (document.getElementById('reqPartyAEmail')) document.getElementById('reqPartyAEmail').value = email;
+        const badge = document.getElementById('lenderLookupBadge');
+        badge.style.display = 'block';
+        badge.className = 'badge ok';
+        badge.innerHTML = `✓ <b>1-Tap Selected:</b> ${esc(name)} (Vault ID: <b>${esc(vid)}</b>)`;
+        showToast(`Selected saved lender: ${name}`);
+      };
+    });
+  };
+  renderLenderChips();
+
+  document.getElementById('btnSubmitLoanReq').onclick = async () => {
+    const pA = document.getElementById('reqPartyA').value.trim();
+    const pB = document.getElementById('reqPartyB').value.trim();
+    const pAEmail = (document.getElementById('reqPartyAEmail')?.value || targetLenderEmail || '').trim().toLowerCase();
+    const pBPhone = (document.getElementById('reqPartyBPhone')?.value || '').trim();
+    const amt = +document.getElementById('reqAmount').value;
+
+    if (!pA || !pB || !amt) return alert('Please enter lender name and loan amount.');
+
+    const mode = document.getElementById('reqRepaymentMode').value;
+    const months = mode === 'emi_6' ? 6 : (mode === 'emi_3' ? 3 : (mode === 'emi_12' ? 12 : 1));
+    const rate = +document.getElementById('reqRate').value || 0;
+    const interest = Math.round(amt * (rate / 100) * (months / 12));
+    const totalRepayable = amt + interest;
+    const emiAmt = Math.round(totalRepayable / months);
+
+    const startD = new Date();
+    const dueD = new Date();
+    dueD.setMonth(dueD.getMonth() + months);
+
+    const installments = [];
+    for (let i = 1; i <= months; i++) {
+      const d = new Date(startD);
+      d.setMonth(d.getMonth() + i);
+      const isLast = i === months;
+      installments.push({
+        idx: i,
+        month: `Month ${i} of ${months}`,
+        dueDate: d.toISOString().split('T')[0],
+        amt: isLast ? (totalRepayable - emiAmt * (months - 1)) : emiAmt,
+        status: 'PENDING'
+      });
+    }
+
+    const note = {
+      id: 'NOTE-' + Math.floor(1000 + Math.random() * 9000),
+      creatorId: currentUser ? currentUser.id : null,
+      createdBy: currentUser ? currentUser.username : null,
+      type: 'loan',
+      title: 'Mutual Loan Agreement & Promissory Note',
+      partyA: pA,
+      partyAVaultId: targetLenderVaultId || null,
+      partyAEmail: pAEmail || null,
+      partyAUpi: targetLenderUpi || null,
+      partyAQr: targetLenderQr || null,
+      partyACity: 'India',
+      partyB: pB,
+      partyBVaultId: currentUser ? currentUser.vaultId : null,
+      partyBEmail: currentUser ? currentUser.email : null,
+      partyBPhone: pBPhone || null,
+      partyBUpi: document.getElementById('reqPartyBUpi').value.trim() || null,
+      partyBCity: currentUser?.city || 'India',
+      amount: amt,
+      rate,
+      start: today(),
+      due: dueD.toISOString().split('T')[0],
+      repaymentMode: mode,
+      installments,
+      expiresAt: Date.now() + (12 * 3600 * 1000), // 12-hour SLA window
+      late: 1,
+      purpose: document.getElementById('reqPurpose').value.trim() || 'Personal loan request',
+      jurisdiction: 'India',
+      borrowerUndertaking: `I, ${pB}, request ${money(amt)} from ${pA} and promise to repay according to the ${months}-Month EMI schedule. Thank you.`,
+      payments: [],
+      sigA: null,
+      sigB: null,
+      created: Date.now()
+    };
+
+    list.unshift(note);
+    saveLocalList(list);
+
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    await fetch(apiUrl('/api/agreements'), {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(note)
+    }).catch(() => {});
+
+    showToast(`Loan Application ${note.id} submitted to ${pA}!`);
+
+    const askWa = confirm(`🎉 Loan Application ${note.id} for ${money(note.amount)} submitted to ${pA}!\n\nAuto-Gmail notice dispatched to ${pAEmail || 'lender'}.\n\nWould you like to send the application link to ${pA} on WhatsApp now?`);
+    if (askWa) {
+      sendAgreementWhatsAppNotice(note);
     }
 
     renderDocumentView(note.id);
@@ -4494,6 +5266,10 @@ document.getElementById('pickTemplateWork').onclick = () => {
 document.getElementById('pickTemplateLoan').onclick = () => {
   templateModal.style.display = 'none';
   renderCreateLoanForm();
+};
+document.getElementById('pickTemplateLoanRequest').onclick = () => {
+  templateModal.style.display = 'none';
+  renderCreateLoanRequestForm();
 };
 
 /* ─── Global Agreement Request Handlers ─── */

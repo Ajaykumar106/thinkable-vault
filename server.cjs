@@ -645,6 +645,13 @@ const requestHandler = async (req, res) => {
         body.sigB.utc = body.sigB.utc || nowUtc;
       }
 
+      if (!body.expiresAt && body.type === 'loan') {
+        body.expiresAt = (body.created || Date.now()) + (12 * 3600 * 1000);
+      }
+      body.title = body.title || (body.type === 'work' ? 'Working Agreement & SOW' : 'Mutual Loan Agreement & Promissory Note');
+      body.repaymentMode = body.repaymentMode || 'bullet';
+      body.installments = Array.isArray(body.installments) ? body.installments : [];
+
       body.sha256Digest = crypto.createHash('sha256').update(
         `${body.id}|${body.partyA}|${body.partyB}|${body.amount}|${body.type}|${body.created}`
       ).digest('hex').toUpperCase();
@@ -664,12 +671,31 @@ const requestHandler = async (req, res) => {
             mailer.notifyAgreementSigned(body, (body.sigB ? body.partyB : body.partyA));
           }
 
+          // Check for borrower acceptance with promissory undertaking
+          if (!existing.sigB && body.sigB) {
+            mailer.notifyAgreementPromissoryAccepted(body, body.borrowerUndertaking || '');
+          }
+
           // Check for recorded repayments (Payment Proof)
           const oldReps = existing.payments || existing.repayments || [];
           const newReps = body.payments || body.repayments || [];
           if (newReps.length > oldReps.length) {
             const latestPayment = newReps[newReps.length - 1];
             mailer.notifyPaymentProof(body, latestPayment);
+          }
+
+          // Check for newly verified payment endorsement
+          const newlyVerified = newReps.find(np => {
+            const op = oldReps.find(o => o.id === np.id);
+            return np.status === 'VERIFIED' && (!op || op.status !== 'VERIFIED');
+          });
+          if (newlyVerified) {
+            const allVerified = newReps.filter(r => r.status === 'VERIFIED');
+            const totalRepaid = allVerified.reduce((s, r) => s + (Number(r.amt || r.amount) || 0), 0);
+            const remaining = Math.max(0, Number(body.amount || 0) - totalRepaid);
+            const totalMonths = body.installments?.length || (body.repaymentMode === 'emi_6' ? 6 : (body.repaymentMode === 'emi_3' ? 3 : (body.repaymentMode === 'emi_12' ? 12 : 1)));
+            const clearedMonth = allVerified.length;
+            mailer.notifyInstalmentVerified(body, newlyVerified, clearedMonth, totalMonths, remaining);
           }
         }
       } catch (mailErr) {
@@ -781,11 +807,31 @@ const requestHandler = async (req, res) => {
           if (!hadBoth && hasBothNow) {
             mailer.notifyAgreementSigned(updated, (updated.sigB ? updated.partyB : updated.partyA));
           }
+
+          // Check for borrower acceptance with promissory undertaking
+          if (!item.sigB && updated.sigB) {
+            mailer.notifyAgreementPromissoryAccepted(updated, updated.borrowerUndertaking || '');
+          }
+
           const oldReps = item.payments || item.repayments || [];
           const newReps = updated.payments || updated.repayments || [];
           if (newReps.length > oldReps.length) {
             const latestPayment = newReps[newReps.length - 1];
             mailer.notifyPaymentProof(updated, latestPayment);
+          }
+
+          // Check for newly verified payment endorsement
+          const newlyVerified = newReps.find(np => {
+            const op = oldReps.find(o => o.id === np.id);
+            return np.status === 'VERIFIED' && (!op || op.status !== 'VERIFIED');
+          });
+          if (newlyVerified) {
+            const allVerified = newReps.filter(r => r.status === 'VERIFIED');
+            const totalRepaid = allVerified.reduce((s, r) => s + (Number(r.amt || r.amount) || 0), 0);
+            const remaining = Math.max(0, Number(updated.amount || 0) - totalRepaid);
+            const totalMonths = updated.installments?.length || (updated.repaymentMode === 'emi_6' ? 6 : (updated.repaymentMode === 'emi_3' ? 3 : (updated.repaymentMode === 'emi_12' ? 12 : 1)));
+            const clearedMonth = allVerified.length;
+            mailer.notifyInstalmentVerified(updated, newlyVerified, clearedMonth, totalMonths, remaining);
           }
         }
       } catch (mErr) {
@@ -914,6 +960,34 @@ const server = http.createServer(requestHandler);
 if (require.main === module) {
   (async () => {
     await db.init();
+
+    // ── 12-Hour SLA & 2-Hour Automated Periodic Reminder Engine ──
+    setInterval(async () => {
+      try {
+        const allAgreements = await db.getAgreements();
+        const now = Date.now();
+        for (const a of allAgreements) {
+          if (a.type !== 'loan') continue;
+          if (a.sigA && a.sigB) continue; // Fully executed
+          if (!a.partyBEmail || !a.partyBEmail.includes('@')) continue;
+          const expiresAt = a.expiresAt || ((a.created || now) + 12 * 3600 * 1000);
+          if (now >= expiresAt) continue; // Expired
+
+          const lastPing = a.lastReminderAt || a.created || now;
+          const hoursSinceLastPing = (now - lastPing) / (3600 * 1000);
+          if (hoursSinceLastPing >= 2) {
+            const hoursLeft = Math.max(1, Math.ceil((expiresAt - now) / (3600 * 1000)));
+            console.log(`[SLA Engine] Dispatched 2-hour periodic reminder for ${a.id} (${hoursLeft}h left) to ${a.partyBEmail}`);
+            mailer.notifyAgreementReminder(a, hoursLeft);
+            a.lastReminderAt = now;
+            await db.saveAgreement(a);
+          }
+        }
+      } catch (slaErr) {
+        console.warn('[SLA Engine Warning]', slaErr.message);
+      }
+    }, 5 * 60 * 1000);
+
     server.listen(PORT, '0.0.0.0', () => {
       const pref = getPreferredIP();
       console.log('\n╔══════════════════════════════════════════════════╗');
