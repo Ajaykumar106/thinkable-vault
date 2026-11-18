@@ -1351,12 +1351,27 @@ async function handleGoogleAuth(credential = null, customPayload = null) {
       throw new Error('No valid Google credentials received.');
     }
 
-    const res = await fetch(apiUrl('/api/auth/google'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const text = await res.text();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    let res, text;
+    try {
+      res = await fetch(apiUrl('/api/auth/google'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      text = await res.text();
+    } catch (netErr) {
+      clearTimeout(timeoutId);
+      const isTimeout = netErr.name === 'AbortError';
+      const targetUrl = apiUrl('/api/auth/google');
+      throw new Error(isTimeout 
+        ? `Connection to backend server timed out (${targetUrl}). If on mobile, verify your phone is on the same Wi-Fi as your PC and port 3000 is open in Windows Firewall.`
+        : `Backend server unreachable at ${targetUrl}. Please ensure the Node.js server is running and accessible.`);
+    }
+    clearTimeout(timeoutId);
+
     let data = {};
     try {
       data = text ? JSON.parse(text) : {};
@@ -1378,7 +1393,8 @@ async function handleGoogleAuth(credential = null, customPayload = null) {
     await syncWithServer();
     renderDashboard();
   } catch (err) {
-    const activeAlert = (document.getElementById('authCardRegister')?.style.display !== 'none') ? regAlert : loginAlert;
+    const isReg = document.getElementById('paneRegister')?.style.display !== 'none';
+    const activeAlert = isReg ? regAlert : loginAlert;
     if (activeAlert) {
       activeAlert.innerHTML = `<span style="font-weight:700">⚠️ Google Authentication Error:</span> ${esc(err.message || 'Failed to authenticate.')}`;
       activeAlert.style.display = 'block';
@@ -2109,7 +2125,7 @@ function renderAuthView(initialTab = 'signin') {
     if (regAlert) regAlert.style.display = 'none';
 
     const showAuthErr = (msg, isOriginMismatch = false) => {
-      const isReg = document.getElementById('authCardRegister')?.style.display !== 'none';
+      const isReg = document.getElementById('paneRegister')?.style.display !== 'none';
       const activeAlert = isReg ? regAlert : loginAlert;
       if (activeAlert) {
         if (isOriginMismatch) {
@@ -2162,9 +2178,17 @@ function renderAuthView(initialTab = 'signin') {
           }
           try {
             showToast('✓ Google Account Selected! Verifying...');
-            const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-              headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-            });
+            const uController = new AbortController();
+            const uTimeout = setTimeout(() => uController.abort(), 8000);
+            let userInfoRes;
+            try {
+              userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                signal: uController.signal
+              });
+            } finally {
+              clearTimeout(uTimeout);
+            }
             if (!userInfoRes.ok) {
               throw new Error(`Failed to fetch Google profile (HTTP ${userInfoRes.status}).`);
             }
