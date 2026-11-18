@@ -1191,6 +1191,38 @@ canvas.pad-canvas {
   </div>
 </div>
 
+<!-- Live Audit & Notifications Response Tracker Modal -->
+<div id="auditResponseModal" class="modal-overlay" style="display:none">
+  <div class="modal-card anim-fade" style="max-width:620px;padding:22px;border-radius:18px">
+    <div class="flex space" style="margin-bottom:12px">
+      <div style="font-weight:900;font-size:16px;display:flex;align-items:center;gap:8px">
+        <span>📡</span>
+        <span>Real-Time Audit &amp; Response Verification</span>
+      </div>
+      <button class="btn-sm" id="btnCloseAuditModal" style="border-radius:50%;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;font-weight:800">✕</button>
+    </div>
+    <div class="muted" style="font-size:12px;margin-bottom:14px;line-height:1.5">
+      Live cryptographic verification of notices dispatched to both parties (Lender &amp; Borrower) with full schedule dates and delivery status.
+    </div>
+
+    <!-- Active Agreement Summary -->
+    <div id="auditAgrSummary" style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12.5px"></div>
+
+    <!-- Notifications List -->
+    <div style="font-size:11.5px;font-weight:800;color:var(--tx-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">
+      DISPATCHED NOTICES &amp; DELIVERY LOGS
+    </div>
+    <div id="auditEmailLogsList" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;margin-bottom:16px">
+      <div class="muted" style="font-size:12px">Loading audit logs...</div>
+    </div>
+
+    <div class="flex space" style="flex-wrap:wrap;gap:8px;align-items:center">
+      <button class="btn-sm btn-primary" id="btnDispatchTestNotice" style="font-weight:700">⚡ Dispatch Fresh Audit Notice to Both</button>
+      <button class="btn-sm" id="btnDismissAuditModal">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
@@ -3454,6 +3486,101 @@ function renderLoanAgreementView(a, remoteSigningRole) {
       </div>
     ` : ''}
 
+    <!-- Real-time Response & Audit Status Tracker -->
+    <div class="card no-print anim-fade" style="background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div class="flex space" style="border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="font-weight:900;font-size:13.5px;color:var(--tx);display:flex;align-items:center;gap:6px">
+          <span>📡</span> Real-time Response &amp; Legal Audit Status
+        </div>
+        <div class="flex" style="gap:6px">
+          <button class="btn-sm" id="btnLiveAuditModal" style="font-size:11px;padding:3px 10px;font-weight:700">📜 View Dispatched Notices &amp; Delivery</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;font-size:11.5px">
+        <div style="padding:8px 10px;background:var(--pill);border-radius:6px;border-left:3px solid var(--ok)">
+          <div style="font-weight:800;color:var(--ok)">✓ 1. Request Initiated</div>
+          <div class="muted" style="margin-top:2px">${fd(a.start)} · ${esc(a.partyB || a.partyA)}</div>
+        </div>
+        <div style="padding:8px 10px;background:var(--pill);border-radius:6px;border-left:3px solid ${a.repaymentMode ? 'var(--ok)' : 'var(--warn)'}">
+          <div style="font-weight:800;color:${a.repaymentMode ? 'var(--ok)' : 'var(--warn)'}">
+            ${a.repaymentMode ? `✓ 2. Tenure: ${kfs.months}M EMI` : '⏳ 2. Pending Tenure'}
+          </div>
+          <div class="muted" style="margin-top:2px">${money(kfs.emiAmount)} / mo (${kfs.months} EMIs)</div>
+        </div>
+        <div style="padding:8px 10px;background:var(--pill);border-radius:6px;border-left:3px solid ${a.sigA ? 'var(--ok)' : 'var(--warn)'}">
+          <div style="font-weight:800;color:${a.sigA ? 'var(--ok)' : 'var(--warn)'}">
+            ${a.sigA ? '✓ 3. Lender Signed' : '⏳ 3. Pending Lender Sign'}
+          </div>
+          <div class="muted" style="margin-top:2px">${a.sigA ? `${a.sigA.at} (Sec 65B)` : 'Awaiting Party A'}</div>
+        </div>
+        <div style="padding:8px 10px;background:var(--pill);border-radius:6px;border-left:3px solid ${a.sigB ? 'var(--ok)' : 'var(--warn)'}">
+          <div style="font-weight:800;color:${a.sigB ? 'var(--ok)' : 'var(--warn)'}">
+            ${a.sigB ? '✓ 4. Borrower Signed' : '⏳ 4. 12h SLA Active'}
+          </div>
+          <div class="muted" style="margin-top:2px">${a.sigB ? 'Promissory oath sealed' : 'Awaiting Party B'}</div>
+        </div>
+        <div style="padding:8px 10px;background:var(--pill);border-radius:6px;border-left:3px solid var(--ok)">
+          <div style="font-weight:800;color:var(--ok)">✓ 5. Due Dates Dispatched</div>
+          <div class="muted" style="margin-top:2px">Gmail &amp; WhatsApp (${kfs.months} dates)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lender Repayment Schedule Decision & Option Control -->
+    ${!bothSigned || isLender ? `
+      <div class="card no-print anim-fade" id="lenderTenureDecisionCard" style="border:2px solid #4f46e5;background:linear-gradient(135deg, rgba(79,70,229,0.06), rgba(99,102,241,0.02));padding:16px;border-radius:12px;margin-bottom:16px">
+        <div class="flex space" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-weight:900;font-size:15px;color:#312e81;display:flex;align-items:center;gap:6px">
+              <span>⚙️</span> Lender Terms Decision: Repayment Tenure &amp; Schedule
+            </div>
+            <div class="muted" style="font-size:12px;margin-top:2px">
+              As the Lender, you control the repayment terms. Choose or customize the EMI tenure before countersigning. Both parties will be immediately notified with the scheduled dates.
+            </div>
+          </div>
+          <span class="badge ${a.sigA ? 'ok' : 'warn'}">${a.sigA ? '✓ Lender Signed' : 'Lender Control Active'}</span>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:10px">
+          <div>
+            <label style="font-weight:700;font-size:12px">Select Repayment Schedule Mode</label>
+            <select id="lenderChoiceRepaymentMode" style="font-weight:700">
+              <option value="emi_6" ${a.repaymentMode === 'emi_6' || (!a.repaymentMode && kfs.months === 6) ? 'selected' : ''}>6 Monthly EMIs (Recommended)</option>
+              <option value="emi_3" ${a.repaymentMode === 'emi_3' ? 'selected' : ''}>3 Monthly EMIs</option>
+              <option value="emi_12" ${a.repaymentMode === 'emi_12' ? 'selected' : ''}>12 Monthly EMIs</option>
+              <option value="bullet" ${a.repaymentMode === 'bullet' ? 'selected' : ''}>Lump-Sum at Maturity</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-weight:700;font-size:12px">Agreed Annual Interest Rate (% p.a.)</label>
+            <input type="number" id="lenderChoiceRate" value="${a.rate || 0}" min="0" step="0.5" style="font-weight:700">
+          </div>
+        </div>
+
+        <!-- Live Schedule Preview inside Lender Control Box -->
+        <div id="lenderTenureCalcBox" style="background:#fff;border:1px solid #c7d2fe;border-radius:8px;padding:10px 14px;margin-bottom:12px">
+          <div class="flex space" style="font-size:13px;flex-wrap:wrap;gap:8px">
+            <span>Monthly EMI: <b id="lblLenderEmiAmt" style="color:#059669;font-size:15px">${money(kfs.emiAmount)} / mo</b></span>
+            <span>Tenure: <b id="lblLenderTenure">${kfs.months} Months</b></span>
+            <span>Total Repayable: <b id="lblLenderTotal">${money(kfs.totalRepayable)}</b></span>
+            <span>Final Maturity: <b id="lblLenderDue">${fd(a.due)}</b></span>
+          </div>
+        </div>
+
+        <div class="flex" style="gap:8px;flex-wrap:wrap">
+          <button class="btn-sm btn-primary" id="btnLenderLockSchedule" style="font-weight:800;padding:8px 16px;background:var(--brand-grad)">
+            💾 Lock &amp; Confirm Repayment Schedule →
+          </button>
+          <button class="btn-sm btn-whatsapp" id="btnShareDatesWa" style="font-weight:700">
+            📲 Send All Dates via WhatsApp
+          </button>
+          <button class="btn-sm" id="btnTestNotifications" style="font-weight:700">
+            ⚡ Test &amp; Verify Responses
+          </button>
+        </div>
+      </div>
+    ` : ''}
+
     <!-- Promissory Note Document -->
     <div class="paper-document" id="printableNote">
       <div class="doc-stamp">MUTUAL PROMISSORY NOTE &amp; COVENANT</div>
@@ -3870,6 +3997,188 @@ function renderLoanAgreementView(a, remoteSigningRole) {
 
     renderDocumentView(a.id);
   };
+
+  // Live Lender Schedule Calculation Preview
+  const updateLenderCalcPreview = () => {
+    const selMode = document.getElementById('lenderChoiceRepaymentMode');
+    const inRate = document.getElementById('lenderChoiceRate');
+    if (!selMode || !inRate) return;
+    const mode = selMode.value;
+    const rate = +inRate.value || 0;
+    const months = mode === 'emi_6' ? 6 : (mode === 'emi_3' ? 3 : (mode === 'emi_12' ? 12 : 1));
+    const P = +a.amount || 0;
+    const interest = Math.round(P * (rate / 100) * (months / 12));
+    const total = P + interest;
+    const emi = Math.round(total / months);
+    const startD = a.start ? new Date(a.start) : new Date();
+    const dueD = new Date(startD);
+    dueD.setMonth(dueD.getMonth() + months);
+
+    const lblEmi = document.getElementById('lblLenderEmiAmt');
+    const lblTenure = document.getElementById('lblLenderTenure');
+    const lblTotal = document.getElementById('lblLenderTotal');
+    const lblDue = document.getElementById('lblLenderDue');
+    if (lblEmi) lblEmi.textContent = `${money(emi)} / mo`;
+    if (lblTenure) lblTenure.textContent = `${months} Month${months > 1 ? 's' : ''}`;
+    if (lblTotal) lblTotal.textContent = money(total);
+    if (lblDue) lblDue.textContent = fd(dueD.toISOString().split('T')[0]);
+  };
+
+  const selMode = document.getElementById('lenderChoiceRepaymentMode');
+  const inRate = document.getElementById('lenderChoiceRate');
+  if (selMode) selMode.onchange = updateLenderCalcPreview;
+  if (inRate) inRate.oninput = updateLenderCalcPreview;
+
+  // Lender Lock Schedule Button
+  const btnLock = document.getElementById('btnLenderLockSchedule');
+  if (btnLock) {
+    btnLock.onclick = async () => {
+      const mode = document.getElementById('lenderChoiceRepaymentMode')?.value || 'emi_6';
+      const rate = +document.getElementById('lenderChoiceRate')?.value || 0;
+      const months = mode === 'emi_6' ? 6 : (mode === 'emi_3' ? 3 : (mode === 'emi_12' ? 12 : 1));
+      const P = +a.amount || 0;
+      const interest = Math.round(P * (rate / 100) * (months / 12));
+      const total = P + interest;
+      const emi = Math.round(total / months);
+      const startD = a.start ? new Date(a.start) : new Date();
+      const dueD = new Date(startD);
+      dueD.setMonth(dueD.getMonth() + months);
+
+      const installments = [];
+      for (let i = 1; i <= months; i++) {
+        const d = new Date(startD);
+        d.setMonth(d.getMonth() + i);
+        const isLast = i === months;
+        installments.push({
+          idx: i,
+          month: `Month ${i} of ${months}`,
+          dueDate: d.toISOString().split('T')[0],
+          amt: isLast ? (total - emi * (months - 1)) : emi,
+          status: 'PENDING'
+        });
+      }
+
+      a.repaymentMode = mode;
+      a.rate = rate;
+      a.due = dueD.toISOString().split('T')[0];
+      a.installments = installments;
+      a._tenureUpdated = true;
+      a._notice = `⚙️ ${activeProfile} established repayment schedule: ${months} Monthly EMIs (${money(emi)}/mo) for Note ${a.id}`;
+
+      saveLocalList(list);
+      await saveAgreementToServer(a);
+
+      showToast(`✓ Repayment tenure locked to ${months} Monthly EMIs! Both parties notified with scheduled due dates.`);
+
+      const askWa = confirm(`✓ ${months}-Month Repayment Schedule Established!\n\nDue Dates Dispatched via Auto-Gmail.\n\nSend the complete schedule to counterparty on WhatsApp now?`);
+      if (askWa) {
+        sendAgreementWhatsAppNotice(a, '', isLender ? 'B' : 'A');
+      }
+
+      renderDocumentView(a.id);
+    };
+  }
+
+  // Send All Dates on WhatsApp Button
+  const btnShareDates = document.getElementById('btnShareDatesWa');
+  if (btnShareDates) {
+    btnShareDates.onclick = () => {
+      sendAgreementWhatsAppNotice(a, '', isLender ? 'B' : 'A');
+    };
+  }
+
+  // Open Audit Responses Modal
+  const openAuditModal = async () => {
+    const modal = document.getElementById('auditResponseModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    const sumEl = document.getElementById('auditAgrSummary');
+    if (sumEl) {
+      sumEl.innerHTML = `
+        <div class="flex space" style="margin-bottom:6px">
+          <b>${esc(a.title || 'Mutual Loan Agreement & Promissory Note')}</b>
+          <span class="badge filled">${esc(a.id)}</span>
+        </div>
+        <div class="muted">
+          Lender: <b>${esc(a.partyA)}</b> (${esc(a.partyAEmail || 'N/A')}) ⇄ Borrower: <b>${esc(a.partyB)}</b> (${esc(a.partyBEmail || 'N/A')})
+        </div>
+        <div style="margin-top:6px;font-weight:700;color:var(--brand)">
+          Principal: ${money(a.amount)} · Tenure: ${(a.installments || []).length || 6} Months · Status: ${st.text}
+        </div>
+      `;
+    }
+
+    const logList = document.getElementById('auditEmailLogsList');
+    if (logList) logList.innerHTML = '<div class="muted" style="font-size:12px;padding:8px">Fetching live cryptographic delivery logs from Neon DB...</div>';
+
+    try {
+      const headers = {};
+      if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+      const res = await fetch(apiUrl('/api/emails'), { headers });
+      const logs = await res.json();
+      const relevant = (logs || []).filter(l => !l.agreementId || l.agreementId === a.id);
+      if (logList) {
+        if (!relevant || relevant.length === 0) {
+          logList.innerHTML = `
+            <div class="muted" style="text-align:center;padding:16px;font-size:12px">
+              No previous email dispatches logged yet for this note. Click below to dispatch a live test notice!
+            </div>
+          `;
+        } else {
+          logList.innerHTML = relevant.map(l => `
+            <div style="padding:10px 12px;background:var(--paper);border:1px solid var(--border);border-radius:8px">
+              <div class="flex space" style="margin-bottom:4px">
+                <span style="font-weight:800;font-size:12px;color:var(--tx)">${esc(l.subject || 'Vault Notice')}</span>
+                <span class="badge ${l.status === 'sent' ? 'ok' : 'filled'}" style="font-size:9.5px">${esc(l.status.toUpperCase())}</span>
+              </div>
+              <div class="muted" style="font-size:11px">
+                To: <b>${esc(l.recipientName || l.recipientEmail)}</b> (${esc(l.recipientEmail)}) · Provider: <b>${esc(l.provider || 'system')}</b>
+              </div>
+              <div class="flex space" style="margin-top:6px;font-size:11px">
+                <span class="muted">${l.createdAt ? new Date(l.createdAt).toLocaleTimeString('en-IN') : 'Just now'}</span>
+                ${l.metadata?.previewUrl ? `
+                  <a href="${l.metadata.previewUrl}" target="_blank" style="color:var(--brand);font-weight:700;text-decoration:none">
+                    👁️ Open HTML Preview →
+                  </a>
+                ` : ''}
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+    } catch {
+      if (logList) logList.innerHTML = '<div style="color:var(--warn);font-size:12px;padding:8px">Unable to reach email logs endpoint.</div>';
+    }
+  };
+
+  const btnAudit = document.getElementById('btnLiveAuditModal');
+  if (btnAudit) btnAudit.onclick = openAuditModal;
+  const btnTest = document.getElementById('btnTestNotifications');
+  if (btnTest) btnTest.onclick = openAuditModal;
+
+  const btnCloseAud = document.getElementById('btnCloseAuditModal');
+  if (btnCloseAud) btnCloseAud.onclick = () => { document.getElementById('auditResponseModal').style.display = 'none'; };
+  const btnDismissAud = document.getElementById('btnDismissAuditModal');
+  if (btnDismissAud) btnDismissAud.onclick = () => { document.getElementById('auditResponseModal').style.display = 'none'; };
+
+  const btnDispatchTest = document.getElementById('btnDispatchTestNotice');
+  if (btnDispatchTest) {
+    btnDispatchTest.onclick = async () => {
+      btnDispatchTest.textContent = '⏳ Dispatching...';
+      try {
+        const headers = {};
+        if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+        const res = await fetch(apiUrl(`/api/agreements/${a.id}/dispatch-email`), { method: 'POST', headers });
+        const data = await res.json();
+        showToast(data.message || 'Dispatched official legal audit notices!');
+        await openAuditModal();
+      } catch (err) {
+        showToast('Dispatch failed: ' + err.message);
+      } finally {
+        btnDispatchTest.textContent = '⚡ Dispatch Fresh Audit Notice to Both';
+      }
+    };
+  }
 
   initPad('A', a);
   initPad('B', a);
@@ -5002,24 +5311,36 @@ function renderCreateLoanRequestForm() {
 }
 
 /* ─── WhatsApp Notice Dispatcher ─── */
-function sendAgreementWhatsAppNotice(a, targetPhone = '') {
+function sendAgreementWhatsAppNotice(a, targetPhone = '', targetRole = '') {
   const port = location.port ? `:${location.port}` : '';
   const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
   const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
-  const phone = (targetPhone || a.partyBPhone || '').replace(/[^0-9+]/g, '');
+  const phone = (targetPhone || (targetRole === 'A' ? a.partyAPhone : a.partyBPhone) || a.partyBPhone || '').replace(/[^0-9+]/g, '');
   const phoneParam = phone ? `phone=${encodeURIComponent(phone)}&` : '';
 
   let msg = '';
   if (a.type === 'loan') {
+    const kfs = calcLoanKFS(a);
     const { total, left } = calcTotals(a);
-    msg = `Namaste ${a.partyB}! 🤝\n` +
-      `Here is the official update for Mutual Loan Agreement (Ref: ${a.id}) on Thinkable Vault.\n\n` +
-      `💰 Principal: ${money(a.amount)}\n` +
-      `📊 Outstanding Balance: ${money(left)}\n` +
-      `📅 Maturity Date: ${fd(a.due)}\n` +
-      `⚡ Interest Rate: ${a.rate || 0}% p.a.\n\n` +
-      `📜 View and verify the live digital instrument & Section 65B Certificate:\n${viewUrl}\n\n` +
-      `🔒 Cryptographically sealed in Thinkable Agreement Vault under Section 65B Evidence Act.`;
+    const targetName = targetRole === 'A' ? a.partyA : a.partyB;
+
+    let scheduleText = '';
+    if (kfs.schedule && kfs.schedule.length > 0) {
+      scheduleText = `\n📅 Scheduled Repayment Dates & EMI Breakdown (${kfs.months} Months):\n` +
+        kfs.schedule.map(s => `• ${s.month}: ${fd(s.dueDate)} — ${money(s.amt)} (${s.status || 'SCHEDULED'})`).join('\n') + '\n';
+    }
+
+    msg = `Namaste ${targetName}! 🤝\n` +
+      `Here is the official update for Mutual Loan Agreement & Promissory Note (Ref: ${a.id}) on Thinkable Vault.\n\n` +
+      `💰 Principal Sum: ${money(a.amount)}\n` +
+      `📊 Repayment Schedule: ${kfs.months} Monthly EMIs (${money(kfs.emiAmount)} / mo)\n` +
+      `📉 Outstanding Balance: ${money(left)}\n` +
+      `📅 Disbursed Date: ${fd(a.start)}\n` +
+      `🏁 Maturity Date: ${fd(a.due)}\n` +
+      `⚡ Interest Rate: ${a.rate || 0}% p.a.\n` +
+      scheduleText + '\n' +
+      `📜 View and verify live digital instrument & Section 65B Certificate:\n${viewUrl}\n\n` +
+      `🔒 Cryptographically sealed in Thinkable Agreement Vault under Section 65B Indian Evidence Act.`;
   } else {
     msg = `Namaste ${a.partyB}! 💼\n` +
       `Here is the official update for Working Agreement (Ref: ${a.id}) on Thinkable Vault.\n\n` +

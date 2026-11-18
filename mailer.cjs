@@ -99,22 +99,122 @@ function formatInr(num) {
   return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function generateLoanInstallmentsFallback(agr) {
+  if (agr.type !== 'loan') return [];
+  const mode = agr.repaymentMode || 'emi_6';
+  const months = mode === 'emi_6' ? 6 : (mode === 'emi_3' ? 3 : (mode === 'emi_12' ? 12 : 1));
+  const amt = Number(agr.amount || 0);
+  const rate = Number(agr.rate || 0);
+  const interest = Math.round(amt * (rate / 100) * (months / 12));
+  const total = amt + interest;
+  const emi = Math.round(total / months);
+  const start = agr.start ? new Date(agr.start) : new Date();
+
+  const list = [];
+  for (let i = 1; i <= months; i++) {
+    const d = new Date(start);
+    d.setMonth(d.getMonth() + i);
+    const isLast = i === months;
+    list.push({
+      idx: i,
+      month: `Month ${i} of ${months}`,
+      dueDate: d.toISOString().split('T')[0],
+      amt: isLast ? (total - emi * (months - 1)) : emi,
+      status: 'PENDING'
+    });
+  }
+  return list;
+}
+
+function renderInstallmentsTableHtml(installments) {
+  if (!Array.isArray(installments) || installments.length === 0) return '';
+  return `
+    <div style="margin-top:16px;background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:10px;padding:14px">
+      <div style="font-weight:800;font-size:12px;color:#1e293b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">
+        📅 SCHEDULED REPAYMENT DATES &amp; EMI BREAKDOWN (${installments.length} INSTALMENTS):
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="background:#edf2f7;color:#475569;font-weight:700">
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid #cbd5e1">Instalment</th>
+            <th style="padding:6px 8px;text-align:left;border-bottom:1px solid #cbd5e1">Due Date</th>
+            <th style="padding:6px 8px;text-align:right;border-bottom:1px solid #cbd5e1">Amount Due</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${installments.map(inst => `
+            <tr style="border-bottom:1px solid #f1f5f9">
+              <td style="padding:6px 8px;font-weight:600;color:#0f172a">${inst.month || `Instalment ${inst.idx}`}</td>
+              <td style="padding:6px 8px;color:#475569"><b>${inst.dueDate || 'Scheduled'}</b></td>
+              <td style="padding:6px 8px;text-align:right;font-weight:700;color:#059669">${formatInr(inst.amt)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
 /* ─── Specific Transactional Templates ─── */
 
-function getAgreementCreatedTemplate(agr, config) {
+function getAgreementCreatedTemplate(agr, config, recipientRole = 'borrower', recipientName = '') {
   const isLoan = agr.type === 'loan';
-  const title = agr.title || (isLoan ? 'Mutual Loan Agreement' : 'Working Agreement & SOW');
-  const roleName = isLoan ? 'Borrower' : 'Contractor / Deliverer';
-  const creatorRole = isLoan ? 'Lender' : 'Client / Employer';
+  const title = agr.title || (isLoan ? 'Mutual Loan Agreement & Promissory Note' : 'Working Agreement & SOW');
   const viewUrl = `${config.appUrl}/?action=view&id=${encodeURIComponent(agr.id)}`;
+  const isPartyA = recipientRole === 'lender';
+
+  const installments = Array.isArray(agr.installments) && agr.installments.length > 0
+    ? agr.installments
+    : generateLoanInstallmentsFallback(agr);
+  const tenureMonths = installments.length || (agr.repaymentMode === 'emi_6' ? 6 : (agr.repaymentMode === 'emi_3' ? 3 : (agr.repaymentMode === 'emi_12' ? 12 : 1)));
+
+  let greetingHeader = '';
+  let guidanceBox = '';
+
+  if (isLoan) {
+    if (isPartyA) {
+      greetingHeader = `
+        <p style="font-size:15px;color:#334155;margin-top:0">
+          Hello <b>${agr.partyA}</b> (Lender / Creditor),
+        </p>
+        <p style="font-size:14px;color:#475569">
+          <b>${agr.partyB}</b> (${agr.partyBVaultId || 'Borrower'}) has submitted a loan request for <b>${formatInr(agr.amount)}</b> on Thinkable Vault.
+        </p>
+      `;
+      guidanceBox = `
+        <div style="background:#eef2ff;border-left:4px solid #4f46e5;padding:12px 14px;border-radius:6px;margin:12px 0;font-size:13px;color:#3730a3">
+          <b>⚙️ Lender Terms Decision:</b> As the Lender, you have full control to confirm or adjust the repayment tenure (e.g., 6 Months EMI, 3 Months, or Lump-sum) and interest rate before executing the instrument. Review the proposed scheduled dates below.
+        </div>
+      `;
+    } else {
+      greetingHeader = `
+        <p style="font-size:15px;color:#334155;margin-top:0">
+          Hello <b>${agr.partyB}</b> (Borrower / Debtor),
+        </p>
+        <p style="font-size:14px;color:#475569">
+          Your loan request for <b>${formatInr(agr.amount)}</b> with <b>${agr.partyA}</b> has been registered in the Thinkable Vault registry.
+        </p>
+      `;
+      guidanceBox = `
+        <div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:12px 14px;border-radius:6px;margin:12px 0;font-size:13px;color:#166534">
+          <b>📋 Repayment Schedule (${tenureMonths} Months):</b> The proposed schedule has been recorded. Lender ${agr.partyA} has the option to confirm or fine-tune tenure before final digital endorsement.
+        </div>
+      `;
+    }
+  } else {
+    greetingHeader = `
+      <p style="font-size:15px;color:#334155;margin-top:0">
+        Hello <b>${recipientName || agr.partyB || 'Valued Counterparty'}</b>,
+      </p>
+      <p style="font-size:14px;color:#475569">
+        <b>${agr.partyA}</b> has initiated a mutual legal instrument with you on Thinkable Vault. Your review and cryptographic digital endorsement are requested.
+      </p>
+    `;
+  }
 
   const bodyContent = `
-    <p style="font-size:15px;color:#334155;margin-top:0">
-      Hello <b>${agr.partyB || 'Valued Counterparty'}</b>,
-    </p>
-    <p style="font-size:14px;color:#475569">
-      <b>${agr.partyA}</b> (${agr.partyAVaultId || 'Verified Vault User'}) has initiated a mutual legal instrument with you on Thinkable Vault. Your review and cryptographic digital endorsement are requested.
-    </p>
+    ${greetingHeader}
+    ${guidanceBox}
 
     <div class="metrics-card">
       <div class="metric-row">
@@ -130,40 +230,120 @@ function getAgreementCreatedTemplate(agr, config) {
         <span class="metric-val" style="color:#059669;font-size:15px">${formatInr(agr.amount)}</span>
       </div>
       <div class="metric-row">
-        <span class="metric-label">Initiator (${creatorRole})</span>
+        <span class="metric-label">Lender (Party A)</span>
         <span class="metric-val">${agr.partyA} <small>(${agr.partyAVaultId || 'Party A'})</small></span>
       </div>
       <div class="metric-row">
-        <span class="metric-label">Designated Signee (${roleName})</span>
+        <span class="metric-label">Borrower (Party B)</span>
         <span class="metric-val">${agr.partyB} <small>(${agr.partyBVaultId || 'Party B'})</small></span>
       </div>
       <div class="metric-row">
-        <span class="metric-label">Jurisdiction / City</span>
-        <span class="metric-val">${agr.partyACity || agr.partyBCity || 'National Jurisdiction'}</span>
+        <span class="metric-label">Disbursal Date</span>
+        <span class="metric-val">${agr.start || 'On Execution'}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Maturity Date</span>
+        <span class="metric-val">${agr.due || 'Scheduled'}</span>
       </div>
     </div>
 
-    <p style="font-size:13.5px;color:#475569">
-      To execute this contract, click the secure link below, log in with your verified Google account or Vault ID, and apply your digital signature.
+    ${isLoan ? renderInstallmentsTableHtml(installments) : ''}
+
+    <p style="font-size:13.5px;color:#475569;margin-top:16px">
+      To view the full agreement terms and track status in real-time, click the secure link below:
     </p>
   `;
 
+  const subject = isLoan
+    ? (isPartyA
+        ? `[Action Required] Loan Application from ${agr.partyB}: Review ${tenureMonths}-Month Tenure & Dates (${agr.id})`
+        : `[Vault Confirmation] Loan Request Submitted to ${agr.partyA} (${agr.id})`)
+    : `[Action Required] New Agreement Drafted: ${title} (${agr.id})`;
+
   return {
-    subject: `[Action Required] New Agreement Drafted: ${title} (${agr.id})`,
-    preheader: `${agr.partyA} has drafted a legal instrument with you for ${formatInr(agr.amount)}. Review and sign now.`,
-    badge: 'Draft Instrument · Signing Required',
+    subject,
+    preheader: isLoan
+      ? `${agr.partyB} loan application of ${formatInr(agr.amount)} (${tenureMonths}-Month EMI). Review scheduled dates.`
+      : `${agr.partyA} drafted an agreement with you for ${formatInr(agr.amount)}. Review and sign now.`,
+    badge: isLoan ? `Lending Instrument · ${tenureMonths}-Month Schedule` : 'Draft Instrument · Signing Required',
     badgeColor: '#4361ee',
     bodyContent,
     actionUrl: viewUrl,
-    actionText: 'Review & Sign Legal Instrument →',
+    actionText: isPartyA ? 'Review Loan & Confirm Tenure →' : 'View Agreement & Schedule Dates →',
     footerNote: `🔒 Cryptographic Checksum: SHA-256 integrity digest computed on initiation. Immutable ledger entry timestamped.`
+  };
+}
+
+function getTenureUpdatedTemplate(agr, previousMode, newMode, config) {
+  const isLoan = agr.type === 'loan';
+  const title = agr.title || (isLoan ? 'Mutual Loan Agreement & Promissory Note' : 'Working Agreement');
+  const viewUrl = `${config.appUrl}/?action=view&id=${encodeURIComponent(agr.id)}`;
+  const installments = Array.isArray(agr.installments) && agr.installments.length > 0
+    ? agr.installments
+    : generateLoanInstallmentsFallback(agr);
+
+  const months = installments.length || 6;
+  const emiAmt = installments[0]?.amt || Math.round(agr.amount / months);
+
+  const bodyContent = `
+    <div style="background:#eef2ff;border:1.5px solid #c7d2fe;border-radius:12px;padding:18px;margin-bottom:18px">
+      <div style="font-weight:800;color:#3730a3;font-size:15px">
+        ⚙️ REPAYMENT TENURE &amp; SCHEDULE CONFIRMED BY LENDER
+      </div>
+      <div style="font-size:13.5px;color:#4338ca;margin-top:4px">
+        Lender <b>${agr.partyA}</b> has established the formal repayment schedule: <b>${months} Monthly EMIs (${formatInr(emiAmt)} / mo)</b>.
+      </div>
+    </div>
+
+    <p style="font-size:15px;color:#334155;margin-top:0">
+      Dear Vault Member,
+    </p>
+    <p style="font-size:14px;color:#475569">
+      The repayment terms and scheduled instalment dates for <b>${title}</b> (${agr.id}) have been confirmed. Both parties can inspect the immutable schedule and due dates below.
+    </p>
+
+    <div class="metrics-card">
+      <div class="metric-row">
+        <span class="metric-label">Principal Amount</span>
+        <span class="metric-val" style="color:#059669;font-weight:800">${formatInr(agr.amount)}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Repayment Tenure</span>
+        <span class="metric-val" style="font-weight:800;color:#4338ca">${months} Months (${formatInr(emiAmt)} / mo)</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Disbursal Date</span>
+        <span class="metric-val">${agr.start || 'Disbursed'}</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Final Maturity Date</span>
+        <span class="metric-val">${agr.due}</span>
+      </div>
+    </div>
+
+    ${renderInstallmentsTableHtml(installments)}
+  `;
+
+  return {
+    subject: `[Schedule Confirmed] ${months}-Month Repayment Dates Established: ${title} (${agr.id})`,
+    preheader: `Lender established ${months}-Month EMI schedule (${formatInr(emiAmt)}/mo). Inspect scheduled dates.`,
+    badge: `⚙️ ${months}-Month EMI Schedule Active`,
+    badgeColor: '#4f46e5',
+    bodyContent,
+    actionUrl: viewUrl,
+    actionText: 'Review Schedule & Counterpart Status →',
+    footerNote: `🔒 Cryptographically sealed under Section 65B Evidence Act. All dates synchronized across both party vaults.`
   };
 }
 
 function getAgreementSignedTemplate(agr, signerName, config) {
   const isLoan = agr.type === 'loan';
-  const title = agr.title || (isLoan ? 'Mutual Loan Agreement' : 'Working Agreement & SOW');
+  const title = agr.title || (isLoan ? 'Mutual Loan Agreement & Promissory Note' : 'Working Agreement & SOW');
   const viewUrl = `${config.appUrl}/?action=view&id=${encodeURIComponent(agr.id)}`;
+  const installments = Array.isArray(agr.installments) && agr.installments.length > 0
+    ? agr.installments
+    : generateLoanInstallmentsFallback(agr);
+
   const bodyContent = `
     <p style="font-size:15px;color:#334155;margin-top:0">
       Dear Vault Member,
@@ -198,6 +378,8 @@ function getAgreementSignedTemplate(agr, signerName, config) {
         <span class="metric-val" style="color:#059669">✓ Mutually Executed (Active)</span>
       </div>
     </div>
+
+    ${isLoan ? renderInstallmentsTableHtml(installments) : ''}
   `;
 
   return {
@@ -674,7 +856,9 @@ async function processQueue() {
     try {
       let templateData;
       if (job.type === 'agreement_created') {
-        templateData = getAgreementCreatedTemplate(job.agreement, config);
+        templateData = getAgreementCreatedTemplate(job.agreement, config, job.recipientRole, job.recipientName);
+      } else if (job.type === 'tenure_updated') {
+        templateData = getTenureUpdatedTemplate(job.agreement, job.previousMode, job.newMode, config);
       } else if (job.type === 'agreement_signed') {
         templateData = getAgreementSignedTemplate(job.agreement, job.signerName, config);
       } else if (job.type === 'payment_proof') {
@@ -795,29 +979,57 @@ const mailer = {
   },
 
   /**
-   * Dispatch when a new agreement is drafted
+   * Dispatch when a new agreement is drafted or requested
    */
   notifyAgreementCreated(agreement) {
     if (!agreement) return;
-    // Dispatch to Party B (Counterparty)
+    // Dispatch to Party B (Borrower / Designated Signee)
     if (agreement.partyBEmail && agreement.partyBEmail.includes('@')) {
       emailQueue.push({
         type: 'agreement_created',
         agreement,
         recipientEmail: agreement.partyBEmail.trim().toLowerCase(),
         recipientName: agreement.partyB,
+        recipientRole: 'borrower',
         recipientVaultId: agreement.partyBVaultId
       });
     }
-    // Also dispatch confirmation to Party A (Creator)
-    if (agreement.partyAEmail && agreement.partyAEmail.includes('@') && agreement.partyAEmail !== agreement.partyBEmail) {
+    // Also dispatch to Party A (Lender / Initiator)
+    if (agreement.partyAEmail && agreement.partyAEmail.includes('@')) {
       emailQueue.push({
         type: 'agreement_created',
         agreement,
         recipientEmail: agreement.partyAEmail.trim().toLowerCase(),
         recipientName: agreement.partyA,
+        recipientRole: 'lender',
         recipientVaultId: agreement.partyAVaultId
       });
+    }
+    processQueue().catch(() => {});
+  },
+
+  /**
+   * Dispatch when Lender confirms or updates repayment tenure
+   */
+  notifyTenureUpdated(agreement, previousMode, newMode) {
+    if (!agreement) return;
+    const recipients = [
+      { email: agreement.partyAEmail, name: agreement.partyA, vid: agreement.partyAVaultId, role: 'lender' },
+      { email: agreement.partyBEmail, name: agreement.partyB, vid: agreement.partyBVaultId, role: 'borrower' }
+    ];
+    for (const r of recipients) {
+      if (r.email && r.email.includes('@')) {
+        emailQueue.push({
+          type: 'tenure_updated',
+          agreement,
+          previousMode,
+          newMode,
+          recipientEmail: r.email.trim().toLowerCase(),
+          recipientName: r.name,
+          recipientRole: r.role,
+          recipientVaultId: r.vid
+        });
+      }
     }
     processQueue().catch(() => {});
   },

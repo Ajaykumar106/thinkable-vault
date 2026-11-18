@@ -624,8 +624,14 @@ const requestHandler = async (req, res) => {
       if (user) {
         if (!body.creatorId) body.creatorId = user.id;
         if (!body.createdBy) body.createdBy = user.username;
-        if (!body.partyAVaultId) body.partyAVaultId = user.vaultId;
-        if (!body.partyAEmail) body.partyAEmail = user.email;
+        const isBorrowerCreator = body.partyBVaultId === user.vaultId || (body.partyBEmail && user.email && body.partyBEmail.toLowerCase() === user.email.toLowerCase());
+        if (!isBorrowerCreator) {
+          if (!body.partyAVaultId) body.partyAVaultId = user.vaultId;
+          if (!body.partyAEmail) body.partyAEmail = user.email;
+        } else {
+          if (!body.partyBVaultId) body.partyBVaultId = user.vaultId;
+          if (!body.partyBEmail) body.partyBEmail = user.email;
+        }
       }
 
       // Cryptographic Stamp & Evidentiary Metadata (Sec 65B Indian Evidence Act)
@@ -664,6 +670,11 @@ const requestHandler = async (req, res) => {
         if (!existing) {
           mailer.notifyAgreementCreated(body);
         } else {
+          // Check for tenure establishment or update by lender
+          if (body._tenureUpdated || (existing && body.repaymentMode && existing.repaymentMode && body.repaymentMode !== existing.repaymentMode)) {
+            mailer.notifyTenureUpdated(body, existing?.repaymentMode, body.repaymentMode);
+          }
+
           // Check for mutual endorsement completion
           const hadBoth = !!(existing.sigA && existing.sigB);
           const hasBothNow = !!(body.sigA && body.sigB);
@@ -802,6 +813,11 @@ const requestHandler = async (req, res) => {
       // Automated Email Triggers on Put Updates
       try {
         if (item) {
+          // Check for tenure establishment or update by lender
+          if (body._tenureUpdated || (body.repaymentMode && item.repaymentMode && body.repaymentMode !== item.repaymentMode)) {
+            mailer.notifyTenureUpdated(updated, item.repaymentMode, updated.repaymentMode);
+          }
+
           const hadBoth = !!(item.sigA && item.sigB);
           const hasBothNow = !!(updated.sigA && updated.sigB);
           if (!hadBoth && hasBothNow) {
