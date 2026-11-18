@@ -223,27 +223,35 @@ const db = {
 
     // Save to Neon Cloud PostgreSQL
     if (isCloudConnected) {
-      await queryNeon(`
-        INSERT INTO users (
-          id, username, email, full_name, phone, city, vault_id,
-          password_salt, password_hash, pin_salt, pin_hash
-        ) VALUES (
-          ${escapeSql(u.id)},
-          ${escapeSql(u.username)},
-          ${escapeSql(u.email)},
-          ${escapeSql(u.fullName)},
-          ${escapeSql(u.phone || '')},
-          ${escapeSql(u.city || '')},
-          ${escapeSql(u.vaultId)},
-          ${escapeSql(u.salt)},
-          ${escapeSql(u.hash)},
-          ${escapeSql(u.pinSalt || null)},
-          ${escapeSql(u.pinHash || null)}
-        ) ON CONFLICT (id) DO UPDATE SET
-          full_name = EXCLUDED.full_name,
-          email = EXCLUDED.email,
-          phone = EXCLUDED.phone;
-      `);
+      try {
+        await queryNeon(`
+          INSERT INTO users (
+            id, username, email, full_name, phone, city, vault_id,
+            password_salt, password_hash, pin_salt, pin_hash
+          ) VALUES (
+            ${escapeSql(u.id)},
+            ${escapeSql(u.username)},
+            ${escapeSql(u.email)},
+            ${escapeSql(u.fullName)},
+            ${escapeSql(u.phone || '')},
+            ${escapeSql(u.city || '')},
+            ${escapeSql(u.vaultId)},
+            ${escapeSql(u.salt)},
+            ${escapeSql(u.hash)},
+            ${escapeSql(u.pinSalt || null)},
+            ${escapeSql(u.pinHash || null)}
+          ) ON CONFLICT (id) DO UPDATE SET
+            full_name = EXCLUDED.full_name,
+            email = EXCLUDED.email,
+            phone = EXCLUDED.phone;
+        `);
+      } catch (err) {
+        console.warn('[Neon createUser Warning]', err.message);
+        const existing = await queryNeon(`SELECT * FROM users WHERE LOWER(email) = ${escapeSql((u.email || '').toLowerCase())} OR LOWER(username) = ${escapeSql((u.username || '').toLowerCase())} LIMIT 1;`);
+        if (existing && existing.length > 0) {
+          return rowToUser(existing[0]);
+        }
+      }
     }
     return u;
   },

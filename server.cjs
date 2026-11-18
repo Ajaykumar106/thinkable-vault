@@ -136,14 +136,15 @@ function logActivity(entry) {
 
 /* ── HTTP Request Handler (Compatible with Standalone Node & Vercel Serverless) ── */
 const requestHandler = async (req, res) => {
-  const u = new URL(req.url, `http://localhost`);
-  const p = u.pathname;
+  try {
+    const u = new URL(req.url, `http://localhost`);
+    const p = u.pathname;
 
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+    // CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
 
   // ── Static Web App & PWA Assets ──
   if (p === '/' || p === '/index.html') {
@@ -400,65 +401,86 @@ const requestHandler = async (req, res) => {
 
   // POST /api/auth/google (Google One-Tap / OAuth Sign-In & Real Account Provisioning)
   if (p === '/api/auth/google' && req.method === 'POST') {
-    const body = await readBody(req);
-    const { credential, email: rawEmail, name: rawName } = body;
-    let email = (rawEmail || '').trim().toLowerCase();
-    let fullName = (rawName || '').trim();
+    res.setHeader('Content-Type', 'application/json');
+    try {
+      const body = await readBody(req);
+      const { credential, email: rawEmail, name: rawName } = body || {};
+      let email = (rawEmail || '').trim().toLowerCase();
+      let fullName = (rawName || '').trim();
 
-    if (credential) {
-      try {
-        const parts = credential.split('.');
-        if (parts.length === 3) {
-          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
-          if (payload && payload.email) {
-            email = payload.email.toLowerCase();
-            fullName = payload.name || fullName || email.split('@')[0];
+      if (credential) {
+        try {
+          const parts = credential.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
+            if (payload && payload.email) {
+              email = payload.email.toLowerCase();
+              fullName = payload.name || fullName || email.split('@')[0];
+            }
           }
+        } catch (err) {
+          console.warn('Google credential decode error:', err.message);
         }
-      } catch (err) {
-        console.warn('Google credential decode error:', err.message);
       }
-    }
 
-    if (!email) {
-      res.writeHead(400, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ ok: false, error: 'Google sign-in did not provide a valid email.' }));
-    }
+      if (!email || !email.includes('@')) {
+        res.writeHead(400);
+        return res.end(JSON.stringify({ ok: false, error: 'Google sign-in did not provide a valid email.' }));
+      }
 
-    let user = await db.getUserByUsernameOrEmail(email);
-    if (!user) {
-      // Auto-provision verified Vault account for this real Google user
-      const vaultId = 'VID-' + Math.floor(10000 + Math.random() * 90000);
-      const username = email.split('@')[0].replace(/[^a-z0-9_]/g, '_');
-      const { salt, hash } = hashPassword(crypto.randomBytes(16).toString('hex'));
-      user = {
-        id: 'u_g_' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex'),
-        vaultId,
-        username,
-        fullName: fullName || email.split('@')[0],
-        email,
-        phone: '',
-        salt,
-        hash,
-        pinSalt: null,
-        pinHash: null,
-        kycTier: 'Tier 1 Google Verified',
-        trustScore: 99,
-        createdAt: Date.now()
-      };
-      await db.createUser(user);
+      let user = await db.getUserByUsernameOrEmail(email);
+      if (!user) {
+        // Auto-provision verified Vault account for this real Google user
+        let baseUsername = email.split('@')[0].replace(/[^a-z0-9_]/g, '_').slice(0, 20);
+        let username = baseUsername;
+        let tries = 0;
+        while ((await db.getUserByUsernameOrEmail(username)) && tries < 10) {
+          username = `${baseUsername}_${Math.floor(100 + Math.random() * 900)}`;
+          tries++;
+        }
+
+        let vaultId = 'VID-' + Math.floor(10000 + Math.random() * 90000);
+        tries = 0;
+        while ((await db.getUserByVaultId(vaultId)) && tries < 10) {
+          vaultId = 'VID-' + Math.floor(10000 + Math.random() * 90000);
+          tries++;
+        }
+
+        const { salt, hash } = hashPassword(crypto.randomBytes(16).toString('hex'));
+        user = {
+          id: 'u_g_' + Date.now().toString(36) + crypto.randomBytes(3).toString('hex'),
+          vaultId,
+          username,
+          fullName: fullName || email.split('@')[0],
+          email,
+          phone: '',
+          city: 'India',
+          salt,
+          hash,
+          pinSalt: null,
+          pinHash: null,
+          kycTier: 'Tier 1 Google Verified',
+          trustScore: 99,
+          createdAt: Date.now()
+        };
+        await db.createUser(user);
+        const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+        await db.logAudit('google_register', user.fullName, vaultId, null, { email }, String(rawIp));
+      }
+
+      const token = crypto.randomBytes(32).toString('hex');
+      await db.saveSession(token, user.id, Date.now() + 30 * 864e5);
       const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
-      await db.logAudit('google_register', user.fullName, vaultId, null, { email }, String(rawIp));
+      await db.logAudit('google_login', user.fullName, user.vaultId, null, { email }, String(rawIp));
+
+      res.writeHead(200);
+      const { salt: _, hash: __, pinSalt: ___, pinHash: ____, ...safeUser } = user;
+      return res.end(JSON.stringify({ ok: true, token, user: safeUser }));
+    } catch (authErr) {
+      console.error('[Google Auth Critical Error]', authErr);
+      res.writeHead(500);
+      return res.end(JSON.stringify({ ok: false, error: authErr.message || 'Google authentication encountered an internal error.' }));
     }
-
-    const token = crypto.randomBytes(32).toString('hex');
-    await db.saveSession(token, user.id, Date.now() + 30 * 864e5);
-    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
-    await db.logAudit('google_login', user.fullName, user.vaultId, null, { email }, String(rawIp));
-
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    const { salt: _, hash: __, pinSalt: ___, pinHash: ____, ...safeUser } = user;
-    return res.end(JSON.stringify({ ok: true, token, user: safeUser }));
   }
 
   // GET /api/users/lookup?q=... (Counterparty discovery by Vault ID or Email)
@@ -968,7 +990,15 @@ const requestHandler = async (req, res) => {
     return res.end(JSON.stringify(load(LOG_FILE, [])));
   }
 
-  res.writeHead(404); res.end('Not found');
+  res.writeHead(404, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ ok: false, error: 'Endpoint not found' }));
+} catch (err) {
+  console.error('[Global Request Error]', err);
+  if (!res.headersSent) {
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: false, error: err.message || 'Server error' }));
+  }
+}
 };
 
 const server = http.createServer(requestHandler);
