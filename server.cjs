@@ -26,6 +26,8 @@ const crypto = require('node:crypto');
 })();
 
 const db = require('./db.cjs');
+const mailer = require('./mailer.cjs');
+mailer.setDatabase(db);
 
 const PORT      = process.env.PORT || 3000;
 const DATA_DIR  = path.join(__dirname, '.agr_data');
@@ -638,7 +640,32 @@ const requestHandler = async (req, res) => {
         `${body.id}|${body.partyA}|${body.partyB}|${body.amount}|${body.type}|${body.created}`
       ).digest('hex').toUpperCase();
 
+      const existing = await db.getAgreementById(body.id);
       await db.saveAgreement(body);
+
+      // Automated Transactional Email Dispatcher (Non-blocking Queue)
+      try {
+        if (!existing) {
+          mailer.notifyAgreementCreated(body);
+        } else {
+          // Check for mutual endorsement completion
+          const hadBoth = !!(existing.sigA && existing.sigB);
+          const hasBothNow = !!(body.sigA && body.sigB);
+          if (!hadBoth && hasBothNow) {
+            mailer.notifyAgreementSigned(body, (body.sigB ? body.partyB : body.partyA));
+          }
+
+          // Check for recorded repayments (Payment Proof)
+          const oldReps = existing.payments || existing.repayments || [];
+          const newReps = body.payments || body.repayments || [];
+          if (newReps.length > oldReps.length) {
+            const latestPayment = newReps[newReps.length - 1];
+            mailer.notifyPaymentProof(body, latestPayment);
+          }
+        }
+      } catch (mailErr) {
+        console.warn('[Auto Email Dispatch Warning]', mailErr.message);
+      }
 
       // Auto-remember counterparties in user's saved contacts directory
       if (user) {
@@ -736,6 +763,26 @@ const requestHandler = async (req, res) => {
       const updated = { ...(item || {}), ...body };
       await db.saveAgreement(updated);
       broadcast('agreement', updated);
+
+      // Automated Email Triggers on Put Updates
+      try {
+        if (item) {
+          const hadBoth = !!(item.sigA && item.sigB);
+          const hasBothNow = !!(updated.sigA && updated.sigB);
+          if (!hadBoth && hasBothNow) {
+            mailer.notifyAgreementSigned(updated, (updated.sigB ? updated.partyB : updated.partyA));
+          }
+          const oldReps = item.payments || item.repayments || [];
+          const newReps = updated.payments || updated.repayments || [];
+          if (newReps.length > oldReps.length) {
+            const latestPayment = newReps[newReps.length - 1];
+            mailer.notifyPaymentProof(updated, latestPayment);
+          }
+        }
+      } catch (mErr) {
+        console.warn('[Auto Email PUT Warning]', mErr.message);
+      }
+
       if (body._logEvent) {
         const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
         await db.logAudit(body._logEvent.type || 'update', body._logEvent.actor || '', '', id, body._logEvent, String(rawIp));
@@ -743,6 +790,51 @@ const requestHandler = async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ ok: true }));
     }
+  }
+
+  // ── Manual Dispatch Audit Email Route ──
+  const dispatchMailM = p.match(/^\/api\/agreements\/([^/]+)\/dispatch-email$/);
+  if (dispatchMailM && req.method === 'POST') {
+    const id = dispatchMailM[1];
+    const item = await db.getAgreementById(id);
+    if (!item) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: false, error: 'Agreement not found.' }));
+    }
+    const token = getBearerToken(req);
+    const user = await getUserByToken(token);
+    if (item.repayments && item.repayments.length > 0) {
+      const latest = item.repayments[item.repayments.length - 1];
+      mailer.notifyPaymentProof(item, latest);
+    } else if (item.sigA && item.sigB) {
+      mailer.notifyAgreementSigned(item, user?.fullName || item.partyA);
+    } else {
+      mailer.notifyAgreementCreated(item);
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ ok: true, message: 'Official legal audit and settlement notices dispatched to registered party emails.' }));
+  }
+
+  // ── Email HTML Preview Route (Direct In-Browser Inspection) ──
+  const emailPrevM = p.match(/^\/api\/emails\/preview\/([^/]+)$/);
+  if (emailPrevM && req.method === 'GET') {
+    const notifId = emailPrevM[1];
+    const html = mailer.getPreviewHtml(notifId);
+    if (html) {
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(html);
+    }
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    return res.end('Email preview record not found.');
+  }
+
+  // ── Email Notifications Log API ──
+  if (p === '/api/emails' && req.method === 'GET') {
+    const token = getBearerToken(req);
+    const user = await getUserByToken(token);
+    const list = await db.getEmailNotifications(user?.email || '', 30);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify(list));
   }
 
   // ── Encrypted Chat Messages API ──

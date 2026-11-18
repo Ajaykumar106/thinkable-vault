@@ -36,6 +36,7 @@ const AUTH_FILE = path.join(DATA_DIR, 'auth_users.json');
 const SESS_FILE = path.join(DATA_DIR, 'sessions.json');
 const LOG_FILE  = path.join(DATA_DIR, 'activity.json');
 const CONTACTS_FILE = path.join(DATA_DIR, 'contacts.json');
+const EMAIL_FILE = path.join(DATA_DIR, 'emails.json');
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -111,6 +112,7 @@ function rowToAgreement(r) {
     sigB: r.sig_b,
     milestones: r.milestones || [],
     payments: r.payments || [],
+    repayments: r.payments || [],
     privateNotes: r.private_notes || '',
     dossier: Array.isArray(r.dossier) ? r.dossier : [],
     sha256Digest: r.sha256_digest,
@@ -373,7 +375,7 @@ const db = {
           ${escapeSql(a.sigA || null)},
           ${escapeSql(a.sigB || null)},
           ${escapeSql(a.milestones || [])},
-          ${escapeSql(a.payments || [])},
+          ${escapeSql(a.payments || a.repayments || [])},
           ${escapeSql(a.sha256Digest || '')},
           ${escapeSql(a.clientIp || '')},
           ${escapeSql(a.userAgent || '')},
@@ -519,6 +521,74 @@ const db = {
       }
     }
     return loadLocal(LOG_FILE, []).slice(0, limit);
+  },
+
+  /* ── Transactional Email Notifications ── */
+  async logEmailNotification(record) {
+    const entry = {
+      ...record,
+      createdAt: record.createdAt || Date.now()
+    };
+    const local = loadLocal(EMAIL_FILE, []);
+    local.unshift(entry);
+    saveLocal(EMAIL_FILE, local.slice(0, 300));
+
+    if (isCloudConnected) {
+      await queryNeon(`
+        INSERT INTO email_notifications (
+          id, agreement_id, type, recipient_email, recipient_name, recipient_vault_id,
+          subject, status, provider, error_message, metadata, created_at, sent_at
+        ) VALUES (
+          ${escapeSql(entry.id)},
+          ${escapeSql(entry.agreementId || null)},
+          ${escapeSql(entry.type)},
+          ${escapeSql(entry.recipientEmail)},
+          ${escapeSql(entry.recipientName || '')},
+          ${escapeSql(entry.recipientVaultId || '')},
+          ${escapeSql(entry.subject)},
+          ${escapeSql(entry.status || 'queued')},
+          ${escapeSql(entry.provider || 'smtp')},
+          ${escapeSql(entry.errorMessage || null)},
+          ${escapeSql(entry.metadata || {})},
+          NOW(),
+          ${entry.sentAt ? 'NOW()' : 'NULL'}
+        ) ON CONFLICT (id) DO UPDATE SET
+          status = EXCLUDED.status,
+          error_message = EXCLUDED.error_message,
+          sent_at = EXCLUDED.sent_at;
+      `);
+    }
+    return entry;
+  },
+
+  async getEmailNotifications(recipientEmail = '', limit = 50) {
+    if (isCloudConnected) {
+      const emailFilter = recipientEmail ? `WHERE LOWER(recipient_email) = ${escapeSql(recipientEmail.toLowerCase())}` : '';
+      const rows = await queryNeon(`SELECT * FROM email_notifications ${emailFilter} ORDER BY created_at DESC LIMIT ${limit};`);
+      if (rows) {
+        return rows.map(r => ({
+          id: r.id,
+          agreementId: r.agreement_id,
+          type: r.type,
+          recipientEmail: r.recipient_email,
+          recipientName: r.recipient_name,
+          recipientVaultId: r.recipient_vault_id,
+          subject: r.subject,
+          status: r.status,
+          provider: r.provider,
+          errorMessage: r.error_message,
+          metadata: r.metadata,
+          createdAt: new Date(r.created_at).getTime(),
+          sentAt: r.sent_at ? new Date(r.sent_at).getTime() : null
+        }));
+      }
+    }
+    const local = loadLocal(EMAIL_FILE, []);
+    if (recipientEmail) {
+      const clean = recipientEmail.toLowerCase();
+      return local.filter(e => (e.recipientEmail || '').toLowerCase() === clean).slice(0, limit);
+    }
+    return local.slice(0, limit);
   }
 };
 
