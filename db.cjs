@@ -57,11 +57,17 @@ function escapeSql(val) {
 let isCloudConnected = false;
 
 async function queryNeon(queryText) {
+  const endpoint = process.env.NEON_ENDPOINT || NEON_ENDPOINT;
+  const connString = process.env.NEON_CONNECTION_STRING || NEON_CONN_STRING;
+  if (!endpoint || !connString) {
+    isCloudConnected = false;
+    return null;
+  }
   try {
-    const res = await fetch(NEON_ENDPOINT, {
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        'Neon-Connection-String': NEON_CONN_STRING,
+        'Neon-Connection-String': connString,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ query: queryText })
