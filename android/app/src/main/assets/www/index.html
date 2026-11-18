@@ -1985,15 +1985,6 @@ function renderAuthView(initialTab = 'signin') {
           <div style="margin-top:18px">
             <button class="btn-primary full" id="btnSubmitLogin" style="padding:11px">Sign In to Vault</button>
           </div>
-
-          <!-- Mobile Server Host Status & Switcher -->
-          <div style="margin-top:14px;padding:8px 12px;background:var(--pill);border-radius:10px;font-size:11px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border)">
-            <div style="display:flex;align-items:center;gap:6px;overflow:hidden">
-              <span class="live-dot" style="width:7px;height:7px;background:var(--ok);flex-shrink:0"></span>
-              <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Host: <b id="loginServerHost">${API_BASE || 'Auto / Same-Origin'}</b></span>
-            </div>
-            <button class="btn-sm" id="btnChangeServerHost" type="button" style="font-size:10px;padding:2px 8px;flex-shrink:0">⚙️ Server</button>
-          </div>
         </div>
 
         <!-- Register Pane -->
