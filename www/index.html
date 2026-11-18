@@ -5,6 +5,9 @@
 <title>Agreement Vault — Two-Party Contracts & Mutual Endorsements</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/png" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
 <!-- html2pdf for direct 1-click A4 PDF download -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <!-- Google Identity Services (Real Google Auth) -->
@@ -2473,6 +2476,10 @@ function renderWorkDossierCard(a) {
       <button class="btn-primary full" id="btnDispatchEmailAudit" style="margin-top:8px;padding:10px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px">
         📧 Dispatch Legal Notices &amp; Settlement Receipt to Gmail
       </button>
+
+      <button class="btn-outline full" id="btnShareWhatsAppNotice" style="margin-top:8px;padding:10px;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;background:#25d36615;color:#16a34a;border:1px solid #25d36640">
+        📲 Send WhatsApp Legal Notice &amp; Audit Summary
+      </button>
     </div>
   `;
 }
@@ -2552,6 +2559,11 @@ function bindWorkDossierEvents(a) {
         btnMail.textContent = '📧 Dispatch Legal Notices & Settlement Receipt to Gmail';
       }
     };
+  }
+
+  const btnWaNotice = document.getElementById('btnShareWhatsAppNotice');
+  if (btnWaNotice) {
+    btnWaNotice.onclick = () => sendAgreementWhatsAppNotice(a, a.partyBPhone || '');
   }
 }
 
@@ -3691,6 +3703,17 @@ function renderCreateWorkForm() {
         </div>
       </div>
 
+      <div class="grid-2">
+        <div>
+          <label>Contractor's Real Email (for Auto Gmail Legal Delivery)</label>
+          <input type="email" id="workContractorEmail" placeholder="e.g. contractor@agency.com">
+        </div>
+        <div>
+          <label>Contractor's WhatsApp Number (for 1-Tap Contract Send)</label>
+          <input type="tel" id="workContractorPhone" placeholder="e.g. +91 98765 43210">
+        </div>
+      </div>
+
       <label>Project Title</label>
       <input id="workTitle" placeholder="e.g. Mobile Application &amp; Cloud Backend Engineering">
 
@@ -3775,6 +3798,8 @@ function renderCreateWorkForm() {
         targetWorkBUpi = u.upiId || null;
         targetWorkBQr = u.qrCode || null;
         document.getElementById('workContractor').value = u.fullName;
+        if (document.getElementById('workContractorEmail')) document.getElementById('workContractorEmail').value = u.email || '';
+        if (document.getElementById('workContractorPhone') && u.phone) document.getElementById('workContractorPhone').value = u.phone;
         badge.className = 'badge ok';
         badge.innerHTML = `✓ Verified Vault User: <b>${esc(u.fullName)}</b> (🆔 ${esc(u.vaultId)} ${u.upiId ? `· UPI: ${esc(u.upiId)}` : ''})`;
         showToast(`Matched counterparty ${u.fullName} (${u.vaultId})`);
@@ -3896,6 +3921,9 @@ function renderCreateWorkForm() {
       return alert('Please include at least one valid milestone phase with a positive amount.');
     }
 
+    const contractorEmail = (document.getElementById('workContractorEmail')?.value || targetWorkBEmail || '').trim().toLowerCase();
+    const contractorPhone = (document.getElementById('workContractorPhone')?.value || '').trim();
+
     const agreement = {
       id: 'SOW-' + Math.floor(1000 + Math.random() * 9000),
       creatorId: currentUser ? currentUser.id : null,
@@ -3910,7 +3938,8 @@ function renderCreateWorkForm() {
       partyACity: document.getElementById('workClientCity').value.trim(),
       partyB: contractor,
       partyBVaultId: targetWorkBVaultId || null,
-      partyBEmail: targetWorkBEmail || null,
+      partyBEmail: contractorEmail || null,
+      partyBPhone: contractorPhone || null,
       partyBUpi: targetWorkBUpi || null,
       partyBQr: targetWorkBQr || null,
       partyBCity: document.getElementById('workContractorCity').value.trim(),
@@ -3936,7 +3965,13 @@ function renderCreateWorkForm() {
       body: JSON.stringify(agreement)
     }).catch(() => {});
 
-    showToast(`Working Agreement ${agreement.id} created!`);
+    showToast(`Working Agreement ${agreement.id} created! Auto-Gmail notice dispatched.`);
+
+    const askWa = confirm(`🎉 Working Agreement ${agreement.id} for ${money(agreement.amount)} created!\n\nAuto-Gmail legal notice dispatched to ${contractorEmail || 'contractor'}.\n\nWould you like to send the instant digital contract link to ${contractor} on WhatsApp now?`);
+    if (askWa) {
+      sendAgreementWhatsAppNotice(agreement, contractorPhone);
+    }
+
     renderDocumentView(agreement.id);
   };
 }
@@ -4001,6 +4036,17 @@ function renderCreateLoanForm() {
 
       <div class="grid-2">
         <div>
+          <label>Borrower's Real Email (for Auto Gmail Legal Delivery)</label>
+          <input type="email" id="newPartyBEmail" placeholder="e.g. borrower@gmail.com">
+        </div>
+        <div>
+          <label>Borrower's WhatsApp Number (for 1-Tap Contract Send)</label>
+          <input type="tel" id="newPartyBPhone" placeholder="e.g. +91 98765 43210">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
           <label>Principal Loan Amount (₹)</label>
           <input type="number" id="newAmount" placeholder="e.g. 50000" min="1">
         </div>
@@ -4057,6 +4103,8 @@ function renderCreateLoanForm() {
         targetLoanBUpi = u.upiId || null;
         targetLoanBQr = u.qrCode || null;
         document.getElementById('newPartyB').value = u.fullName;
+        if (document.getElementById('newPartyBEmail')) document.getElementById('newPartyBEmail').value = u.email || '';
+        if (document.getElementById('newPartyBPhone') && u.phone) document.getElementById('newPartyBPhone').value = u.phone;
         badge.className = 'badge ok';
         badge.innerHTML = `✓ Verified Vault User: <b>${esc(u.fullName)}</b> (🆔 ${esc(u.vaultId)} ${u.upiId ? `· UPI: ${esc(u.upiId)}` : ''})`;
         showToast(`Matched borrower ${u.fullName} (${u.vaultId})`);
@@ -4103,6 +4151,7 @@ function renderCreateLoanForm() {
         targetLoanBVaultId = vid;
         targetLoanBEmail = email;
         targetLoanBUpi = upi;
+        if (document.getElementById('newPartyBEmail')) document.getElementById('newPartyBEmail').value = email;
         const badge = document.getElementById('loanLookupBadge');
         badge.className = 'anim-fade';
         badge.style.display = 'block';
@@ -4119,6 +4168,8 @@ function renderCreateLoanForm() {
   document.getElementById('btnSaveNote').onclick = async () => {
     const pA = document.getElementById('newPartyA').value.trim();
     const pB = document.getElementById('newPartyB').value.trim();
+    const pBEmail = (document.getElementById('newPartyBEmail')?.value || targetLoanBEmail || '').trim().toLowerCase();
+    const pBPhone = (document.getElementById('newPartyBPhone')?.value || '').trim();
     const amt = +document.getElementById('newAmount').value;
     const due = document.getElementById('newDue').value;
 
@@ -4138,7 +4189,8 @@ function renderCreateLoanForm() {
       partyACity: document.getElementById('newCityA').value.trim(),
       partyB: pB,
       partyBVaultId: targetLoanBVaultId || null,
-      partyBEmail: targetLoanBEmail || null,
+      partyBEmail: pBEmail || null,
+      partyBPhone: pBPhone || null,
       partyBUpi: targetLoanBUpi || null,
       partyBQr: targetLoanBQr || null,
       partyBCity: document.getElementById('newCityB').value.trim(),
@@ -4166,9 +4218,47 @@ function renderCreateLoanForm() {
       body: JSON.stringify(note)
     }).catch(() => {});
 
-    showToast(`Note ${note.id} created!`);
+    showToast(`Note ${note.id} created! Auto-Gmail notice dispatched.`);
+
+    const askWa = confirm(`🎉 Loan Agreement ${note.id} for ${money(note.amount)} created!\n\nAuto-Gmail legal notice dispatched to ${pBEmail || 'borrower'}.\n\nWould you like to send the instant digital contract link to ${pB} on WhatsApp now?`);
+    if (askWa) {
+      sendAgreementWhatsAppNotice(note, pBPhone);
+    }
+
     renderDocumentView(note.id);
   };
+}
+
+/* ─── WhatsApp Notice Dispatcher ─── */
+function sendAgreementWhatsAppNotice(a, targetPhone = '') {
+  const port = location.port ? `:${location.port}` : '';
+  const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
+  const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
+  const phone = (targetPhone || a.partyBPhone || '').replace(/[^0-9+]/g, '');
+  const phoneParam = phone ? `phone=${encodeURIComponent(phone)}&` : '';
+
+  let msg = '';
+  if (a.type === 'loan') {
+    const { total, left } = calcTotals(a);
+    msg = `Namaste ${a.partyB}! 🤝\n` +
+      `Here is the official update for Mutual Loan Agreement (Ref: ${a.id}) on Thinkable Vault.\n\n` +
+      `💰 Principal: ${money(a.amount)}\n` +
+      `📊 Outstanding Balance: ${money(left)}\n` +
+      `📅 Maturity Date: ${fd(a.due)}\n` +
+      `⚡ Interest Rate: ${a.rate || 0}% p.a.\n\n` +
+      `📜 View and verify the live digital instrument & Section 65B Certificate:\n${viewUrl}\n\n` +
+      `🔒 Cryptographically sealed in Thinkable Agreement Vault under Section 65B Evidence Act.`;
+  } else {
+    msg = `Namaste ${a.partyB}! 💼\n` +
+      `Here is the official update for Working Agreement (Ref: ${a.id}) on Thinkable Vault.\n\n` +
+      `📋 Project: ${a.title}\n` +
+      `💰 Total SOW Value: ${money(a.amount)}\n` +
+      `📅 Target Completion: ${fd(a.due)}\n\n` +
+      `📜 View deliverables, milestones, and client sign-offs:\n${viewUrl}\n\n` +
+      `🔒 Legally binding electronic record under Information Technology Act 2000.`;
+  }
+
+  window.open(`https://api.whatsapp.com/send/?${phoneParam}text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 /* ─── WhatsApp Reminder ─── */

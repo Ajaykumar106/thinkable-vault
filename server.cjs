@@ -201,6 +201,15 @@ const requestHandler = async (req, res) => {
     `);
   }
 
+  if (p.startsWith('/icons/') || p === '/favicon.ico') {
+    const filename = p === '/favicon.ico' ? 'favicon.png' : path.basename(p);
+    const filePath = path.join(__dirname, 'icons', filename);
+    if (fs.existsSync(filePath)) {
+      res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' });
+      return res.end(fs.readFileSync(filePath));
+    }
+  }
+
   // ── Cloud Database Health & Engine Status ──
   if (p === '/api/status' && req.method === 'GET') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
