@@ -63,7 +63,7 @@ function escapeSql(val) {
 const ACTIVE_NEON_CONN = 'postgresql://neondb_owner:npg_LZ3tmyAaiOK8@ep-old-firefly-azqu3ngv-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
 const ACTIVE_NEON_ENDPOINT = 'https://ep-old-firefly-azqu3ngv-pooler.c-3.ap-southeast-1.aws.neon.tech/sql';
 
-let isCloudConnected = false;
+let isCloudConnected = true;
 
 async function queryNeon(queryText, isRetry = false) {
   const endpoint = process.env.NEON_ENDPOINT || NEON_ENDPOINT || ACTIVE_NEON_ENDPOINT;

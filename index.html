@@ -863,7 +863,7 @@ canvas.pad-canvas {
         <span class="live-dot" id="liveDot"></span>
         <span id="liveText">LIVE</span>
       </div>
-      <button class="btn-sm" id="btnOpenTourGuide" style="background:linear-gradient(135deg,rgba(99,102,241,0.18),rgba(168,85,247,0.18));border:1px solid rgba(99,102,241,0.35);font-weight:800;color:var(--brand);display:flex;align-items:center;gap:4px">✨ Tour</button>
+      <button class="btn-sm" id="btnOpenTourGuide" style="background:#eff6ff;border:1.5px solid #bfdbfe;font-weight:800;color:#1d4ed8;display:flex;align-items:center;gap:5px;border-radius:8px;padding:5px 12px">💡 Kaise Kaam Karta Hai</button>
       <button class="btn-sm" id="btnToggleTheme">🌙 Dark</button>
       <button class="btn-sm" id="btnUserModal">👤 <span id="hdrUserLabel">User</span></button>
       <button class="btn-sm btn-primary" id="btnOpenNew">+ New</button>
@@ -1200,42 +1200,42 @@ canvas.pad-canvas {
   </div>
 </div>
 
-<!-- Interactive Premium Onboarding Tour & Visual Introduction Modal -->
-<div id="onboardingTourModal" class="modal-overlay" style="display:none;background:rgba(5,7,15,0.85);backdrop-filter:blur(24px);z-index:99999">
-  <div class="modal-card anim-fade" style="max-width:540px;width:92%;padding:28px 24px;border-radius:24px;background:linear-gradient(180deg,#121626 0%,#090c15 100%);border:1px solid rgba(255,255,255,0.12);box-shadow:0 24px 60px rgba(0,0,0,0.6),0 0 40px rgba(99,102,241,0.18)">
+<!-- Interactive Simple White Onboarding Slide Deck -->
+<div id="onboardingTourModal" class="modal-overlay" style="display:none;background:rgba(15,23,42,0.55);backdrop-filter:blur(10px);z-index:99999;align-items:center;justify-content:center">
+  <div class="modal-card anim-fade" style="max-width:520px;width:92%;padding:26px 24px;border-radius:24px;background:#ffffff;color:#0f172a;border:1px solid #e2e8f0;box-shadow:0 25px 60px -15px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.04)">
     
     <!-- Modal Header -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:36px;height:36px;border-radius:10px;background:var(--brand-grad);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(99,102,241,0.4)">
-          <span style="font-weight:900;color:#fff;font-size:15px">AV</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg, #4f46e5, #6366f1);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(79,70,229,0.35)">
+          <span style="font-weight:900;color:#ffffff;font-size:16px">AV</span>
         </div>
         <div>
-          <div style="font-size:15px;font-weight:900;color:#fff;letter-spacing:0.02em">AGREEMENT VAULT</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600">Interactive Product Tour</div>
+          <div style="font-size:16px;font-weight:900;color:#0f172a;letter-spacing:-0.01em">Thinkable Vault</div>
+          <div style="font-size:12px;color:#64748b;font-weight:600">Kaise kaam karta hai (Simple &amp; Safe Guide)</div>
         </div>
       </div>
-      <button id="btnSkipTour" class="btn-sm" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.7);border-radius:20px;padding:4px 12px;font-size:11.5px;cursor:pointer">Skip ✕</button>
+      <button id="btnSkipTour" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s">Skip ✕</button>
     </div>
 
-    <!-- Stepper Dots -->
-    <div style="display:flex;gap:8px;margin-bottom:20px" id="tourStepDots">
-      <div class="tour-dot active" data-step="0" style="flex:1;height:4px;border-radius:99px;background:var(--brand);transition:all 0.3s"></div>
-      <div class="tour-dot" data-step="1" style="flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,0.15);transition:all 0.3s"></div>
-      <div class="tour-dot" data-step="2" style="flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,0.15);transition:all 0.3s"></div>
-      <div class="tour-dot" data-step="3" style="flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,0.15);transition:all 0.3s"></div>
+    <!-- Clean Stepper Progress Bar -->
+    <div style="display:flex;gap:6px;margin-bottom:20px" id="tourStepDots">
+      <div class="tour-dot active" data-step="0" style="flex:1;height:5px;border-radius:99px;background:#4f46e5;transition:all 0.3s"></div>
+      <div class="tour-dot" data-step="1" style="flex:1;height:5px;border-radius:99px;background:#e2e8f0;transition:all 0.3s"></div>
+      <div class="tour-dot" data-step="2" style="flex:1;height:5px;border-radius:99px;background:#e2e8f0;transition:all 0.3s"></div>
+      <div class="tour-dot" data-step="3" style="flex:1;height:5px;border-radius:99px;background:#e2e8f0;transition:all 0.3s"></div>
     </div>
 
     <!-- Dynamic Slide Content Container -->
-    <div id="tourSlideWrap" style="min-height:280px;display:flex;flex-direction:column;justify-content:space-between">
+    <div id="tourSlideWrap" style="min-height:300px;display:flex;flex-direction:column;justify-content:space-between">
       <!-- Injected dynamically via renderTourSlide(index) -->
     </div>
 
     <!-- Tour Footer Controls -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08)">
-      <button id="btnPrevTour" class="btn-sm" style="display:none;background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.12);padding:8px 16px;border-radius:10px;font-weight:700">← Back</button>
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:700" id="tourStepCounter">Step 1 of 4</div>
-      <button id="btnNextTour" class="btn-primary" style="padding:9px 22px;border-radius:12px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px">Next Step →</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:16px;border-top:1px solid #f1f5f9">
+      <button id="btnPrevTour" style="display:none;background:#f8fafc;color:#334155;border:1px solid #cbd5e1;padding:8px 18px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer">← Pichhla</button>
+      <div style="font-size:12px;color:#64748b;font-weight:700" id="tourStepCounter">Step 1 of 4</div>
+      <button id="btnNextTour" style="background:linear-gradient(135deg, #4f46e5, #4338ca);color:#ffffff;border:none;padding:9px 22px;border-radius:12px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(79,70,229,0.3);cursor:pointer">Aage Badhein →</button>
     </div>
 
   </div>
@@ -1321,9 +1321,13 @@ async function verifyAuth() {
     return false;
   }
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
     const r = await fetch(apiUrl('/api/auth/me'), {
-      headers: { 'Authorization': `Bearer ${authToken}` }
+      headers: { 'Authorization': `Bearer ${authToken}` },
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     if (r.ok) {
       const d = await r.json();
       if (d && d.ok && d.user) {
@@ -1333,8 +1337,26 @@ async function verifyAuth() {
         updateHeaderUser();
         return true;
       }
+    } else if (r.status === 401) {
+      // ONLY on explicit 401 Unauthorized do we clear local session
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_USER_KEY);
+      updateHeaderUser();
+      return false;
     }
-  } catch {}
+  } catch (err) {
+    console.warn('[Session Verification Network Notice]', err?.message || err);
+  }
+
+  // If network had a temporary delay, cold-start, or offline, retain logged-in user!
+  if (currentUser) {
+    activeProfile = currentUser.fullName;
+    updateHeaderUser();
+    return true;
+  }
+
   authToken = null;
   currentUser = null;
   localStorage.removeItem(AUTH_TOKEN_KEY);
@@ -1434,6 +1456,7 @@ async function handleGoogleAuth(credential = null, customPayload = null) {
     await loadUserContacts();
     await syncWithServer();
     renderDashboard();
+    checkAutoTour();
   } catch (err) {
     const isReg = document.getElementById('paneRegister')?.style.display !== 'none';
     const activeAlert = isReg ? regAlert : loginAlert;
@@ -1842,86 +1865,91 @@ function showToast(msg) {
   el._t = setTimeout(() => el.classList.remove('show'), 3800);
 }
 
-/* ─── Interactive Onboarding Tour Engine ─── */
+/* ─── Interactive Simple White Onboarding Slide Deck (Fintech Human Guide) ─── */
 let currentTourStep = 0;
 const tourSlides = [
   {
-    badge: "STEP 1 OF 4 · LEGAL CONTRACTS",
-    title: "Direct Two-Party Digital Agreements (No Middlemen)",
-    desc: "Create enforceable Promissory Notes, Mutual Loan Agreements, and Working SOWs. Every contract includes an RBI-compliant Key Fact Statement (KFS), cryptographic SHA-256 seal, and legal jurisdiction.",
-    icon: "📜",
+    badge: "SLIDE 1 SE 4 · SAFE AGREEMENT",
+    title: "Dost ya kisi ko paise diye? Ab safe digital agreement banao",
+    desc: "Kisi ko udhar ya business ke liye paise de rahe hain? Zabaani baaton par risk mat lo. Yahan 1 minute mein dono ke beech legal digital agreement banta hai jo dono ke paas hamesha safe rehta hai.",
+    icon: "🤝",
     previewHtml: `
-      <div style="background:var(--paper);border:1px solid var(--border);border-left:4px solid var(--brand);border-radius:12px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,0.2)">
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-left:5px solid #4f46e5;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.03)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span class="badge ok" style="font-size:10px;font-weight:800">🤝 MUTUAL PROMISSORY NOTE</span>
-          <span style="font-size:11px;font-family:ui-monospace,monospace;color:var(--tx-muted)">NOTE-9100</span>
+          <span style="background:#e0e7ff;color:#4338ca;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:6px">📄 DIGITAL LOAN AGREEMENT</span>
+          <span style="font-size:11px;font-family:ui-monospace,monospace;color:#64748b;font-weight:700">DOC-5820</span>
         </div>
-        <div style="font-weight:800;font-size:14px;margin-bottom:4px">₹50,000 · 6-Month Tenure EMI Schedule</div>
-        <div style="font-size:11.5px;color:var(--tx-muted);margin-bottom:8px">Party A (Lender) ⇄ Party B (Borrower) · Fully Sealed</div>
-        <div style="display:flex;gap:6px">
-          <span class="badge" style="background:rgba(16,185,129,0.15);color:var(--ok);font-size:9.5px">✓ Signed by Lender</span>
-          <span class="badge" style="background:rgba(16,185,129,0.15);color:var(--ok);font-size:9.5px">✓ Signed by Borrower</span>
-        </div>
-      </div>
-    `
-  },
-  {
-    badge: "STEP 2 OF 4 · 1-TAP DISCOVERY",
-    title: "Instant Counterparty Search via Unique Vault ID",
-    desc: "Never type long bank forms or repetitive KYC again. Every user receives a unique Vault ID (e.g. VID-11288). Search any friend or business counterparty to autofill verified names, UPI addresses, and contacts instantly.",
-    icon: "🆔",
-    previewHtml: `
-      <div style="background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:14px">
-        <div style="font-size:11px;font-weight:800;color:var(--tx-muted);margin-bottom:6px">SEARCH COUNTERPARTY BY VAULT ID</div>
-        <div style="display:flex;gap:6px;margin-bottom:10px">
-          <div style="flex:1;background:var(--pill);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-family:ui-monospace,monospace;font-size:13px;font-weight:800;color:var(--brand)">
-            VID-11288
-          </div>
-          <button class="btn-sm btn-primary" style="border-radius:8px;font-weight:800;padding:6px 14px">Search</button>
-        </div>
-        <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--ok);font-weight:700">
-          ✓ Verified Counterparty: Ajay Kumar Mahto · Tier 1 KYC
+        <div style="font-weight:800;font-size:16px;color:#0f172a;margin-bottom:3px">₹50,000 Udhar (Loan)</div>
+        <div style="font-size:12px;color:#475569;margin-bottom:10px">Lender (Aap) ⇄ Borrower (Dost/Party) · Return Date: 15 Aug</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span style="background:#dcfce7;color:#15803d;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px">✓ Aapka Sign Done</span>
+          <span style="background:#dcfce7;color:#15803d;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px">✓ Samne Wale Ka Sign Done</span>
         </div>
       </div>
     `
   },
   {
-    badge: "STEP 3 OF 4 · DIRECT PAYMENTS",
-    title: "Direct UPI & Real Scanner QR Payments (0% Fee)",
-    desc: "Borrowers pay directly using Google Pay, PhonePe, or Paytm with zero transaction fees. Lenders upload their real shop/personal scanner QR code. Once paid, the lender marks it verified with 1 click.",
-    icon: "💳",
-    previewHtml: `
-      <div style="background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:14px">
-        <div style="width:58px;height:58px;background:#fff;border-radius:10px;padding:4px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
-          <div style="width:48px;height:48px;background:repeating-linear-gradient(45deg,#1e1b4b,#1e1b4b 3px,#fff 3px,#fff 6px);border-radius:4px"></div>
-        </div>
-        <div style="flex:1">
-          <div style="font-weight:800;font-size:13.5px;margin-bottom:2px">Instant UPI Scanner &amp; Ledger</div>
-          <div style="font-size:11.5px;color:var(--tx-muted);margin-bottom:6px">Direct peer-to-peer settlement · 0% commission</div>
-          <span class="badge ok" style="font-size:10px;padding:2px 8px">✓ Mutual Repayment Verified</span>
-        </div>
-      </div>
-    `
-  },
-  {
-    badge: "STEP 4 OF 4 · CREDIT RATINGS",
-    title: "Dynamic Vault Credit Score (300-900) & Legal Proof",
-    desc: "Every borrower has a live Credit Score calculated from their on-time repayment history. If someone defaults or misses a due date, their score drops automatically and legal notice dispatches to both registered inboxes.",
+    badge: "SLIDE 2 SE 4 · LIVE CREDIT SCORE",
+    title: "Paise dene se pehle saamne wale ka Credit Score dekho",
+    desc: "Borrower ka Vault ID dalo aur uska live score (300-900) dekho. Agar wo time par paise wapas lautata hai to score Green rehta hai. Agar wo date par paise nahi lautayega, to uska score gir jata hai taaki aapka paisa na doobe.",
     icon: "📈",
     previewHtml: `
-      <div style="background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:14px">
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.03)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-size:12px;font-weight:800;color:var(--ok)">🟢 Prime Borrower (High Trust)</span>
-          <span style="font-size:14px;font-weight:900;background:var(--pill);padding:2px 10px;border-radius:6px;border:1px solid var(--border)">
-            Score: <b style="color:var(--ok)">790</b> / 900
-          </span>
+          <div>
+            <div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase">Borrower ID Check</div>
+            <div style="font-size:13.5px;font-weight:800;color:#0f172a">Ajay Kumar (VID-18189)</div>
+          </div>
+          <div style="background:#dcfce7;border:1px solid #bbf7d0;padding:4px 10px;border-radius:8px;text-align:right">
+            <span style="font-size:10px;font-weight:800;color:#15803d;display:block">CREDIT SCORE</span>
+            <span style="font-size:15px;font-weight:900;color:#16a34a">790 / 900</span>
+          </div>
         </div>
-        <div style="width:100%;height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:10px">
-          <div style="width:87%;height:100%;background:linear-gradient(90deg,#10b981,#3b82f6);border-radius:99px"></div>
+        <div style="width:100%;height:7px;background:#e2e8f0;border-radius:99px;overflow:hidden;margin:8px 0 10px 0">
+          <div style="width:87%;height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:99px"></div>
         </div>
-        <div style="font-size:11px;color:var(--tx-muted);display:flex;justify-content:space-between">
-          <span>✓ 100% Repaid on time</span>
-          <span>📧 Auto Gmail Legal Proof Dispatched</span>
+        <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#15803d;font-weight:700">
+          <span>🟢 High Trust (Safe to Lend)</span>
+          <span>✓ 100% On-Time Repayments</span>
+        </div>
+      </div>
+    `
+  },
+  {
+    badge: "SLIDE 3 SE 4 · ZERO FEE UPI SCANNER",
+    title: "Direct PhonePe, Google Pay ya Scanner se Payment lo",
+    desc: "Lender apna shop ya personal scanner QR code upload kar sakta hai. Borrower kisi bhi UPI app se direct account mein paise bhejta hai — 0% commission. Payment aate hi 1-click mein receipt update ho jati hai.",
+    icon: "💳",
+    previewHtml: `
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.03)">
+        <div style="width:54px;height:54px;background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;padding:3px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.06)">
+          <div style="width:46px;height:46px;background:repeating-linear-gradient(45deg,#334155,#334155 3px,#fff 3px,#fff 6px);border-radius:6px"></div>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:14px;color:#0f172a;margin-bottom:2px">Direct Bank to Bank UPI</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:6px">Google Pay · PhonePe · Paytm · 0% Fee</div>
+          <span style="background:#dcfce7;color:#15803d;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px">✓ Instant Payment Verified</span>
+        </div>
+      </div>
+    `
+  },
+  {
+    badge: "SLIDE 4 SE 4 · GMAIL PROOF & NOTICES",
+    title: "Dono ke Gmail par Legal Stamped Copy & Auto-Reminder",
+    desc: "Agreement bante hi dono ke verified Gmail par stamped digital copy bhej di jaati hai. Repayment ki date aane par automatic reminder notice bhi jata hai taaki koi bhool na sake aur sab transparent rahe.",
+    icon: "📩",
+    previewHtml: `
+      <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.03)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div style="width:34px;height:34px;border-radius:8px;background:#fee2e2;color:#ef4444;display:flex;align-items:center;justify-content:center;font-size:16px">📧</div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#0f172a">Stamped Legal Proof Dispatched</div>
+            <div style="font-size:11.5px;color:#64748b">Delivered to: Both Registered Inboxes</div>
+          </div>
+        </div>
+        <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:11.5px;color:#334155;line-height:1.4">
+          ✓ Certified SHA-256 Hash Seal Attached<br>
+          ✓ Automatic Due-Date Alerts Enabled (No awkward follow-ups)
         </div>
       </div>
     `
@@ -1936,13 +1964,13 @@ function renderTourSlide(index) {
 
   document.querySelectorAll('#tourStepDots .tour-dot').forEach((d, idx) => {
     if (idx === currentTourStep) {
-      d.style.background = 'var(--brand)';
-      d.style.boxShadow = '0 0 10px rgba(99,102,241,0.5)';
+      d.style.background = '#4f46e5';
+      d.style.boxShadow = '0 0 8px rgba(79,70,229,0.4)';
     } else if (idx < currentTourStep) {
-      d.style.background = 'var(--ok)';
+      d.style.background = '#10b981';
       d.style.boxShadow = 'none';
     } else {
-      d.style.background = 'rgba(255,255,255,0.15)';
+      d.style.background = '#e2e8f0';
       d.style.boxShadow = 'none';
     }
   });
@@ -1951,32 +1979,34 @@ function renderTourSlide(index) {
   const btnNext = document.getElementById('btnNextTour');
   const counter = document.getElementById('tourStepCounter');
   if (btnPrev) btnPrev.style.display = currentTourStep > 0 ? 'inline-block' : 'none';
-  if (counter) counter.textContent = `Step ${currentTourStep + 1} of ${tourSlides.length}`;
+  if (counter) counter.textContent = `Slide ${currentTourStep + 1} of ${tourSlides.length}`;
   if (btnNext) {
     if (currentTourStep === tourSlides.length - 1) {
-      btnNext.textContent = '🚀 Get Started';
+      btnNext.innerHTML = '🚀 Shuru Karein';
       btnNext.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+      btnNext.style.boxShadow = '0 4px 14px rgba(16,185,129,0.35)';
     } else {
-      btnNext.textContent = 'Next Step →';
-      btnNext.style.background = '';
+      btnNext.innerHTML = 'Aage Badhein →';
+      btnNext.style.background = 'linear-gradient(135deg, #4f46e5, #4338ca)';
+      btnNext.style.boxShadow = '0 4px 14px rgba(79,70,229,0.3)';
     }
   }
 
   wrap.innerHTML = `
-    <div class="anim-fade" style="display:flex;flex-direction:column;gap:12px">
+    <div class="anim-fade" style="display:flex;flex-direction:column;gap:10px">
       <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:24px">${slide.icon}</span>
-        <span style="font-size:10.5px;font-weight:900;letter-spacing:0.08em;color:var(--brand);text-transform:uppercase">
+        <span style="font-size:26px">${slide.icon}</span>
+        <span style="font-size:11px;font-weight:900;letter-spacing:0.06em;color:#4f46e5;text-transform:uppercase;background:#eef2ff;padding:3px 8px;border-radius:6px">
           ${slide.badge}
         </span>
       </div>
-      <div style="font-size:19px;font-weight:900;color:#fff;line-height:1.3;letter-spacing:-0.01em">
+      <div style="font-size:18px;font-weight:900;color:#0f172a;line-height:1.35;letter-spacing:-0.01em">
         ${slide.title}
       </div>
-      <div style="font-size:13px;line-height:1.6;color:rgba(255,255,255,0.7)">
+      <div style="font-size:13px;line-height:1.6;color:#475569">
         ${slide.desc}
       </div>
-      <div style="margin-top:8px">
+      <div style="margin-top:6px">
         ${slide.previewHtml}
       </div>
     </div>
@@ -1987,6 +2017,9 @@ function openTourGuide(force = false) {
   const modal = document.getElementById('onboardingTourModal');
   if (!modal) return;
   modal.style.display = 'flex';
+  if (!isHandlingPopState) {
+    try { history.pushState({ modal: 'tour' }, ''); } catch {}
+  }
   renderTourSlide(0);
 }
 
@@ -2374,6 +2407,7 @@ function renderAuthView(initialTab = 'signin') {
       await loadUserContacts();
       await syncWithServer();
       renderDashboard();
+      checkAutoTour();
     } catch (err) {
       if (alertBox) {
         alertBox.innerHTML = `⚠️ Cannot reach server at <code>${API_BASE || location.origin}</code>.<br><small style="display:block;margin-top:4px">Make sure server is running or configure your Vercel URL via ⚙️ Server below.</small>`;
@@ -2582,6 +2616,7 @@ function renderAuthView(initialTab = 'signin') {
       await loadUserContacts();
       await syncWithServer();
       renderDashboard();
+      checkAutoTour();
     } catch {
       alertBox.textContent = 'Network or server error.';
       alertBox.style.display = 'block';
@@ -2619,6 +2654,7 @@ window.logoutUser = async () => {
 /* ─── View 1: Unified Portfolio Dashboard ─── */
 function renderDashboard() {
   if (!currentUser) return renderAuthView('signin');
+  currentAppView = 'dashboard';
   currentId = null;
   currentSigningRole = null;
   updateHeaderUser();
@@ -2636,7 +2672,10 @@ function renderDashboard() {
       </div>
     `;
     const bz = document.getElementById('btnZeroNew');
-    if (bz) bz.onclick = () => { document.getElementById('templateModal').style.display = 'flex'; };
+    if (bz) bz.onclick = () => { 
+      document.getElementById('templateModal').style.display = 'flex'; 
+      if (!isHandlingPopState) { try { history.pushState({ modal: 'template' }, ''); } catch {} }
+    };
     return;
   }
 
@@ -2753,6 +2792,20 @@ function renderDashboard() {
         </div>
       </div>
     ` : ''}
+
+    <!-- Quick How-It-Works Guide Strip -->
+    <div style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:14px;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:22px">💡</span>
+        <div>
+          <div style="font-size:13.5px;font-weight:800;color:#1e3a8a">Yeh App Kaise Kaam Karta Hai? (1-Min Guide)</div>
+          <div style="font-size:11.5px;color:#3b82f6">Loan agreement kaise banayein, Credit score kaise dekhein, aur UPI payment record kaise karein.</div>
+        </div>
+      </div>
+      <button class="btn-sm" onclick="openTourGuide(true)" style="background:#2563eb;color:#ffffff;border:none;font-weight:800;font-size:12px;padding:6px 14px;border-radius:8px;box-shadow:0 2px 6px rgba(37,99,235,0.3);cursor:pointer">
+        📖 Guide Kholein
+      </button>
+    </div>
 
     <!-- Top KPI Grid -->
     <div class="kpi-grid">
@@ -3010,7 +3063,10 @@ function renderDashboard() {
   });
 
   const en = document.getElementById('btnEmptyNew');
-  if (en) en.onclick = () => { document.getElementById('templateModal').style.display = 'flex'; };
+  if (en) en.onclick = () => { 
+    document.getElementById('templateModal').style.display = 'flex'; 
+    if (!isHandlingPopState) { try { history.pushState({ modal: 'template' }, ''); } catch {} }
+  };
 }
 
 /* ─── Match Helper for Names ─── */
@@ -3025,6 +3081,11 @@ function matchName(name1, name2) {
 function renderDocumentView(id, remoteSigningRole = null) {
   const a = list.find(x => x.id === id);
   if (!a) return renderDashboard();
+
+  currentAppView = 'doc';
+  if (!isHandlingPopState) {
+    try { history.pushState({ view: 'doc', id }, ''); } catch {}
+  }
 
   currentId = id;
   currentSigningRole = remoteSigningRole;
@@ -4469,6 +4530,7 @@ function renderLoanAgreementView(a, remoteSigningRole) {
     const modal = document.getElementById('auditResponseModal');
     if (!modal) return;
     modal.style.display = 'flex';
+    if (!isHandlingPopState) { try { history.pushState({ modal: 'audit' }, ''); } catch {} }
     const sumEl = document.getElementById('auditAgrSummary');
     if (sumEl) {
       sumEl.innerHTML = `
@@ -4746,6 +4808,10 @@ function initPad(k, a) {
 
 /* ─── View 3A: Create Working Agreement Form ─── */
 function renderCreateWorkForm() {
+  currentAppView = 'create_work';
+  if (!isHandlingPopState) {
+    try { history.pushState({ view: 'create_work' }, ''); } catch {}
+  }
   let milestoneCount = 2;
   let targetWorkBVaultId = null;
   let targetWorkBEmail = null;
@@ -5098,6 +5164,10 @@ function renderCreateWorkForm() {
 
 /* ─── View 3B: Create Loan Agreement Form ─── */
 function renderCreateLoanForm() {
+  currentAppView = 'create_loan';
+  if (!isHandlingPopState) {
+    try { history.pushState({ view: 'create_loan' }, ''); } catch {}
+  }
   let targetLoanBVaultId = null;
   let targetLoanBEmail = null;
   let targetLoanBUpi = null;
@@ -5440,6 +5510,10 @@ function renderCreateLoanForm() {
 
 /* ─── View 3C: Apply / Request Loan as Borrower ─── */
 function renderCreateLoanRequestForm() {
+  currentAppView = 'loan_request';
+  if (!isHandlingPopState) {
+    try { history.pushState({ view: 'loan_request' }, ''); } catch {}
+  }
   let targetLenderVaultId = null;
   let targetLenderEmail = null;
   let targetLenderUpi = null;
@@ -5993,7 +6067,10 @@ async function handleUrlActions() {
 
 /* ─── Template Picker Modal ─── */
 const templateModal = document.getElementById('templateModal');
-document.getElementById('btnOpenNew').onclick = () => { templateModal.style.display = 'flex'; };
+document.getElementById('btnOpenNew').onclick = () => { 
+  templateModal.style.display = 'flex'; 
+  if (!isHandlingPopState) { try { history.pushState({ modal: 'template' }, ''); } catch {} }
+};
 document.getElementById('btnCloseTemplateModal').onclick = () => { templateModal.style.display = 'none'; };
 templateModal.onclick = e => { if (e.target === templateModal) templateModal.style.display = 'none'; };
 
@@ -6069,6 +6146,7 @@ if (mNew) mNew.onclick = () => {
   setActiveMobileNav('mNavNew');
   if (!currentUser) return renderAuthView('signin');
   templateModal.style.display = 'flex';
+  if (!isHandlingPopState) { try { history.pushState({ modal: 'template' }, ''); } catch {} }
 };
 const mId = document.getElementById('mNavId');
 if (mId) mId.onclick = () => {
@@ -6163,6 +6241,7 @@ document.getElementById('btnUserModal').onclick = () => {
 
   renderSavedContactsModal();
   userModal.style.display = 'flex';
+  if (!isHandlingPopState) { try { history.pushState({ modal: 'user' }, ''); } catch {} }
 };
 document.getElementById('btnCloseUserModal').onclick = () => { userModal.style.display = 'none'; };
 userModal.onclick = e => { if (e.target === userModal) userModal.style.display = 'none'; };
@@ -6328,6 +6407,7 @@ window.openUpiPaymentModal = (agrId, milestoneId, defaultAmount, payeeName, defa
   }
 
   upiModal.style.display = 'flex';
+  if (!isHandlingPopState) { try { history.pushState({ modal: 'upi' }, ''); } catch {} }
 };
 
 document.getElementById('btnCloseUpiModal').onclick = () => {
@@ -6535,21 +6615,90 @@ if (btnNext) {
   };
 }
 
-// Auto-launch interactive tour for first-time visitors
-if (!localStorage.getItem('vault_tour_seen_v1')) {
-  setTimeout(() => openTourGuide(), 700);
+/* ─── Mobile Back-Button & SPA History Navigation Controller ─── */
+let currentAppView = 'dashboard';
+let isHandlingPopState = false;
+let lastBackPressTime = 0;
+
+// Initialize root history state
+try {
+  if (!history.state) {
+    history.replaceState({ view: 'dashboard' }, '');
+  }
+} catch {}
+
+window.addEventListener('popstate', (e) => {
+  isHandlingPopState = true;
+  try {
+    // 1. If any modal overlay is open, close it!
+    let anyModalClosed = false;
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+      if (m && m.style.display !== 'none') {
+        m.style.display = 'none';
+        anyModalClosed = true;
+      }
+    });
+    if (anyModalClosed) {
+      try { history.pushState({ view: currentAppView || 'dashboard' }, ''); } catch {}
+      return;
+    }
+
+    // 2. If viewing a document or creating an agreement, return to Dashboard!
+    if (currentAppView && currentAppView !== 'dashboard' && currentUser) {
+      currentAppView = 'dashboard';
+      renderDashboard();
+      try { history.pushState({ view: 'dashboard' }, ''); } catch {}
+      return;
+    }
+
+    // 3. If on Dashboard, prevent accidental tab/app close on a single back press / swipe
+    if (currentUser) {
+      const now = Date.now();
+      if (now - lastBackPressTime < 2200) {
+        // Double-tap Back within 2.2 seconds: allow browser exit
+        return;
+      }
+      lastBackPressTime = now;
+      showToast('Press Back once more to exit Agreement Vault');
+      try { history.pushState({ view: 'dashboard' }, ''); } catch {}
+    }
+  } finally {
+    isHandlingPopState = false;
+  }
+});
+
+// Auto-launch guide only for logged-in users after sign-in
+function checkAutoTour() {
+  if (currentUser && !localStorage.getItem('vault_tour_seen_v1')) {
+    setTimeout(() => openTourGuide(), 600);
+  }
 }
 
-// Boot application with Real Auth
+// Boot application with Instant Persistent Auth
 (async () => {
+  // 1. Fast path: If user was previously logged in, render dashboard IMMEDIATELY (0 delay, zero login flash!)
+  if (authToken && currentUser) {
+    activeProfile = currentUser.fullName;
+    updateHeaderUser();
+    renderDashboard();
+    checkAutoTour();
+  } else {
+    renderAuthView('signin');
+  }
+
+  // 2. Background verification
   const isAuthed = await verifyAuth();
   initSSE();
   await loadUserContacts();
   await syncWithServer();
   const handled = await handleUrlActions();
   if (!handled) {
-    if (isAuthed) renderDashboard();
-    else renderAuthView('signin');
+    if (isAuthed || (authToken && currentUser)) {
+      renderDashboard();
+      checkAutoTour();
+    } else {
+      renderAuthView('signin');
+    }
   }
 })();
 </script>
