@@ -1,12 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "echo 'Thinkable Vault build complete'",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "outputDirectory": ".",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "server.cjs,db.cjs"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index.cjs"
+      "destination": "/api/index.js"
     },
     {
       "source": "/privacy",
@@ -25,7 +28,7 @@
       "destination": "/sw.js"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ]

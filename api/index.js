@@ -1,13 +1,12 @@
-/**
- * Vercel Serverless Function Handler — Thinkable Vault
- * Bridges Vercel serverless invocations to the centralized requestHandler & Neon DB.
- */
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
+
 const db = require('../db.cjs');
 const handleRequest = require('../server.cjs');
 
 let dbInitPromise = null;
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   try {
     if (!dbInitPromise) {
       dbInitPromise = db.init().catch(err => {
@@ -20,7 +19,7 @@ module.exports = async (req, res) => {
     console.error('[Vercel Serverless Error]', err);
     if (!res.headersSent) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ ok: false, error: err.message || 'Internal Server Error' }));
+      res.end(JSON.stringify({ ok: false, error: err?.message || 'Internal Server Error' }));
     }
   }
-};
+}
