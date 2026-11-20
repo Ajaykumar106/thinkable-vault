@@ -5,28 +5,35 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-// ── SECURITY: Credentials loaded from environment. Never commit real values. ──
-// Copy .env.example → .env and fill in your Neon credentials before running.
-if (!process.env.NEON_CONNECTION_STRING) {
-  try {
-    const envPath = path.join(__dirname, '.env');
-    if (fs.existsSync(envPath)) {
-      const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('#')) continue;
-        const eq = trimmed.indexOf('=');
-        if (eq < 1) continue;
-        const k = trimmed.slice(0, eq).trim();
-        const v = trimmed.slice(eq + 1).trim();
-        if (!process.env[k]) process.env[k] = v;
+// ── SECURITY: Credentials loaded strictly from environment or .env. Never hardcode credentials. ──
+function loadEnv() {
+  const candidatePaths = [
+    path.join(process.cwd(), '.env'),
+    path.join(__dirname, '.env'),
+    path.join(__dirname, '..', '.env'),
+    path.join(__dirname, '..', '..', '.env')
+  ];
+  for (const envPath of candidatePaths) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith('#')) continue;
+          const eq = trimmed.indexOf('=');
+          if (eq < 1) continue;
+          const k = trimmed.slice(0, eq).trim();
+          const v = trimmed.slice(eq + 1).trim();
+          if (!process.env[k]) process.env[k] = v;
+        }
       }
-    }
-  } catch {}
+    } catch {}
+  }
 }
+loadEnv();
 
-const NEON_CONN_STRING = process.env.NEON_CONNECTION_STRING || '';
-const NEON_ENDPOINT    = process.env.NEON_ENDPOINT || '';
+const NEON_CONN_STRING = process.env.NEON_CONNECTION_STRING || process.env.DATABASE_URL || '';
+const NEON_ENDPOINT    = process.env.NEON_ENDPOINT || (NEON_CONN_STRING ? `https://${NEON_CONN_STRING.split('@')[1]?.split('/')[0]?.replace('-pooler', '')}/sql` : '');
 
 const os = require('node:os');
 
@@ -60,15 +67,11 @@ function escapeSql(val) {
   return `'${String(val).replace(/'/g, "''")}'`;
 }
 
-// Fallback Neon Connection (Decoded at runtime to prevent public GitHub secret scanning flags)
-const FALLBACK_NEON_CONN = Buffer.from('cG9zdGdyZXNxbDovL25lb25kYl9vd25lcjpucGdfaEY2d01ZZlBvdDRhQGVwLW9sZC1maXJlZmx5LWF6cXUzbmd2LXBvb2xlci5jLTMuYXAtc291dGhlYXN0LTEuYXdzLm5lb24udGVjaC9uZW9uZGI/c3NsbW9kZT1yZXF1aXJl', 'base64').toString('utf8');
-const ACTIVE_NEON_ENDPOINT = 'https://ep-old-firefly-azqu3ngv-pooler.c-3.ap-southeast-1.aws.neon.tech/sql';
+let isCloudConnected = Boolean(NEON_CONN_STRING && NEON_ENDPOINT);
 
-let isCloudConnected = true;
-
-async function queryNeon(queryText, isRetry = false) {
-  const endpoint = process.env.NEON_ENDPOINT || NEON_ENDPOINT || ACTIVE_NEON_ENDPOINT;
-  let connString = isRetry ? FALLBACK_NEON_CONN : (process.env.NEON_CONNECTION_STRING || process.env.DATABASE_URL || NEON_CONN_STRING || FALLBACK_NEON_CONN);
+async function queryNeon(queryText) {
+  const endpoint = process.env.NEON_ENDPOINT || NEON_ENDPOINT;
+  const connString = process.env.NEON_CONNECTION_STRING || process.env.DATABASE_URL || NEON_CONN_STRING;
   if (!endpoint || !connString) {
     isCloudConnected = false;
     return null;
@@ -83,10 +86,6 @@ async function queryNeon(queryText, isRetry = false) {
       body: JSON.stringify({ query: queryText })
     });
     const data = await res.json();
-    if (data.message && data.message.includes('authentication failed') && !isRetry) {
-      console.warn('[Neon DB Auth Warning] Stale credentials detected, auto-switching to verified credentials...');
-      return queryNeon(queryText, true);
-    }
     if (data.message && data.code) {
       console.warn('[Neon DB Warning]', data.message);
       return null;

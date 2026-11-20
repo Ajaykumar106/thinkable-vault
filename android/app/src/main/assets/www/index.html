@@ -848,101 +848,114 @@ canvas.pad-canvas {
 .muted { color: var(--tx-muted); font-size: 13px; }
 .text-green { color: var(--ok); font-weight: 700; }
 
-/* ── Infographic Landing Page (Split Hero & Compact Above-The-Fold) ── */
-.landing-wrap { max-width: 1080px; margin: 0 auto; padding: 12px 10px 60px; }
+/* ── Modern Presentation & Infographic Landing Page (PPT Style) ── */
+.landing-wrap { max-width: 1100px; margin: 0 auto; padding: 20px 14px 60px; }
 
-.landing-split-hero {
-  display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 28px;
-  align-items: center;
-  background: radial-gradient(circle at 40% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
-  border: 1px solid rgba(99, 102, 241, 0.14);
-  border-radius: 20px;
-  padding: 34px 28px;
-  margin-bottom: 32px;
+.landing-hero {
+  text-align: center; padding: 48px 20px 38px;
+  background: radial-gradient(circle at 50% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 24px; margin-bottom: 36px;
 }
-@media (max-width: 860px) {
-  .landing-split-hero {
-    grid-template-columns: 1fr;
-    padding: 20px 14px;
-    gap: 18px;
-  }
-}
-
-.landing-hero-left {
-  text-align: left;
-}
-@media (max-width: 860px) {
-  .landing-hero-left {
-    text-align: center;
-  }
-}
-
 .landing-badge {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 800;
   background: rgba(99, 102, 241, 0.12); color: #4338ca; border: 1px solid rgba(99, 102, 241, 0.25);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 [data-theme="dark"] .landing-badge {
   background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border-color: rgba(99, 102, 241, 0.35);
 }
 .landing-h1 {
-  font-size: clamp(23px, 3.6vw, 36px); font-weight: 900; line-height: 1.25;
-  color: var(--tx); margin: 0 0 12px 0; letter-spacing: -0.025em;
+  font-size: clamp(26px, 4.4vw, 42px); font-weight: 900; line-height: 1.22;
+  color: var(--tx); margin: 0 auto 16px; max-width: 780px; letter-spacing: -0.025em;
 }
 .landing-sub {
-  font-size: clamp(13px, 1.6vw, 15px); color: var(--tx-muted);
-  margin: 0 0 18px 0; line-height: 1.6;
+  font-size: clamp(14px, 1.8vw, 16px); color: var(--tx-muted); max-width: 660px;
+  margin: 0 auto 26px; line-height: 1.6;
 }
-.landing-points {
-  display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; font-size: 13px; font-weight: 600; color: var(--tx);
+.landing-hero-btns {
+  display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;
 }
-@media (max-width: 860px) {
-  .landing-points { align-items: center; }
-}
-.landing-points span {
-  display: flex; align-items: center; gap: 6px;
+.landing-trust-bar {
+  display: flex; justify-content: center; gap: 18px; flex-wrap: wrap;
+  font-size: 12px; font-weight: 700; color: var(--tx-muted);
 }
 
-.landing-trust-bar {
-  display: flex; gap: 14px; flex-wrap: wrap;
-  font-size: 11.5px; font-weight: 700; color: var(--tx-muted);
+/* Hero Live Mockup Card */
+.landing-hero-mockup {
+  max-width: 580px; margin: 30px auto 0; text-align: left;
+  background: var(--paper); border: 1.5px solid var(--border); border-left: 5px solid var(--brand);
+  border-radius: 16px; padding: 20px 22px; box-shadow: 0 16px 36px rgba(0,0,0,0.08);
 }
-@media (max-width: 860px) {
-  .landing-trust-bar { justify-content: center; }
+
+/* Interactive Presentation Deck (PPT Slides Showcase) */
+.landing-ppt-deck {
+  background: var(--paper); border: 1px solid var(--border); border-radius: 22px;
+  padding: 32px 24px; margin-bottom: 38px; box-shadow: var(--shadow);
+}
+.ppt-tabs {
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px;
+}
+.ppt-tab {
+  padding: 8px 18px; border-radius: 99px; font-size: 13px; font-weight: 700;
+  border: 1px solid var(--border); background: var(--bg); color: var(--tx-muted);
+  cursor: pointer; transition: all 0.2s ease;
+}
+.ppt-tab.active {
+  background: var(--brand); color: #ffffff; border-color: var(--brand);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+}
+.ppt-slide-card {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: center;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 18px;
+  padding: 28px 24px; min-height: 260px;
+}
+@media (max-width: 800px) {
+  .ppt-slide-card { grid-template-columns: 1fr; gap: 18px; padding: 20px 16px; }
+}
+
+/* Side-by-Side Comparison */
+.comparison-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0 36px;
+}
+@media (max-width: 680px) {
+  .comparison-grid { grid-template-columns: 1fr; }
+}
+.comp-card {
+  background: var(--paper); border: 1px solid var(--border); border-radius: 16px; padding: 22px 20px;
+}
+.comp-card.good {
+  border-color: #10b981; background: linear-gradient(180deg, rgba(16, 185, 129, 0.04) 0%, var(--paper) 100%);
+}
+.comp-item {
+  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; font-size: 13px; line-height: 1.5;
 }
 
 .landing-section-title {
-  text-align: center; font-size: 20px; font-weight: 900; color: var(--tx); margin: 32px 0 6px;
+  text-align: center; font-size: 22px; font-weight: 900; color: var(--tx); margin: 36px 0 6px; letter-spacing: -0.015em;
 }
 .landing-section-sub {
-  text-align: center; font-size: 13px; color: var(--tx-muted); margin-bottom: 20px;
+  text-align: center; font-size: 13.5px; color: var(--tx-muted); margin-bottom: 22px;
 }
-.landing-steps-grid {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px; margin-bottom: 32px;
-}
-.step-card {
-  background: var(--paper); border: 1px solid var(--border); border-radius: 16px;
-  padding: 22px 18px; box-shadow: var(--shadow); position: relative;
-}
-.step-num-pill {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: var(--brand-grad); color: #fff; font-size: 15px; font-weight: 900;
-  display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
-}
-.step-card-title { font-size: 15.5px; font-weight: 800; color: var(--tx); margin-bottom: 6px; }
-.step-card-desc { font-size: 12.5px; color: var(--tx-muted); line-height: 1.5; }
 
 .personas-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px; margin-bottom: 32px;
+  gap: 14px; margin-bottom: 36px;
 }
 .persona-card {
   background: var(--paper); border: 1px solid var(--border); border-radius: 16px;
-  padding: 20px 18px; box-shadow: var(--shadow);
+  padding: 22px 18px; box-shadow: var(--shadow);
+}
+.persona-icon { font-size: 28px; margin-bottom: 10px; }
+.persona-title { font-size: 16px; font-weight: 800; color: var(--tx); margin-bottom: 6px; }
+.persona-desc { font-size: 13px; color: var(--tx-muted); line-height: 1.55; }
+
+/* Bottom CTA Banner */
+.landing-cta-banner {
+  text-align: center; padding: 42px 24px; border-radius: 22px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+  color: #ffffff; margin-bottom: 36px; box-shadow: 0 16px 40px rgba(67, 56, 202, 0.25);
 }
 
 /* ── Digital Online Diary Styles ── */
@@ -1055,6 +1068,81 @@ canvas.pad-canvas {
     <span>Account</span>
   </button>
 </nav>
+
+<!-- Dedicated Authentication Modal -->
+<div id="authModal" class="modal-overlay" style="display:none">
+  <div class="modal-card anim-fade" style="max-width:440px;padding:26px 22px">
+    <div class="flex space" style="margin-bottom:14px">
+      <div style="font-weight:900;font-size:18px;letter-spacing:-0.02em;color:var(--tx)">Access Thinkable Vault</div>
+      <button class="btn-sm" id="btnCloseAuthModal">✕</button>
+    </div>
+    <div class="muted" style="font-size:12.5px;margin-bottom:16px">
+      Sign in or create your verified digital agreement ledger account.
+    </div>
+
+    <!-- Auth Tabs -->
+    <div style="display:flex;background:var(--bg);padding:4px;border-radius:10px;border:1px solid var(--border);margin-bottom:16px">
+      <button id="tabAuthSignIn" class="full btn-sm" style="border:none;border-radius:7px;background:var(--paper);font-weight:700;box-shadow:var(--shadow)">Sign In</button>
+      <button id="tabAuthRegister" class="full btn-sm" style="border:none;border-radius:7px;background:transparent;color:var(--tx-muted)">Create Account</button>
+    </div>
+
+    <!-- Sign In Pane -->
+    <div id="paneSignIn" style="display:block">
+      <div id="loginAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
+
+      <!-- Google Sign-In Button -->
+      <button id="btnGoogleSignIn" type="button" class="btn-google-auth">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+
+      <div class="auth-divider"><span>OR WITH EMAIL / VAULT ID</span></div>
+      
+      <label>Email Address or Vault ID</label>
+      <input id="inLoginId" placeholder="e.g. name@domain.com or VID-XXXXX" autocomplete="username">
+
+      <label>Password</label>
+      <input id="inLoginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+
+      <div style="margin-top:16px">
+        <button class="btn-primary full" id="btnSubmitLogin" style="padding:11px;font-weight:800">Sign In to Vault</button>
+      </div>
+    </div>
+
+    <!-- Register Pane -->
+    <div id="paneRegister" style="display:none">
+      <div id="regAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
+
+      <!-- Google Sign-Up Button -->
+      <button id="btnGoogleSignUp" type="button" class="btn-google-auth">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Sign Up with Google
+      </button>
+
+      <div class="auth-divider"><span>OR FILL DETAILS</span></div>
+
+      <label>Full Legal Name</label>
+      <input id="inRegName" placeholder="e.g. Ajay Kumar" autocomplete="name">
+
+      <label>Real Email Address</label>
+      <input id="inRegEmail" type="email" placeholder="e.g. ajay@example.com" autocomplete="email">
+
+      <label>Username</label>
+      <input id="inRegUser" placeholder="e.g. ajaykumar" autocomplete="username">
+
+      <label>Password</label>
+      <input id="inRegPass" type="password" placeholder="Choose a secure password" autocomplete="new-password">
+
+      <div class="muted" style="font-size:11.5px;margin-top:10px;line-height:1.5">
+        🛡️ A permanent <b>Vault ID (VID-XXXXX)</b> will be cryptographically minted for your profile.
+      </div>
+
+      <div style="margin-top:16px">
+        <button class="btn-primary full" id="btnSubmitRegister" style="padding:11px;font-weight:800">Create Free Account</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Template Picker Modal -->
 <div id="templateModal" class="modal-overlay" style="display:none">
@@ -1569,6 +1657,7 @@ async function handleGoogleAuth(credential = null, customPayload = null) {
     localStorage.setItem(AUTH_TOKEN_KEY, authToken);
     localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
     activeProfile = currentUser.fullName;
+    if (window.closeAuthModal) window.closeAuthModal();
     showToast(`✓ Google Verified: Welcome, ${currentUser.fullName} (${currentUser.vaultId})`);
     updateHeaderUser();
     initSSE();
@@ -2378,205 +2467,44 @@ async function fetchAgreementFromServer(id) {
   return fetch(apiUrl(`/api/agreements/${encodeURIComponent(id)}`), { headers }).catch(() => {});
 }
 
-/* ─── Authentication View (Sign In & Register) ─── */
-function renderAuthView(initialTab = 'signin') {
-  currentId = null;
-  currentSigningRole = null;
-  updateHeaderUser();
-
-  const app = document.getElementById('appSlot');
-  app.innerHTML = `
-    <div class="landing-wrap anim-fade">
-      <!-- Top Split Hero: Left Value Prop + Right Auth Box (Above-the-fold on both Desktop & Mobile) -->
-      <div class="landing-split-hero">
-        <div class="landing-hero-left">
-          <div class="landing-badge">
-            <span>🛡️</span> Digital Ledger &amp; Legal Agreement Vault
-          </div>
-          <h1 class="landing-h1">
-            Replace Verbal Promises With Legally Binding Digital Proof.
-          </h1>
-          <div class="landing-sub">
-            Record personal loans, business credit, and work contracts in 60 seconds. Digital signatures from both phones, automated WhatsApp reminders, and direct 0% fee UPI settlements.
-          </div>
-          <div class="landing-points">
-            <span>✓ Legally Valid Under Information Technology Act, 2000</span>
-            <span>✓ Direct Bank-to-Bank UPI Transfers (0% Platform Fee)</span>
-            <span>✓ No App Download Required For Counterparties</span>
-          </div>
-          <div class="landing-trust-bar">
-            <span>⚖️ Section 65B Compliant</span>
-            <span>🔒 End-to-End Encrypted</span>
-            <span>⚡ Instant Cloud Ledger</span>
-          </div>
-        </div>
-
-        <!-- Embedded Auth Box (Always Above-The-Fold) -->
-        <div id="authBoxSection" style="width:100%;max-width:420px;margin:0 auto">
-          <div class="card" style="padding:24px 20px;border:1px solid var(--border);box-shadow:var(--shadow);border-radius:18px;margin:0">
-            <div style="text-align:center;margin-bottom:16px">
-              <div style="font-weight:900;font-size:18px;letter-spacing:-0.02em;color:var(--tx)">Access Your Vault</div>
-              <div class="muted" style="font-size:12px;margin-top:4px">
-                One-tap Google Sign-In or Email / Vault ID
-              </div>
-            </div>
-
-            <!-- Auth Tabs -->
-            <div style="display:flex;background:var(--bg);padding:4px;border-radius:8px;border:1px solid var(--border);margin-bottom:16px">
-              <button id="tabAuthSignIn" class="full btn-sm" style="border:none;border-radius:6px;${initialTab==='signin' ? 'background:var(--paper);font-weight:700;box-shadow:var(--shadow)' : 'background:transparent;color:var(--tx-muted)'}">Sign In</button>
-              <button id="tabAuthRegister" class="full btn-sm" style="border:none;border-radius:6px;${initialTab==='register' ? 'background:var(--paper);font-weight:700;box-shadow:var(--shadow)' : 'background:transparent;color:var(--tx-muted)'}">Create Account</button>
-            </div>
-
-            <!-- Sign In Pane -->
-            <div id="paneSignIn" style="${initialTab==='signin' ? 'display:block' : 'display:none'}">
-              <div id="loginAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
-
-              <!-- Official Google Sign-In Button -->
-              <button id="btnGoogleSignIn" type="button" class="btn-google-auth">
-                <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                Continue with Google
-              </button>
-
-              <div class="auth-divider"><span>OR WITH EMAIL / VAULT ID</span></div>
-              
-              <label>Email Address or Vault ID</label>
-              <input id="inLoginId" placeholder="e.g. name@domain.com or VID-XXXXX" autocomplete="username">
-
-              <label>Password</label>
-              <input id="inLoginPass" type="password" placeholder="••••••••" autocomplete="current-password">
-
-              <div style="margin-top:16px">
-                <button class="btn-primary full" id="btnSubmitLogin" style="padding:11px;font-weight:800">Sign In to Vault</button>
-              </div>
-            </div>
-
-            <!-- Register Pane -->
-            <div id="paneRegister" style="${initialTab==='register' ? 'display:block' : 'display:none'}">
-              <div id="regAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
-
-              <!-- Official Google Sign-Up Button -->
-              <button id="btnGoogleSignUp" type="button" class="btn-google-auth">
-                <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-                Sign Up with Google
-              </button>
-
-              <div class="auth-divider"><span>OR FILL DETAILS</span></div>
-
-              <label>Full Legal Name</label>
-              <input id="inRegName" placeholder="e.g. Ajay Kumar" autocomplete="name">
-
-              <label>Real Email Address</label>
-              <input id="inRegEmail" type="email" placeholder="e.g. ajay@example.com" autocomplete="email">
-
-              <label>Username</label>
-              <input id="inRegUser" placeholder="e.g. ajaykumar" autocomplete="username">
-
-              <label>Password</label>
-              <input id="inRegPass" type="password" placeholder="Choose a secure password" autocomplete="new-password">
-
-              <div class="muted" style="font-size:11.5px;margin-top:10px;line-height:1.5">
-                🛡️ A permanent <b>Vault ID (VID-XXXXX)</b> will be cryptographically minted for your profile.
-              </div>
-
-              <div style="margin-top:16px">
-                <button class="btn-primary full" id="btnSubmitRegister" style="padding:11px;font-weight:800">Create Free Account</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3-Step Infographic Flow -->
-      <div class="landing-section-title">How It Works in 3 Simple Steps</div>
-      <div class="landing-section-sub">No paperwork, no lawyers, no complicated apps. Transparent digital ledger on your mobile.</div>
-
-      <div class="landing-steps-grid">
-        <div class="step-card">
-          <div class="step-num-pill">1</div>
-          <div class="step-card-title">1. Record Terms in 60 Seconds</div>
-          <div class="step-card-desc">
-            Specify the loan or project amount, due date, repayment mode (lump-sum or monthly EMIs), and your UPI receiving details.
-          </div>
-        </div>
-        <div class="step-card">
-          <div class="step-num-pill">2</div>
-          <div class="step-card-title">2. Sign on Any Phone</div>
-          <div class="step-card-desc">
-            Share a 1-click WhatsApp or SMS verification link. The other party reviews terms and signs with their finger in their mobile browser—no app install required.
-          </div>
-        </div>
-        <div class="step-card">
-          <div class="step-num-pill">3</div>
-          <div class="step-card-title">3. Automated Reminders &amp; Direct UPI</div>
-          <div class="step-card-desc">
-            Respectful, automated reminders are dispatched before due dates. Counterparties pay directly via Google Pay, PhonePe, or Paytm straight to your bank account.
-          </div>
-        </div>
-      </div>
-
-      <!-- 3 Personas Grid -->
-      <div class="landing-section-title">Built For Every Peer &amp; Commercial Transaction</div>
-      <div class="landing-section-sub">Zero ambiguity, zero strained relationships. Transparent financial records.</div>
-
-      <div class="personas-grid">
-        <div class="persona-card">
-          <div class="persona-icon">🤝</div>
-          <div class="persona-title">Friends &amp; Family Lending</div>
-          <div class="persona-desc">
-            Eliminate awkward money conversations. Neutral, automated reminders protect valuable relationships while ensuring loans are repaid on time.
-          </div>
-        </div>
-        <div class="persona-card">
-          <div class="persona-icon">🏪</div>
-          <div class="persona-title">Merchants &amp; Small Businesses</div>
-          <div class="persona-desc">
-            Replace vulnerable paper khata-bahi with tamper-proof, cloud-backed electronic promissory notes with legally valid Section 65B audit trails.
-          </div>
-        </div>
-        <div class="persona-card">
-          <div class="persona-icon">💼</div>
-          <div class="persona-title">Freelancers &amp; Contractors</div>
-          <div class="persona-desc">
-            Lock in scope, upfront advance payments, and milestone sign-offs before commencing work to prevent scope creep and payment delays.
-          </div>
-        </div>
-      </div>
-
-      <!-- Legal Policy & Terms Footer -->
-      <div style="text-align:center;padding:24px 10px;border-top:1px solid var(--border);font-size:12px;color:var(--tx-muted);line-height:1.8">
-        <div><b>Thinkable Agreement Vault</b> — Electronic Promissory Note &amp; Digital Ledger Infrastructure</div>
-        <div>Fully compliant with Section 65B of Indian Evidence Act, 1872 &amp; Information Technology Act, 2000.</div>
-        <div style="margin-top:8px">
-          <a href="/?view=terms" onclick="event.preventDefault();alert('Privacy & Terms: Thinkable Vault stores encrypted electronic contract records pursuant to the Indian IT Act 2000. All transactions are peer-to-peer and direct without intermediary escrow.');" style="color:var(--brand);font-weight:700;text-decoration:underline">Privacy Policy &amp; Terms of Service</a>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const btnLandingStart = document.getElementById('btnLandingStart');
-  if (btnLandingStart) {
-    btnLandingStart.onclick = () => {
-      const authBox = document.getElementById('authBoxSection');
-      if (authBox) authBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
-  }
-  const btnLandingTour = document.getElementById('btnLandingTour');
-  if (btnLandingTour) {
-    btnLandingTour.onclick = () => openTourGuide(true);
-  }
-
+/* ─── Dedicated Auth Modal Logic ─── */
+function setupAuthModal() {
   const tabSignIn = document.getElementById('tabAuthSignIn');
   const tabRegister = document.getElementById('tabAuthRegister');
   const paneSignIn = document.getElementById('paneSignIn');
   const paneRegister = document.getElementById('paneRegister');
+  const modal = document.getElementById('authModal');
+  const btnClose = document.getElementById('btnCloseAuthModal');
+
+  if (!tabSignIn || !modal) return;
+
+  window.openAuthModal = (initialTab = 'signin') => {
+    modal.style.display = 'flex';
+    if (initialTab === 'register') {
+      tabRegister.click();
+    } else {
+      tabSignIn.click();
+    }
+  };
+
+  window.closeAuthModal = () => {
+    modal.style.display = 'none';
+  };
+
+  if (btnClose) btnClose.onclick = window.closeAuthModal;
+  modal.onclick = (e) => {
+    if (e.target.id === 'authModal') window.closeAuthModal();
+  };
 
   tabSignIn.onclick = () => {
     tabSignIn.style.background = 'var(--paper)';
     tabSignIn.style.fontWeight = '700';
     tabSignIn.style.color = 'var(--tx)';
+    tabSignIn.style.boxShadow = 'var(--shadow)';
     tabRegister.style.background = 'transparent';
     tabRegister.style.fontWeight = '500';
     tabRegister.style.color = 'var(--tx-muted)';
+    tabRegister.style.boxShadow = 'none';
     paneSignIn.style.display = 'block';
     paneRegister.style.display = 'none';
   };
@@ -2585,9 +2513,11 @@ function renderAuthView(initialTab = 'signin') {
     tabRegister.style.background = 'var(--paper)';
     tabRegister.style.fontWeight = '700';
     tabRegister.style.color = 'var(--tx)';
+    tabRegister.style.boxShadow = 'var(--shadow)';
     tabSignIn.style.background = 'transparent';
     tabSignIn.style.fontWeight = '500';
     tabSignIn.style.color = 'var(--tx-muted)';
+    tabSignIn.style.boxShadow = 'none';
     paneSignIn.style.display = 'none';
     paneRegister.style.display = 'block';
   };
@@ -2606,11 +2536,7 @@ function renderAuthView(initialTab = 'signin') {
       });
       const text = await res.text();
       let data = {};
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        throw new Error(text || `Server returned empty response (Status ${res.status}).`);
-      }
+      try { data = text ? JSON.parse(text) : {}; } catch { throw new Error(text || `Server returned empty response (Status ${res.status}).`); }
       if (!res.ok || !data.ok) {
         if (alertBox) { alertBox.textContent = data.error || 'Invalid credentials.'; alertBox.style.display = 'block'; }
         if (btn) { btn.disabled = false; btn.textContent = 'Sign In to Vault'; }
@@ -2621,6 +2547,7 @@ function renderAuthView(initialTab = 'signin') {
       localStorage.setItem(AUTH_TOKEN_KEY, authToken);
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
       activeProfile = currentUser.fullName;
+      window.closeAuthModal();
       showToast(`Welcome back, ${currentUser.fullName}! (${currentUser.vaultId})`);
       updateHeaderUser();
       initSSE();
@@ -2630,51 +2557,36 @@ function renderAuthView(initialTab = 'signin') {
       checkAutoTour();
     } catch (err) {
       if (alertBox) {
-        alertBox.innerHTML = `⚠️ Cannot reach server at <code>${API_BASE || location.origin}</code>.<br><small style="display:block;margin-top:4px">Make sure server is running or configure your Vercel URL via ⚙️ Server below.</small>`;
+        alertBox.innerHTML = `⚠️ Cannot reach server at <code>${API_BASE || location.origin}</code>.`;
         alertBox.style.display = 'block';
       }
       if (btn) { btn.disabled = false; btn.textContent = 'Sign In to Vault'; }
     }
   };
 
-  const btnChangeHost = document.getElementById('btnChangeServerHost');
-  if (btnChangeHost) {
-    btnChangeHost.onclick = () => {
-      const cur = localStorage.getItem('vault_api_server') || API_BASE || '';
-      const newVal = prompt('Enter your live Vercel or PC Server URL:\n(e.g. https://thinkable-vault.vercel.app or http://192.168.9.175:3000)', cur);
-      if (newVal !== null) {
-        const cleaned = newVal.trim().replace(/\/+$/, '');
-        if (cleaned) {
-          localStorage.setItem('vault_api_server', cleaned);
-          API_BASE = cleaned;
-          showToast(`Server updated to ${cleaned}`);
-        } else {
-          localStorage.removeItem('vault_api_server');
-          API_BASE = getAutoApiBase();
-          showToast('Server reset to auto-detect');
-        }
-        renderAuthView('signin');
+  const btnLogin = document.getElementById('btnSubmitLogin');
+  if (btnLogin) {
+    btnLogin.onclick = () => {
+      const id = document.getElementById('inLoginId').value.trim();
+      const pass = document.getElementById('inLoginPass').value;
+      if (!id || !pass) {
+        const a = document.getElementById('loginAlert');
+        a.textContent = 'Please enter your Email / Vault ID and password.';
+        a.style.display = 'block';
+        return;
       }
+      doLogin(id, pass);
     };
   }
 
-  document.getElementById('btnSubmitLogin').onclick = () => {
-    const id = document.getElementById('inLoginId').value.trim();
-    const pass = document.getElementById('inLoginPass').value;
-    if (!id || !pass) {
-      const a = document.getElementById('loginAlert');
-      a.textContent = 'Please enter your Email / Vault ID and password.';
-      a.style.display = 'block';
-      return;
-    }
-    doLogin(id, pass);
-  };
+  const inLoginPass = document.getElementById('inLoginPass');
+  if (inLoginPass) {
+    inLoginPass.onkeydown = e => {
+      if (e.key === 'Enter') document.getElementById('btnSubmitLogin').click();
+    };
+  }
 
-  document.getElementById('inLoginPass').onkeydown = e => {
-    if (e.key === 'Enter') document.getElementById('btnSubmitLogin').click();
-  };
-
-  // Official Google OAuth 2.0 Account Chooser Popup Trigger
+  // Google OAuth Trigger
   const triggerGoogleAuth = async () => {
     const loginAlert = document.getElementById('loginAlert');
     const regAlert = document.getElementById('regAlert');
@@ -2759,13 +2671,13 @@ function renderAuthView(initialTab = 'signin') {
               picture: profile.picture,
               googleId: profile.sub
             });
+            window.closeAuthModal();
           } catch (fetchErr) {
             console.error('[Google Profile Sync Error]', fetchErr);
             showAuthErr(fetchErr.message || 'Failed to authenticate profile with server.');
           }
         }
       });
-
       client.requestAccessToken({ prompt: 'select_account' });
     } catch (e) {
       console.warn('OAuth token request error:', e);
@@ -2778,73 +2690,406 @@ function renderAuthView(initialTab = 'signin') {
   const btnGUp = document.getElementById('btnGoogleSignUp');
   if (btnGUp) btnGUp.onclick = triggerGoogleAuth;
 
-  document.getElementById('btnSubmitRegister').onclick = async () => {
-    const alertBox = document.getElementById('regAlert');
-    if (alertBox) alertBox.style.display = 'none';
+  const btnReg = document.getElementById('btnSubmitRegister');
+  if (btnReg) {
+    btnReg.onclick = async () => {
+      const alertBox = document.getElementById('regAlert');
+      if (alertBox) alertBox.style.display = 'none';
 
-    const fullName = document.getElementById('inRegName').value.trim();
-    const username = document.getElementById('inRegUser').value.trim();
-    const email = document.getElementById('inRegEmail').value.trim();
-    const password = document.getElementById('inRegPass').value;
-    const pin = document.getElementById('inRegPin').value.trim();
+      const fullName = document.getElementById('inRegName').value.trim();
+      const username = document.getElementById('inRegUser').value.trim();
+      const email = document.getElementById('inRegEmail').value.trim();
+      const password = document.getElementById('inRegPass').value;
 
-    if (!fullName || !username || !password || !email) {
-      alertBox.textContent = 'Full Name, Real Email, Username, and Password are all required.';
-      alertBox.style.display = 'block';
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      alertBox.textContent = 'Please enter a valid, real email address (e.g. name@domain.com).';
-      alertBox.style.display = 'block';
-      return;
-    }
-
-    const btn = document.getElementById('btnSubmitRegister');
-    btn.disabled = true;
-    btn.textContent = 'Minting Vault ID & Account...';
-
-    try {
-      const res = await fetch(apiUrl('/api/auth/register'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, username, email, password, pin })
-      });
-      const text = await res.text();
-      let data = {};
-      try {
-        data = text ? JSON.parse(text) : {};
-      } catch {
-        throw new Error(text || `Server returned empty response (Status ${res.status}).`);
-      }
-      if (!res.ok || !data.ok) {
-        alertBox.textContent = data.error || 'Failed to create account.';
+      if (!fullName || !username || !password || !email) {
+        alertBox.textContent = 'Full Name, Real Email, Username, and Password are all required.';
         alertBox.style.display = 'block';
-        btn.disabled = false;
-        btn.textContent = 'Create Account & Mint Vault ID';
         return;
       }
-      authToken = data.token;
-      currentUser = data.user;
-      localStorage.setItem(AUTH_TOKEN_KEY, authToken);
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
-      activeProfile = currentUser.fullName;
-      showToast(`Account created! Your personal Vault ID is ${currentUser.vaultId}`);
-      updateHeaderUser();
-      initSSE();
-      await loadUserContacts();
-      await syncWithServer();
-      renderDashboard();
-      checkAutoTour();
-    } catch {
-      alertBox.textContent = 'Network or server error.';
-      alertBox.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = 'Create Account & Mint Vault ID';
-    }
-  };
 
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alertBox.textContent = 'Please enter a valid, real email address (e.g. name@domain.com).';
+        alertBox.style.display = 'block';
+        return;
+      }
+
+      btnReg.disabled = true;
+      btnReg.textContent = 'Minting Vault ID & Account...';
+
+      try {
+        const res = await fetch(apiUrl('/api/auth/register'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fullName, username, email, password })
+        });
+        const text = await res.text();
+        let data = {};
+        try { data = text ? JSON.parse(text) : {}; } catch { throw new Error(text || `Server returned empty response (Status ${res.status}).`); }
+        if (!res.ok || !data.ok) {
+          alertBox.textContent = data.error || 'Failed to create account.';
+          alertBox.style.display = 'block';
+          btnReg.disabled = false;
+          btnReg.textContent = 'Create Free Account';
+          return;
+        }
+        authToken = data.token;
+        currentUser = data.user;
+        localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+        activeProfile = currentUser.fullName;
+        window.closeAuthModal();
+        showToast(`Account created! Your personal Vault ID is ${currentUser.vaultId}`);
+        updateHeaderUser();
+        initSSE();
+        await loadUserContacts();
+        await syncWithServer();
+        renderDashboard();
+        checkAutoTour();
+      } catch {
+        alertBox.textContent = 'Network or server error.';
+        alertBox.style.display = 'block';
+        btnReg.disabled = false;
+        btnReg.textContent = 'Create Free Account';
+      }
+    };
+  }
+
+  const inRegPass = document.getElementById('inRegPass');
+  if (inRegPass) {
+    inRegPass.onkeydown = e => {
+      if (e.key === 'Enter') document.getElementById('btnSubmitRegister').click();
+    };
+  }
+}
+
+/* ─── Presentation PPT Slides Data & Controller ─── */
+let currentPptSlide = 0;
+const PPT_SLIDES = [
+  {
+    title: '⚡ 60-Second Mobile Drafting',
+    badge: 'Step 1 of 4: Setup Terms',
+    desc: 'Draft enforceable promissory notes directly from your mobile phone in under a minute. Choose between a one-time lump sum or monthly EMI instalments, specify due dates, interest rates, and recipient details with automatic 1-tap friend autofill.',
+    bullets: [
+      'Flexible repayment modes: Lump-sum or monthly EMIs',
+      'Accurate interest calculator (Annualized or 0% interest)',
+      'Pre-fills recipient UPI ID & contact directly from phonebook'
+    ],
+    mockupHtml: `
+      <div style="background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:16px 18px;font-size:12.5px;box-shadow:var(--shadow)">
+        <div style="font-size:11px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px">PROMISSORY NOTE DRAFT</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span class="muted">Principal Amount:</span>
+          <b style="font-size:15px;color:var(--tx)">₹50,000</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span class="muted">Repayment Mode:</span>
+          <b>3 Monthly EMIs (₹16,666/mo)</b>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span class="muted">Borrower Contact:</span>
+          <b>Rahul Sharma (VID-98214)</b>
+        </div>
+        <div style="margin-top:10px;padding:8px 10px;background:rgba(99,102,241,0.06);border-radius:8px;color:var(--brand);font-weight:700;text-align:center">
+          ✓ Draft Ready &middot; Ready for Mutual Signature
+        </div>
+      </div>
+    `
+  },
+  {
+    title: '✍️ Remote Two-Party Finger Signatures',
+    badge: 'Step 2 of 4: Legally Binding Endorsement',
+    desc: 'Share a private WhatsApp or SMS signing link. Counterparties open the agreement directly in their mobile browser—zero app install or account registration needed. Both parties sign naturally with their finger on touchscreen.',
+    bullets: [
+      'No app download required for the counterparty',
+      'Smooth capacitive touchscreen finger signatures',
+      'Instant tamper-evident SHA-256 seal upon mutual signing'
+    ],
+    mockupHtml: `
+      <div style="background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:16px 18px;font-size:12.5px;box-shadow:var(--shadow)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span style="font-weight:800;font-size:13px;color:var(--tx)">Touchscreen Endorsement</span>
+          <span style="font-size:11px;background:#10b98122;color:#10b981;padding:2px 8px;border-radius:99px;font-weight:700">Verified</span>
+        </div>
+        <div style="background:var(--bg);border:1.5px dashed var(--border);border-radius:10px;padding:16px;text-align:center;margin-bottom:10px">
+          <div style="font-family:cursive;font-size:20px;color:var(--brand);transform:rotate(-4deg)">Rahul Sharma</div>
+          <div style="font-size:10.5px;color:var(--tx-muted);margin-top:4px">Digital Signature &middot; Verified via Mobile Browser</div>
+        </div>
+        <div style="font-family:monospace;font-size:10px;color:var(--tx-muted);word-break:break-all">
+          Hash: sha256:8f3c7e492b...
+        </div>
+      </div>
+    `
+  },
+  {
+    title: '💸 Direct Bank-to-Bank UPI Repayments',
+    badge: 'Step 3 of 4: Zero Escrow & 0% Fee',
+    desc: 'Counterparties settle payments straight to your existing UPI ID using PhonePe, Google Pay, or Paytm. 100% of the funds go directly into your bank account with zero platform deduction and instant ledger balance deduction.',
+    bullets: [
+      'Direct Bank-to-Bank settlement (No third-party wallet or holding escrow)',
+      'Works with all UPI apps: PhonePe, GPay, Paytm, BHIM',
+      'Ledger automatically deducts balance upon payment confirmation'
+    ],
+    mockupHtml: `
+      <div style="background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:16px 18px;font-size:12.5px;box-shadow:var(--shadow)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:36px;height:36px;border-radius:50%;background:#10b98122;color:#10b981;display:flex;align-items:center;justify-content:center;font-size:18px">₹</div>
+          <div>
+            <div style="font-weight:800;color:var(--tx)">Direct Bank UPI Transfer</div>
+            <div style="font-size:11px;color:var(--tx-muted)">PhonePe &middot; Google Pay &middot; Paytm</div>
+          </div>
+        </div>
+        <div style="background:rgba(16,185,129,0.08);border-left:3px solid #10b981;padding:10px 12px;border-radius:6px;margin-bottom:10px">
+          <div style="font-size:11px;color:var(--tx-muted)">Latest Installment Paid:</div>
+          <b style="font-size:14px;color:#10b981">₹16,666 &middot; Confirmed</b>
+          <div style="font-size:11px;color:var(--tx-muted);margin-top:2px">Remaining Balance: ₹33,334</div>
+        </div>
+        <div style="font-size:11px;color:var(--tx-muted);text-align:center">⚡ 0% Middleman Escrow &middot; 0% Fee</div>
+      </div>
+    `
+  },
+  {
+    title: '🛡️ Credit Score & Section 65B Legal Proof',
+    badge: 'Step 4 of 4: Comprehensive Audit Trail',
+    desc: 'Every agreement is backed by Section 65B of the Indian Evidence Act, 1872 & the IT Act, 2000. On-time repayments automatically boost counterparty credit ratings, while defaulters see lower trust scores across all transactions.',
+    bullets: [
+      'Court-admissible electronic record certificate with Section 65B seal',
+      'Dynamic counterparty credit score (300 to 900 rating gauge)',
+      'Full timestamped audit trail of signatures, views, and installments'
+    ],
+    mockupHtml: `
+      <div style="background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:16px 18px;font-size:12.5px;box-shadow:var(--shadow)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-weight:800;color:var(--tx)">Borrower Trust Score</span>
+          <span style="font-size:12px;background:#10b98122;color:#10b981;font-weight:800;padding:2px 8px;border-radius:99px">780 / 900</span>
+        </div>
+        <div style="width:100%;height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:12px">
+          <div style="width:86%;height:100%;background:linear-gradient(90deg, #10b981, #6366f1);border-radius:99px"></div>
+        </div>
+        <div style="border:1px solid rgba(99,102,241,0.25);background:rgba(99,102,241,0.04);border-radius:8px;padding:8px 10px;text-align:center">
+          <div style="font-weight:800;font-size:12px;color:var(--brand)">⚖️ Section 65B IT Act Certified</div>
+          <div style="font-size:10.5px;color:var(--tx-muted);margin-top:2px">Cryptographically Sealed &amp; Court Admissible</div>
+        </div>
+      </div>
+    `
+  }
+];
+
+function renderPptSlide(idx) {
+  currentPptSlide = idx;
+  const slide = PPT_SLIDES[idx];
+  const container = document.getElementById('pptSlideContainer');
+  if (!container) return;
+
+  container.innerHTML = `
+    <div class="ppt-slide-card anim-fade">
+      <div>
+        <div style="display:inline-block;padding:3px 10px;background:rgba(99,102,241,0.12);color:var(--brand);border-radius:99px;font-size:11px;font-weight:800;text-transform:uppercase;margin-bottom:10px">
+          ${slide.badge}
+        </div>
+        <h3 style="font-size:20px;font-weight:900;color:var(--tx);margin:0 0 10px;letter-spacing:-0.01em">
+          ${slide.title}
+        </h3>
+        <p style="font-size:13.5px;color:var(--tx-muted);line-height:1.6;margin-bottom:16px">
+          ${slide.desc}
+        </p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          ${slide.bullets.map(b => `
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--tx)">
+              <span style="color:#10b981;font-weight:800">✓</span>
+              <span>${b}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div>
+        ${slide.mockupHtml}
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.ppt-tab').forEach((tab, i) => {
+    if (i === idx) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+}
+
+/* ─── Presentation Landing Page (PPT Style) ─── */
+function renderAuthView(initialTab = 'signin') {
+  currentId = null;
+  currentSigningRole = null;
+  updateHeaderUser();
+
+  const app = document.getElementById('appSlot');
+  app.innerHTML = `
+    <div class="landing-wrap anim-fade">
+      <!-- Presentation Hero -->
+      <div class="landing-hero">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.22);padding:6px 14px;border-radius:99px;font-size:12.5px;font-weight:700;color:var(--brand);margin-bottom:16px">
+          <span>🛡️</span> Digital Promissory Ledger &amp; Legal Agreement Vault
+        </div>
+        <h1 style="font-size:clamp(26px, 4vw, 42px);font-weight:900;letter-spacing:-0.03em;color:var(--tx);line-height:1.2;margin:0 0 16px">
+          Replace Verbal Promises With<br><span style="background:var(--brand-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Legally Binding Digital Proof.</span>
+        </h1>
+        <p style="max-width:680px;margin:0 auto 24px;font-size:15px;color:var(--tx-muted);line-height:1.6">
+          Record personal loans, business credit, and work contracts in 60 seconds. Capacitive finger signatures on both phones, automated WhatsApp reminders, and direct 0% fee UPI bank settlements.
+        </p>
+
+        <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:28px">
+          <button id="btnLandingStart" class="btn-primary" style="padding:13px 26px;font-size:15px;font-weight:800;border-radius:10px;box-shadow:0 8px 24px rgba(99,102,241,0.3)">
+            🚀 Get Started Free &rarr;
+          </button>
+          <button id="btnLandingTour" class="btn-secondary" style="padding:13px 22px;font-size:14.5px;font-weight:700;border-radius:10px">
+            ▶ Interactive Tour
+          </button>
+        </div>
+
+        <!-- Live Agreement Mockup Card -->
+        <div class="landing-hero-mockup anim-fade">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:800;color:var(--brand);text-transform:uppercase;letter-spacing:0.06em">
+              OFFICIAL PROMISSORY NOTE &middot; #NOTE-7842
+            </div>
+            <div style="font-size:11px;background:#10b98122;color:#10b981;font-weight:800;padding:2px 8px;border-radius:99px">
+              ✓ Active &amp; Verified
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px;margin-bottom:12px">
+            <div>
+              <span class="muted">Lender:</span> <b>Ajay Kumar (VID-10642)</b>
+            </div>
+            <div>
+              <span class="muted">Borrower:</span> <b>Rahul Sharma (VID-98214)</b>
+            </div>
+            <div>
+              <span class="muted">Principal:</span> <b style="color:var(--tx)">₹50,000</b>
+            </div>
+            <div>
+              <span class="muted">Repayment:</span> <b>3 Months EMI (₹16,666/mo)</b>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);padding-top:10px;font-size:11.5px">
+            <span style="color:#10b981;font-weight:700">✓ Finger Signed via Touchscreen</span>
+            <span style="color:var(--tx-muted)">⚖️ Section 65B Certified &middot; SHA-256 Validated</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive PPT Slide Presentation Deck -->
+      <div class="landing-section-title">Product Presentation &amp; How It Works</div>
+      <div class="landing-section-sub">Explore the complete end-to-end workflow in 4 interactive presentation slides.</div>
+
+      <div class="landing-ppt-deck">
+        <div class="ppt-tabs">
+          <button class="ppt-tab active" data-slide="0">1. ⚡ 60s Drafting</button>
+          <button class="ppt-tab" data-slide="1">2. ✍️ Remote Signatures</button>
+          <button class="ppt-tab" data-slide="2">3. 💸 Direct UPI Ledger</button>
+          <button class="ppt-tab" data-slide="3">4. 🛡️ Legal Seal &amp; Credit Score</button>
+        </div>
+        <div id="pptSlideContainer"></div>
+      </div>
+
+      <!-- Side-by-Side Comparison -->
+      <div class="landing-section-title">Why Paper Khata &amp; Verbal Deals Fail</div>
+      <div class="landing-section-sub">See how Thinkable Vault compares against traditional informal lending.</div>
+
+      <div class="comparison-grid">
+        <div class="comp-card" style="border-left:4px solid #ef4444">
+          <div style="font-size:15px;font-weight:900;color:#ef4444;margin-bottom:14px;display:flex;align-items:center;gap:6px">
+            <span>✕</span> Traditional Verbal &amp; Paper Khata
+          </div>
+          <div class="comp-item"><span style="color:#ef4444">✕</span> Zero legally admissible proof if disputed</div>
+          <div class="comp-item"><span style="color:#ef4444">✕</span> Awkward manual payment reminders that damage relationships</div>
+          <div class="comp-item"><span style="color:#ef4444">✕</span> Physical diary can get lost, burnt, or destroyed</div>
+          <div class="comp-item"><span style="color:#ef4444">✕</span> No credit consequence for willful defaulters</div>
+        </div>
+
+        <div class="comp-card good" style="border-left:4px solid #10b981">
+          <div style="font-size:15px;font-weight:900;color:#10b981;margin-bottom:14px;display:flex;align-items:center;gap:6px">
+            <span>✓</span> Thinkable Agreement Vault
+          </div>
+          <div class="comp-item"><span style="color:#10b981;font-weight:800">✓</span> Court-admissible Section 65B electronic certificate</div>
+          <div class="comp-item"><span style="color:#10b981;font-weight:800">✓</span> Automated, respectful WhatsApp and email reminders</div>
+          <div class="comp-item"><span style="color:#10b981;font-weight:800">✓</span> Secure Neon cloud backup with zero loss guarantee</div>
+          <div class="comp-item"><span style="color:#10b981;font-weight:800">✓</span> Dynamic 300-900 borrower credit rating incentivizes repayment</div>
+        </div>
+      </div>
+
+      <!-- 3 Use Cases -->
+      <div class="landing-section-title">Built For Personal &amp; Commercial Deals</div>
+      <div class="landing-section-sub">Simple and transparent financial records for every scenario.</div>
+
+      <div class="personas-grid">
+        <div class="persona-card">
+          <div class="persona-icon">🤝</div>
+          <div class="persona-title">Friends &amp; Family Lending</div>
+          <div class="persona-desc">
+            Eliminate awkward money conversations. Neutral, automated reminders protect valuable relationships while ensuring loans are repaid on time.
+          </div>
+        </div>
+        <div class="persona-card">
+          <div class="persona-icon">🏪</div>
+          <div class="persona-title">Merchants &amp; Small Businesses</div>
+          <div class="persona-desc">
+            Replace vulnerable paper khata-bahi with tamper-proof electronic promissory notes and Section 65B evidence audit trails.
+          </div>
+        </div>
+        <div class="persona-card">
+          <div class="persona-icon">💼</div>
+          <div class="persona-title">Freelancers &amp; Contractors</div>
+          <div class="persona-desc">
+            Lock in scope of work, upfront advance payments, and milestone sign-offs before commencing work to prevent scope creep.
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom High-Converting CTA Banner -->
+      <div class="landing-cta-banner">
+        <h2 style="font-size:clamp(22px, 3.5vw, 32px);font-weight:900;margin:0 0 10px;letter-spacing:-0.02em">
+          Ready to eliminate verbal disputes and secure your money?
+        </h2>
+        <p style="max-width:540px;margin:0 auto 22px;font-size:14.5px;color:rgba(255,255,255,0.85);line-height:1.6">
+          Start recording safe agreements in 60 seconds. Free forever for individuals.
+        </p>
+        <button id="btnLandingCtaRegister" class="btn-primary" style="background:#ffffff;color:#1e1b4b;padding:14px 28px;font-size:15px;font-weight:900;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.25)">
+          Create Free Account &rarr;
+        </button>
+      </div>
+
+      <!-- Legal Policy & Terms Footer -->
+      <div style="text-align:center;padding:24px 10px;border-top:1px solid var(--border);font-size:12px;color:var(--tx-muted);line-height:1.8">
+        <div><b>Thinkable Agreement Vault</b> — Electronic Promissory Note &amp; Digital Ledger Infrastructure</div>
+        <div>Fully compliant with Section 65B of Indian Evidence Act, 1872 &amp; Information Technology Act, 2000.</div>
+        <div style="margin-top:8px">
+          <a href="/?view=terms" onclick="event.preventDefault();alert('Privacy & Terms: Thinkable Vault stores encrypted electronic contract records pursuant to the Indian IT Act 2000. All transactions are peer-to-peer and direct without intermediary escrow.');" style="color:var(--brand);font-weight:700;text-decoration:underline">Privacy Policy &amp; Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Wire Landing Buttons
+  const btnStart = document.getElementById('btnLandingStart');
+  if (btnStart) btnStart.onclick = () => window.openAuthModal('register');
+
+  const btnCtaReg = document.getElementById('btnLandingCtaRegister');
+  if (btnCtaReg) btnCtaReg.onclick = () => window.openAuthModal('register');
+
+  const btnTour = document.getElementById('btnLandingTour');
+  if (btnTour) btnTour.onclick = () => openTourGuide(true);
+
+  // Wire PPT Tabs
+  document.querySelectorAll('.ppt-tab').forEach(tab => {
+    tab.onclick = () => {
+      const idx = parseInt(tab.getAttribute('data-slide'), 10);
+      renderPptSlide(idx);
+    };
+  });
+
+  renderPptSlide(0);
+  setupAuthModal();
   initGoogleAuth();
 }
 
@@ -6340,7 +6585,8 @@ if (inProfilePhoto) {
 
 document.getElementById('btnUserModal').onclick = () => {
   if (!currentUser) {
-    renderAuthView('signin');
+    if (window.openAuthModal) window.openAuthModal('signin');
+    else renderAuthView('signin');
     return;
   }
   renderUserModalPhoto();
@@ -6798,6 +7044,7 @@ function checkAutoTour() {
 
 // Boot application with Instant Persistent Auth
 (async () => {
+  setupAuthModal();
   // 1. Fast path: If user was previously logged in, render dashboard IMMEDIATELY (0 delay, zero login flash!)
   if (authToken && currentUser) {
     activeProfile = currentUser.fullName;
