@@ -1376,10 +1376,10 @@ async function handleGoogleAuth(credential = null, customPayload = null) {
     try {
       data = text ? JSON.parse(text) : {};
     } catch {
-      throw new Error(text || `Server returned empty response (Status ${res.status}).`);
+      throw new Error(`Server returned non-JSON response (Status ${res?.status || 0}): ${text?.slice(0, 160) || 'Empty'}`);
     }
     if (!res.ok || !data.ok) {
-      throw new Error(data.error || 'Google authentication failed.');
+      throw new Error(data.error || `Server verification failed (Status ${res.status}).`);
     }
     authToken = data.token;
     currentUser = data.user;

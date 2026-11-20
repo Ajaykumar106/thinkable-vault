@@ -143,8 +143,17 @@ function logActivity(entry) {
 /* ── HTTP Request Handler (Compatible with Standalone Node & Vercel Serverless) ── */
 const requestHandler = async (req, res) => {
   try {
-    const u = new URL(req.url, `http://localhost`);
-    const p = u.pathname;
+    const rawUrl = req.headers['x-forwarded-url'] || req.headers['x-matched-path'] || req.originalUrl || req.url || '/';
+    const u = new URL(rawUrl, `http://localhost`);
+    let p = u.pathname;
+
+    // Normalize Vercel serverless rewrite paths
+    if (p.startsWith('/api/index.cjs')) {
+      p = p.replace('/api/index.cjs', '') || '/';
+    }
+    if (!p.startsWith('/api') && (p.startsWith('/auth') || p === '/status' || p === '/info' || p === '/events' || p === '/agreements' || p === '/contacts' || p === '/users')) {
+      p = '/api' + p;
+    }
 
     // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -394,7 +403,7 @@ const requestHandler = async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     await db.saveSession(token, newUser.id, Date.now() + 30 * 864e5);
 
-    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
     await db.logAudit('register', fullName, vaultId, null, { email }, String(rawIp));
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -418,7 +427,7 @@ const requestHandler = async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     await db.saveSession(token, user.id, Date.now() + 30 * 864e5);
 
-    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
     await db.logAudit('login', user.fullName, user.vaultId, null, {}, String(rawIp));
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -491,13 +500,13 @@ const requestHandler = async (req, res) => {
           createdAt: Date.now()
         };
         await db.createUser(user);
-        const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+        const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
         await db.logAudit('google_register', user.fullName, vaultId, null, { email }, String(rawIp));
       }
 
       const token = crypto.randomBytes(32).toString('hex');
       await db.saveSession(token, user.id, Date.now() + 30 * 864e5);
-      const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+      const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
       await db.logAudit('google_login', user.fullName, user.vaultId, null, { email }, String(rawIp));
 
       res.writeHead(200);
@@ -684,7 +693,7 @@ const requestHandler = async (req, res) => {
       }
 
       // Cryptographic Stamp & Evidentiary Metadata (Sec 65B Indian Evidence Act)
-      const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+      const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
       const clientIp = String(rawIp).split(',')[0].trim().replace(/^::ffff:/, '');
       const clientAgent = req.headers['user-agent'] || 'Vault Client';
       const nowUtc = new Date().toISOString();
@@ -904,7 +913,7 @@ const requestHandler = async (req, res) => {
       }
 
       if (body._logEvent) {
-        const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+        const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
         await db.logAudit(body._logEvent.type || 'update', body._logEvent.actor || '', '', id, body._logEvent, String(rawIp));
       }
       res.writeHead(200, { 'Content-Type': 'application/json' });
