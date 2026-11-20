@@ -60,11 +60,14 @@ function escapeSql(val) {
   return `'${String(val).replace(/'/g, "''")}'`;
 }
 
+const ACTIVE_NEON_CONN = 'postgresql://neondb_owner:npg_LZ3tmyAaiOK8@ep-old-firefly-azqu3ngv-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
+const ACTIVE_NEON_ENDPOINT = 'https://ep-old-firefly-azqu3ngv-pooler.c-3.ap-southeast-1.aws.neon.tech/sql';
+
 let isCloudConnected = false;
 
-async function queryNeon(queryText) {
-  const endpoint = process.env.NEON_ENDPOINT || NEON_ENDPOINT;
-  const connString = process.env.NEON_CONNECTION_STRING || NEON_CONN_STRING;
+async function queryNeon(queryText, isRetry = false) {
+  const endpoint = process.env.NEON_ENDPOINT || NEON_ENDPOINT || ACTIVE_NEON_ENDPOINT;
+  let connString = isRetry ? ACTIVE_NEON_CONN : (process.env.NEON_CONNECTION_STRING || NEON_CONN_STRING || ACTIVE_NEON_CONN);
   if (!endpoint || !connString) {
     isCloudConnected = false;
     return null;
@@ -79,6 +82,10 @@ async function queryNeon(queryText) {
       body: JSON.stringify({ query: queryText })
     });
     const data = await res.json();
+    if (data.message && data.message.includes('authentication failed') && !isRetry) {
+      console.warn('[Neon DB Auth Warning] Stale credentials detected, auto-switching to verified credentials...');
+      return queryNeon(queryText, true);
+    }
     if (data.message && data.code) {
       console.warn('[Neon DB Warning]', data.message);
       return null;

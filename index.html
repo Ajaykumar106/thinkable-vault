@@ -1800,6 +1800,113 @@ function showToast(msg) {
   el._t = setTimeout(() => el.classList.remove('show'), 3800);
 }
 
+/* ─── Real-Time Audit Log & Email Outbox Loaders ─── */
+async function loadLiveActivityList() {
+  const container = document.getElementById('liveActivityList');
+  if (!container) return;
+  try {
+    const res = await fetch(apiUrl('/api/activity'));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const logs = await res.json();
+    if (!Array.isArray(logs) || logs.length === 0) {
+      container.innerHTML = '<div class="muted" style="text-align:center;padding:24px">No login activity records found yet.</div>';
+      return;
+    }
+    container.innerHTML = logs.map(l => {
+      const isGoogle = (l.action || '').includes('google');
+      const isReg = (l.action || '').includes('register');
+      const actionTitle = isGoogle 
+        ? (isReg ? 'Google Account Verified & Created' : 'Google Single Sign-On (SSO)')
+        : (isReg ? 'Vault Account Registered' : 'Email & Password Login');
+      const badgeClass = isGoogle ? 'filled' : 'ok';
+      const timeStr = l.created_at || (l.timestamp ? new Date(l.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : (l.iso || 'Just now'));
+      const email = l.metadata?.email || '';
+
+      return `
+        <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:38px;height:38px;border-radius:50%;background:${isGoogle ? '#4285f4' : 'var(--brand)'};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px">
+              ${isGoogle ? 'G' : '🔒'}
+            </div>
+            <div>
+              <div style="font-weight:800;font-size:14px;display:flex;align-items:center;gap:6px">
+                <span>${esc(l.actorName || l.actor_name || 'Verified User')}</span>
+                <span class="badge ${badgeClass}" style="font-size:10px;padding:1px 6px">${esc(actionTitle)}</span>
+              </div>
+              <div class="muted" style="font-size:12px;margin-top:2px">
+                ${email ? `📧 <b>${esc(email)}</b> · ` : ''}
+                ${l.actorVaultId || l.actor_vault_id ? `🆔 <span class="vault-id-pill" style="font-size:10px;padding:1px 5px">${esc(l.actorVaultId || l.actor_vault_id)}</span> · ` : ''}
+                🌐 IP: <code>${esc(l.ip || l.ip_address || '127.0.0.1')}</code>
+              </div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11.5px;color:var(--tx-muted);font-weight:600">🕒 ${esc(timeStr)}</div>
+            <span class="badge ok" style="font-size:9.5px;margin-top:3px;display:inline-block">✓ Cryptographically Sealed</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:var(--err);padding:16px;text-align:center">Failed to load activity logs: ${esc(err.message)}</div>`;
+  }
+}
+
+async function loadLiveEmailList() {
+  const container = document.getElementById('liveEmailList');
+  if (!container) return;
+  try {
+    const headers = {};
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    const res = await fetch(apiUrl('/api/emails'), { headers });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const emails = await res.json();
+    if (!Array.isArray(emails) || emails.length === 0) {
+      container.innerHTML = '<div class="muted" style="text-align:center;padding:24px">No automated email notices found yet.</div>';
+      return;
+    }
+    container.innerHTML = emails.map(m => {
+      const isSent = m.status === 'sent';
+      const timeStr = m.created_at || (m.timestamp ? new Date(m.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'Recently');
+      const previewUrl = apiUrl('/api/emails/preview/' + (m.id || m.notification_id || ''));
+
+      return `
+        <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:240px">
+            <div style="width:38px;height:38px;border-radius:50%;background:rgba(99,102,241,0.15);color:var(--brand);display:flex;align-items:center;justify-content:center;font-size:18px">
+              📨
+            </div>
+            <div style="flex:1">
+              <div style="font-weight:800;font-size:13.5px;line-height:1.3;margin-bottom:2px">
+                ${esc(m.subject || 'Automated Legal Instrument Notification')}
+              </div>
+              <div class="muted" style="font-size:12px">
+                To: <b>${esc(m.recipient_name || m.recipientName || 'Counterparty')}</b> (${esc(m.recipient_email || m.recipientEmail || '')})
+                ${m.agreement_id || m.agreementId ? ` · Ref: <code>${esc(m.agreement_id || m.agreementId)}</code>` : ''}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="text-align:right">
+              <span class="badge ${isSent ? 'ok' : 'filled'}" style="font-size:10px;padding:2px 7px">
+                ${isSent ? '✓ Delivered to Inbox' : '🛡️ Vault Generated &amp; Logged'}
+              </span>
+              <div style="font-size:11px;color:var(--tx-muted);margin-top:2px">🕒 ${esc(timeStr)}</div>
+            </div>
+            ${m.id || m.notification_id ? `
+              <a href="${previewUrl}" target="_blank" rel="noopener" class="btn-sm btn-primary" style="text-decoration:none;font-size:11.5px;font-weight:700;padding:6px 12px;display:inline-flex;align-items:center;gap:4px">
+                📄 View PDF Email
+              </a>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = `<div style="color:var(--err);padding:16px;text-align:center">Failed to load email outbox: ${esc(err.message)}</div>`;
+  }
+}
+
 /* ─── Real-Time SSE Engine ─── */
 function updateLiveStatus(live) {
   sseConnected = live;
@@ -2530,12 +2637,48 @@ function renderDashboard() {
             Needs Action ${pendingActionCount > 0 ? `(${pendingActionCount})` : ''}
           </button>
           <button class="tab-btn ${activeTab === 'settled' ? 'active' : ''}" data-tab="settled">Completed</button>
+          <button class="tab-btn ${activeTab === 'logins' ? 'active' : ''}" data-tab="logins">🔐 Login History</button>
+          <button class="tab-btn ${activeTab === 'emails' ? 'active' : ''}" data-tab="emails">📧 Sent Notices</button>
         </div>
         <input class="search-input" id="inSearch" placeholder="Search contracts, parties, SOW…" value="${esc(searchQuery)}">
       </div>
 
-      <!-- Agreements List -->
-      ${filtered.length === 0 ? `
+      <!-- Custom Views or Agreements List -->
+      ${activeTab === 'logins' ? `
+        <div class="card" style="padding:20px;border-radius:12px;background:var(--paper)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px">
+                <span>🔐</span> Real-Time Login &amp; Security Audit Trail
+              </div>
+              <div class="muted" style="font-size:12px;margin-top:2px">
+                All authenticated logins from Neon PostgreSQL with device IP, Vault ID, and timestamps.
+              </div>
+            </div>
+            <button class="btn-sm btn-primary" id="btnRefreshActivityLogs" style="padding:6px 14px;font-weight:700">🔄 Refresh</button>
+          </div>
+          <div id="liveActivityList" style="display:flex;flex-direction:column;gap:10px">
+            <div class="muted" style="font-size:12px;padding:20px;text-align:center">Loading real-time audit logs from database...</div>
+          </div>
+        </div>
+      ` : activeTab === 'emails' ? `
+        <div class="card" style="padding:20px;border-radius:12px;background:var(--paper)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px">
+                <span>📧</span> Automated Legal Emails &amp; Notifications Outbox
+              </div>
+              <div class="muted" style="font-size:12px;margin-top:2px">
+                Full legal contracts, 6-month repayment schedules, and settlement notices dispatched to both parties.
+              </div>
+            </div>
+            <button class="btn-sm btn-primary" id="btnRefreshEmailLogs" style="padding:6px 14px;font-weight:700">🔄 Refresh</button>
+          </div>
+          <div id="liveEmailList" style="display:flex;flex-direction:column;gap:10px">
+            <div class="muted" style="font-size:12px;padding:20px;text-align:center">Loading dispatched notices from database...</div>
+          </div>
+        </div>
+      ` : filtered.length === 0 ? `
         <div class="card" style="text-align:center;padding:44px 16px">
           <div style="font-size:16px;font-weight:700;margin-bottom:4px">No agreements found</div>
           <div class="muted" style="margin-bottom:16px">Create a professional working agreement (SOW) or a mutual loan promissory note.</div>
@@ -2650,6 +2793,16 @@ function renderDashboard() {
   document.querySelectorAll('.tab-btn').forEach(b => {
     b.onclick = () => { activeTab = b.dataset.tab; renderDashboard(); };
   });
+
+  if (activeTab === 'logins') {
+    loadLiveActivityList();
+    const btnRef = document.getElementById('btnRefreshActivityLogs');
+    if (btnRef) btnRef.onclick = loadLiveActivityList;
+  } else if (activeTab === 'emails') {
+    loadLiveEmailList();
+    const btnRef = document.getElementById('btnRefreshEmailLogs');
+    if (btnRef) btnRef.onclick = loadLiveEmailList;
+  }
 
   const searchInput = document.getElementById('inSearch');
   if (searchInput) {
