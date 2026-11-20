@@ -1404,7 +1404,7 @@ canvas.pad-canvas {
         </div>
         <div>
           <div style="font-size:16px;font-weight:900;color:#0f172a;letter-spacing:-0.01em">Thinkable Vault</div>
-          <div style="font-size:12px;color:#64748b;font-weight:600">Kaise kaam karta hai (Simple &amp; Safe Guide)</div>
+          <div style="font-size:12px;color:#64748b;font-weight:600">Product Tour &amp; Workflow Guide</div>
         </div>
       </div>
       <button id="btnSkipTour" style="background:#f1f5f9;border:1px solid #e2e8f0;color:#64748b;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s">Skip ✕</button>
@@ -1425,9 +1425,9 @@ canvas.pad-canvas {
 
     <!-- Tour Footer Controls -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:22px;padding-top:16px;border-top:1px solid #f1f5f9">
-      <button id="btnPrevTour" style="display:none;background:#f8fafc;color:#334155;border:1px solid #cbd5e1;padding:8px 18px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer">← Pichhla</button>
+      <button id="btnPrevTour" style="display:none;background:#f8fafc;color:#334155;border:1px solid #cbd5e1;padding:8px 18px;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer">← Back</button>
       <div style="font-size:12px;color:#64748b;font-weight:700" id="tourStepCounter">Step 1 of 4</div>
-      <button id="btnNextTour" style="background:linear-gradient(135deg, #4f46e5, #4338ca);color:#ffffff;border:none;padding:9px 22px;border-radius:12px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(79,70,229,0.3);cursor:pointer">Aage Badhein →</button>
+      <button id="btnNextTour" style="background:linear-gradient(135deg, #4f46e5, #4338ca);color:#ffffff;border:none;padding:9px 22px;border-radius:12px;font-weight:800;font-size:13px;display:flex;align-items:center;gap:6px;box-shadow:0 4px 14px rgba(79,70,229,0.3);cursor:pointer">Next →</button>
     </div>
 
   </div>
@@ -2077,9 +2077,9 @@ function showToast(msg) {
 let currentTourStep = 0;
 const tourSlides = [
   {
-    badge: "SLIDE 1 SE 4 · SAFE AGREEMENT",
-    title: "Dost ya kisi ko paise diye? Ab safe digital agreement banao",
-    desc: "Kisi ko udhar ya business ke liye paise de rahe hain? Zabaani baaton par risk mat lo. Yahan 1 minute mein dono ke beech legal digital agreement banta hai jo dono ke paas hamesha safe rehta hai.",
+    badge: "STEP 1 OF 4 · LEGAL DIGITAL AGREEMENTS",
+    title: "Lending Money or Starting Work? Create Instant Proof",
+    desc: "Never rely on verbal promises or informal messages. Draft an enforceable promissory note or service agreement in 60 seconds with clear amounts, tenure, and repayment dates.",
     icon: "🤝",
     previewHtml: `
       <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-left:5px solid #4f46e5;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.03)">
@@ -2087,26 +2087,26 @@ const tourSlides = [
           <span style="background:#e0e7ff;color:#4338ca;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:6px">📄 DIGITAL LOAN AGREEMENT</span>
           <span style="font-size:11px;font-family:ui-monospace,monospace;color:#64748b;font-weight:700">DOC-5820</span>
         </div>
-        <div style="font-weight:800;font-size:16px;color:#0f172a;margin-bottom:3px">₹50,000 Udhar (Loan)</div>
-        <div style="font-size:12px;color:#475569;margin-bottom:10px">Lender (Aap) ⇄ Borrower (Dost/Party) · Return Date: 15 Aug</div>
+        <div style="font-weight:800;font-size:16px;color:#0f172a;margin-bottom:3px">₹50,000 Promissory Note</div>
+        <div style="font-size:12px;color:#475569;margin-bottom:10px">Lender ⇄ Borrower · Due Date: 15 Aug</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <span style="background:#dcfce7;color:#15803d;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px">✓ Aapka Sign Done</span>
-          <span style="background:#dcfce7;color:#15803d;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px">✓ Samne Wale Ka Sign Done</span>
+          <span style="background:#dcfce7;color:#15803d;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px">✓ Lender Signed</span>
+          <span style="background:#dcfce7;color:#15803d;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px">✓ Borrower Signed</span>
         </div>
       </div>
     `
   },
   {
-    badge: "SLIDE 2 SE 4 · LIVE CREDIT SCORE",
-    title: "Paise dene se pehle saamne wale ka Credit Score dekho",
-    desc: "Borrower ka Vault ID dalo aur uska live score (300-900) dekho. Agar wo time par paise wapas lautata hai to score Green rehta hai. Agar wo date par paise nahi lautayega, to uska score gir jata hai taaki aapka paisa na doobe.",
+    badge: "STEP 2 OF 4 · COUNTERPARTY TRUST SCORE",
+    title: "Verify Borrower Reliability With Live Credit Scores",
+    desc: "Check counterparty track record (300-900 rating gauge) before issuing funds. Timely repayments raise their credit rating, while defaults lower scores to protect the entire peer community.",
     icon: "📈",
     previewHtml: `
       <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.03)">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div>
-            <div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase">Borrower ID Check</div>
-            <div style="font-size:13.5px;font-weight:800;color:#0f172a">Ajay Kumar (VID-18189)</div>
+            <div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase">Borrower Trust Check</div>
+            <div style="font-size:13.5px;font-weight:800;color:#0f172a">Rahul Sharma (VID-98214)</div>
           </div>
           <div style="background:#dcfce7;border:1px solid #bbf7d0;padding:4px 10px;border-radius:8px;text-align:right">
             <span style="font-size:10px;font-weight:800;color:#15803d;display:block">CREDIT SCORE</span>
@@ -2124,9 +2124,9 @@ const tourSlides = [
     `
   },
   {
-    badge: "SLIDE 3 SE 4 · ZERO FEE UPI SCANNER",
-    title: "Direct PhonePe, Google Pay ya Scanner se Payment lo",
-    desc: "Lender apna shop ya personal scanner QR code upload kar sakta hai. Borrower kisi bhi UPI app se direct account mein paise bhejta hai — 0% commission. Payment aate hi 1-click mein receipt update ho jati hai.",
+    badge: "STEP 3 OF 4 · DIRECT 0% FEE UPI REPAYMENTS",
+    title: "Receive Direct Bank Payments via PhonePe, GPay & Paytm",
+    desc: "Lenders link their existing UPI ID or shop QR code. Counterparties settle payments directly bank-to-bank with 0% platform fee and zero intermediary escrow. The balance updates instantly.",
     icon: "💳",
     previewHtml: `
       <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,0.03)">
@@ -2134,7 +2134,7 @@ const tourSlides = [
           <div style="width:46px;height:46px;background:repeating-linear-gradient(45deg,#334155,#334155 3px,#fff 3px,#fff 6px);border-radius:6px"></div>
         </div>
         <div style="flex:1">
-          <div style="font-weight:800;font-size:14px;color:#0f172a;margin-bottom:2px">Direct Bank to Bank UPI</div>
+          <div style="font-weight:800;font-size:14px;color:#0f172a;margin-bottom:2px">Direct Bank-to-Bank UPI</div>
           <div style="font-size:12px;color:#64748b;margin-bottom:6px">Google Pay · PhonePe · Paytm · 0% Fee</div>
           <span style="background:#dcfce7;color:#15803d;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px">✓ Instant Payment Verified</span>
         </div>
@@ -2142,9 +2142,9 @@ const tourSlides = [
     `
   },
   {
-    badge: "SLIDE 4 SE 4 · GMAIL PROOF & NOTICES",
-    title: "Dono ke Gmail par Legal Stamped Copy & Auto-Reminder",
-    desc: "Agreement bante hi dono ke verified Gmail par stamped digital copy bhej di jaati hai. Repayment ki date aane par automatic reminder notice bhi jata hai taaki koi bhool na sake aur sab transparent rahe.",
+    badge: "STEP 4 OF 4 · EMAIL AUDIT & REMINDERS",
+    title: "Legally Stamped PDF Proof & Automated Reminders",
+    desc: "Upon mutual signing, court-admissible electronic records with SHA-256 seals are dispatched to both registered inboxes. Respectful, automated reminders ensure on-time repayments without awkward conversations.",
     icon: "📩",
     previewHtml: `
       <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.03)">
@@ -2190,11 +2190,11 @@ function renderTourSlide(index) {
   if (counter) counter.textContent = `Slide ${currentTourStep + 1} of ${tourSlides.length}`;
   if (btnNext) {
     if (currentTourStep === tourSlides.length - 1) {
-      btnNext.innerHTML = '🚀 Shuru Karein';
+      btnNext.innerHTML = '🚀 Get Started';
       btnNext.style.background = 'linear-gradient(135deg, #10b981, #059669)';
       btnNext.style.boxShadow = '0 4px 14px rgba(16,185,129,0.35)';
     } else {
-      btnNext.innerHTML = 'Aage Badhein →';
+      btnNext.innerHTML = 'Next →';
       btnNext.style.background = 'linear-gradient(135deg, #4f46e5, #4338ca)';
       btnNext.style.boxShadow = '0 4px 14px rgba(79,70,229,0.3)';
     }
