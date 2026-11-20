@@ -1780,6 +1780,25 @@ const fd = d => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', mo
 const fdLong = d => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+function matchVid(v1, v2) {
+  if (!v1 || !v2) return false;
+  const s1 = String(v1).trim().toUpperCase();
+  const s2 = String(v2).trim().toUpperCase();
+  if (s1 === s2) return true;
+  const d1 = s1.replace(/[^0-9]/g, '');
+  const d2 = s2.replace(/[^0-9]/g, '');
+  return Boolean(d1 && d2 && d1 === d2);
+}
+
+function normalizeVaultId(val) {
+  if (!val) return '';
+  const trimmed = String(val).trim().toUpperCase();
+  if (/^\d+$/.test(trimmed)) return 'VID-' + trimmed;
+  const digits = trimmed.replace(/[^0-9]/g, '');
+  if (digits && (trimmed.startsWith('VID') || trimmed.startsWith('#'))) return 'VID-' + digits;
+  return trimmed;
+}
+
 let dashboardViewMode = 'list';
 let selectedCalendarDate = new Date();
 let selectedBorrowerFilter = null;
@@ -3156,11 +3175,12 @@ function renderDashboard() {
 
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase().trim();
+    const qNorm = normalizeVaultId(q);
     filtered = filtered.filter(a =>
       (a.partyA && a.partyA.toLowerCase().includes(q)) ||
       (a.partyB && a.partyB.toLowerCase().includes(q)) ||
-      (a.partyBVaultId && a.partyBVaultId.toLowerCase().includes(q)) ||
-      (a.partyAVaultId && a.partyAVaultId.toLowerCase().includes(q)) ||
+      (a.partyBVaultId && (a.partyBVaultId.toLowerCase().includes(q) || matchVid(a.partyBVaultId, qNorm))) ||
+      (a.partyAVaultId && (a.partyAVaultId.toLowerCase().includes(q) || matchVid(a.partyAVaultId, qNorm))) ||
       (a.id && a.id.toLowerCase().includes(q)) ||
       (a.title && a.title.toLowerCase().includes(q)) ||
       (a.purpose && a.purpose.toLowerCase().includes(q))
@@ -3168,7 +3188,7 @@ function renderDashboard() {
   }
 
   const incomingReqs = currentUser ? list.filter(a => {
-    const isTargetB = (a.partyBVaultId && a.partyBVaultId === currentUser.vaultId) ||
+    const isTargetB = (a.partyBVaultId && matchVid(a.partyBVaultId, currentUser.vaultId)) ||
                       (a.partyBEmail && (currentUser.email && a.partyBEmail.toLowerCase() === currentUser.email.toLowerCase())) ||
                       (!a.partyBVaultId && matchName(currentUser.fullName, a.partyB));
     return isTargetB && !a.sigB;
@@ -5172,12 +5192,12 @@ function renderCreateWorkForm() {
 
       <!-- Counterparty Lookup Box -->
       <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
-        <label style="margin-top:0">Direct Counterparty Match (Vault ID or Email)</label>
+        <label style="margin-top:0">Direct Counterparty Match (Vault ID, Email, or Phone)</label>
         <div class="muted" style="font-size:12px;margin-bottom:8px">
-          Enter your contractor's Vault ID (e.g. VID-38110) or verified email to request their direct endorsement.
+          Enter your contractor's Vault ID (e.g. 14179 or VID-14179), email, or phone to request direct endorsement.
         </div>
         <div style="display:flex;gap:8px">
-          <input id="workLookupInput" placeholder="e.g. VID-38110 or rohan.verma@gmail.com" style="flex:1">
+          <input id="workLookupInput" placeholder="Enter Vault ID (e.g. 14179), email, or phone" style="flex:1">
           <button type="button" class="btn-sm btn-primary" id="btnWorkLookup" style="white-space:nowrap;padding:0 14px">🔍 Find User</button>
         </div>
         <div id="workLookupBadge" style="display:none;margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12.5px"></div>
@@ -5284,9 +5304,10 @@ function renderCreateWorkForm() {
   document.getElementById('btnCancelCreate').onclick = renderDashboard;
 
   const doWorkLookup = async () => {
-    const q = document.getElementById('workLookupInput').value.trim();
+    const rawVal = document.getElementById('workLookupInput').value.trim();
+    const q = normalizeVaultId(rawVal) || rawVal;
     const badge = document.getElementById('workLookupBadge');
-    if (!q) return;
+    if (!rawVal) return;
     badge.style.display = 'block';
     badge.className = 'badge filled';
     badge.textContent = 'Searching Vault registry...';
@@ -5527,12 +5548,12 @@ function renderCreateLoanForm() {
 
       <!-- Counterparty Lookup Box -->
       <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
-        <label style="margin-top:0">Direct Borrower Match (Vault ID or Email)</label>
+        <label style="margin-top:0">Direct Borrower Match (Vault ID, Email, or Phone)</label>
         <div class="muted" style="font-size:12px;margin-bottom:8px">
-          Enter borrower's Vault ID (e.g. VID-38110) or verified email to request their direct endorsement.
+          Enter borrower's Vault ID (e.g. 14179 or VID-14179), verified email, or phone to link their account and credit score.
         </div>
         <div style="display:flex;gap:8px">
-          <input id="loanLookupInput" placeholder="e.g. VID-38110 or rohan.verma@gmail.com" style="flex:1">
+          <input id="loanLookupInput" placeholder="Enter Vault ID (e.g. 14179), email, or phone" style="flex:1">
           <button type="button" class="btn-sm btn-primary" id="btnLoanLookup" style="white-space:nowrap;padding:0 14px">🔍 Find User</button>
         </div>
         <div id="loanLookupBadge" style="display:none;margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12.5px"></div>
@@ -5656,9 +5677,10 @@ function renderCreateLoanForm() {
   updateLoanEmiPreview();
 
   const doLoanLookup = async () => {
-    const q = document.getElementById('loanLookupInput').value.trim();
+    const rawVal = document.getElementById('loanLookupInput').value.trim();
+    const q = normalizeVaultId(rawVal) || rawVal;
     const badge = document.getElementById('loanLookupBadge');
-    if (!q) return;
+    if (!rawVal) return;
     badge.style.display = 'block';
     badge.className = 'badge filled';
     badge.textContent = 'Searching Vault registry...';
@@ -5873,12 +5895,12 @@ function renderCreateLoanRequestForm() {
 
       <!-- Counterparty Lookup Box -->
       <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px">
-        <label style="margin-top:0">Search Lender (Vault ID or Email)</label>
+        <label style="margin-top:0">Search Lender (Vault ID, Email, or Phone)</label>
         <div class="muted" style="font-size:12px;margin-bottom:8px">
-          Enter lender's Vault ID (e.g. VID-10020) or verified email to request funds from them.
+          Enter lender's Vault ID (e.g. 14179 or VID-14179), verified email, or phone to request funds.
         </div>
         <div style="display:flex;gap:8px">
-          <input id="lenderLookupInput" placeholder="e.g. VID-10020 or lender@gmail.com" style="flex:1">
+          <input id="lenderLookupInput" placeholder="Enter Vault ID (e.g. 14179), email, or phone" style="flex:1">
           <button type="button" class="btn-sm btn-primary" id="btnLenderLookup" style="white-space:nowrap;padding:0 14px">🔍 Find Lender</button>
         </div>
         <div id="lenderLookupBadge" style="display:none;margin-top:8px;padding:8px 12px;border-radius:6px;font-size:12.5px"></div>
@@ -5974,9 +5996,10 @@ function renderCreateLoanRequestForm() {
   updateReqPreview();
 
   const doLenderLookup = async () => {
-    const q = document.getElementById('lenderLookupInput').value.trim();
+    const rawVal = document.getElementById('lenderLookupInput').value.trim();
+    const q = normalizeVaultId(rawVal) || rawVal;
     const badge = document.getElementById('lenderLookupBadge');
-    if (!q) return;
+    if (!rawVal) return;
     badge.style.display = 'block';
     badge.className = 'badge filled';
     badge.textContent = 'Searching Vault registry...';

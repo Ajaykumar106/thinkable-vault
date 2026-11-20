@@ -67,6 +67,15 @@ function escapeSql(val) {
   return `'${String(val).replace(/'/g, "''")}'`;
 }
 
+function normalizeVaultId(val) {
+  if (!val) return '';
+  const trimmed = String(val).trim().toUpperCase();
+  if (/^\d+$/.test(trimmed)) return `VID-${trimmed}`;
+  const digits = trimmed.replace(/[^0-9]/g, '');
+  if (digits && (trimmed.startsWith('VID') || trimmed.startsWith('#'))) return `VID-${digits}`;
+  return trimmed;
+}
+
 let isCloudConnected = Boolean(NEON_CONN_STRING && NEON_ENDPOINT);
 
 async function queryNeon(queryText) {
@@ -188,6 +197,8 @@ const db = {
     }
   },
 
+  normalizeVaultId,
+
   /* ── User Operations ── */
   async getUsers() {
     if (isCloudConnected) {
@@ -213,25 +224,39 @@ const db = {
     if (isCloudConnected) {
       const rows = await queryNeon(`
         SELECT * FROM users 
-        WHERE LOWER(username) = ${escapeSql(idf)} OR LOWER(email) = ${escapeSql(idf)} 
+        WHERE LOWER(username) = ${escapeSql(idf)} 
+           OR LOWER(email) = ${escapeSql(idf)} 
+           OR phone = ${escapeSql(idf)}
         LIMIT 1;
       `);
       if (rows && rows.length > 0) return rowToUser(rows[0]);
     }
     const local = loadLocal(AUTH_FILE, []);
-    return local.find(u => (u.username || '').toLowerCase() === idf || (u.email || '').toLowerCase() === idf) || null;
+    return local.find(u => (u.username || '').toLowerCase() === idf || (u.email || '').toLowerCase() === idf || (u.phone && u.phone === idf)) || null;
   },
 
   async getUserByVaultId(vaultId) {
-    const vid = (vaultId || '').trim().toUpperCase();
-    if (!vid) return null;
+    if (!vaultId) return null;
+    const raw = String(vaultId).trim().toUpperCase();
+    const normalized = normalizeVaultId(raw);
+    const digits = raw.replace(/[^0-9]/g, '');
 
     if (isCloudConnected) {
-      const rows = await queryNeon(`SELECT * FROM users WHERE UPPER(vault_id) = ${escapeSql(vid)} LIMIT 1;`);
+      const sql = `
+        SELECT * FROM users 
+        WHERE UPPER(vault_id) = ${escapeSql(normalized)}
+           OR UPPER(vault_id) = ${escapeSql(raw)}
+           ${digits ? `OR UPPER(vault_id) = ${escapeSql('VID-' + digits)} OR REPLACE(UPPER(vault_id), 'VID-', '') = ${escapeSql(digits)}` : ''}
+        LIMIT 1;
+      `;
+      const rows = await queryNeon(sql);
       if (rows && rows.length > 0) return rowToUser(rows[0]);
     }
     const local = loadLocal(AUTH_FILE, []);
-    return local.find(u => (u.vaultId || '').toUpperCase() === vid) || null;
+    return local.find(u => {
+      const uVid = (u.vaultId || u.vault_id || '').toUpperCase();
+      return uVid === normalized || uVid === raw || (digits && uVid.replace(/[^0-9]/g, '') === digits);
+    }) || null;
   },
 
   async createUser(u) {

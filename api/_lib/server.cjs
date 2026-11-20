@@ -624,14 +624,17 @@ function computeCreditScore(user, agreements = []) {
   };
 }
 
-  // GET /api/users/lookup?q=... (Counterparty discovery by Vault ID or Email)
+  // GET /api/users/lookup?q=... (Counterparty discovery by Vault ID, Email, Phone, or Username)
   if (p === '/api/users/lookup' && req.method === 'GET') {
-    const q = (u.searchParams.get('q') || '').trim().toLowerCase();
-    if (!q) {
+    const rawQ = (u.searchParams.get('q') || '').trim();
+    if (!rawQ) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ ok: false, error: 'Query parameter q is required' }));
     }
-    const found = (await db.getUserByVaultId(q)) || (await db.getUserByUsernameOrEmail(q));
+    const normalizedQ = db.normalizeVaultId ? db.normalizeVaultId(rawQ) : rawQ;
+    const found = (await db.getUserByVaultId(rawQ)) || 
+                  (await db.getUserByVaultId(normalizedQ)) || 
+                  (await db.getUserByUsernameOrEmail(rawQ));
     if (found) {
       const agreements = await db.getAgreements();
       const creditScore = computeCreditScore(found, agreements);
@@ -644,6 +647,7 @@ function computeCreditScore(user, agreements = []) {
           fullName: found.fullName,
           email: found.email,
           username: found.username,
+          phone: found.phone || '',
           upiId: found.upiId || null,
           qrCode: found.qrCode || null,
           kycTier: found.kycTier || 'Tier 1 Verified',
@@ -782,16 +786,27 @@ function computeCreditScore(user, agreements = []) {
       const uName = (user.fullName || '').toLowerCase();
       const uUser = (user.username || '').toLowerCase();
       const uEmail = (user.email || '').toLowerCase();
-      const uVaultId = (user.vaultId || '').toLowerCase();
+      const uVaultId = (user.vaultId || '').toUpperCase();
+
+      const matchVid = (v1, v2) => {
+        if (!v1 || !v2) return false;
+        const s1 = String(v1).trim().toUpperCase();
+        const s2 = String(v2).trim().toUpperCase();
+        if (s1 === s2) return true;
+        const d1 = s1.replace(/[^0-9]/g, '');
+        const d2 = s2.replace(/[^0-9]/g, '');
+        return Boolean(d1 && d2 && d1 === d2);
+      };
+
       list = list.filter(a => {
         const pA = (a.partyA || '').toLowerCase();
         const pB = (a.partyB || '').toLowerCase();
         const pAEmail = (a.partyAEmail || '').toLowerCase();
         const pBEmail = (a.partyBEmail || '').toLowerCase();
-        const pAVaultId = (a.partyAVaultId || '').toLowerCase();
-        const pBVaultId = (a.partyBVaultId || '').toLowerCase();
+        const pAVaultId = (a.partyAVaultId || '');
+        const pBVaultId = (a.partyBVaultId || '');
         return a.creatorId === user.id || a.createdBy === user.username ||
-               (uVaultId && (pAVaultId === uVaultId || pBVaultId === uVaultId)) ||
+               matchVid(pAVaultId, uVaultId) || matchVid(pBVaultId, uVaultId) ||
                (uEmail && (pAEmail === uEmail || pBEmail === uEmail)) ||
                pA.includes(uName) || pA.includes(uUser) ||
                pB.includes(uName) || pB.includes(uUser);
@@ -806,7 +821,8 @@ function computeCreditScore(user, agreements = []) {
       if (user) {
         if (!body.creatorId) body.creatorId = user.id;
         if (!body.createdBy) body.createdBy = user.username;
-        const isBorrowerCreator = body.partyBVaultId === user.vaultId || (body.partyBEmail && user.email && body.partyBEmail.toLowerCase() === user.email.toLowerCase());
+        const isBorrowerCreator = (body.partyBVaultId && (body.partyBVaultId === user.vaultId || body.partyBVaultId.replace(/[^0-9]/g, '') === (user.vaultId || '').replace(/[^0-9]/g, ''))) ||
+                                  (body.partyBEmail && user.email && body.partyBEmail.toLowerCase() === user.email.toLowerCase());
         if (!isBorrowerCreator) {
           if (!body.partyAVaultId) body.partyAVaultId = user.vaultId;
           if (!body.partyAEmail) body.partyAEmail = user.email;
@@ -815,6 +831,9 @@ function computeCreditScore(user, agreements = []) {
           if (!body.partyBEmail) body.partyBEmail = user.email;
         }
       }
+
+      if (body.partyAVaultId && db.normalizeVaultId) body.partyAVaultId = db.normalizeVaultId(body.partyAVaultId);
+      if (body.partyBVaultId && db.normalizeVaultId) body.partyBVaultId = db.normalizeVaultId(body.partyBVaultId);
 
       // Cryptographic Stamp & Evidentiary Metadata (Sec 65B Indian Evidence Act)
       const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
@@ -832,6 +851,11 @@ function computeCreditScore(user, agreements = []) {
         body.sigB.userAgent = clientAgent;
         body.sigB.utc = body.sigB.utc || nowUtc;
       }
+
+      if (!body.id) {
+        body.id = (body.type === 'work' ? 'SOW-' : 'NOTE-') + Math.floor(1000 + Math.random() * 9000);
+      }
+      body.created = body.created || Date.now();
 
       if (!body.expiresAt && body.type === 'loan') {
         body.expiresAt = (body.created || Date.now()) + (12 * 3600 * 1000);
@@ -918,7 +942,7 @@ function computeCreditScore(user, agreements = []) {
       broadcast('agreement', body);
       await db.logAudit('save_agreement', body.partyA, body.partyAVaultId, body.id, { amount: body.amount, type: body.type }, clientIp);
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ ok: true, sha256Digest: body.sha256Digest }));
+      return res.end(JSON.stringify({ ok: true, agreement: body, sha256Digest: body.sha256Digest }));
     }
   }
 
