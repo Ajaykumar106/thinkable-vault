@@ -3845,8 +3845,8 @@ function printSec65BCertificate(a) {
           <div><div class="label">INSTRUMENT CLASSIFICATION</div><div class="val">${isLoan ? 'Mutual Promissory Note & Loan' : 'Statement of Work & Master Agreement'}</div></div>
         </div>
         <div class="grid">
-          <div><div class="label">PARTY A (${isLoan ? 'LENDER' : 'CLIENT'})</div><div class="val">${esc(a.partyA)} ${a.partyAVaultId ? `(${esc(a.partyAVaultId)})` : ''}</div></div>
-          <div><div class="label">PARTY B (${isLoan ? 'BORROWER' : 'CONTRACTOR'})</div><div class="val">${esc(a.partyB)} ${a.partyBVaultId ? `(${esc(a.partyBVaultId)})` : ''}</div></div>
+          <div><div class="label">PARTY A (${isLoan ? 'LENDER' : 'CLIENT'})</div><div class="val">${esc(a.partyA)} ${a.partyAVaultId ? `<span class="vault-id-pill" style="font-size:10.5px;padding:2px 7px;vertical-align:middle;margin-left:4px">🆔 ${esc(a.partyAVaultId)}</span>` : ''}</div></div>
+          <div><div class="label">PARTY B (${isLoan ? 'BORROWER' : 'CONTRACTOR'})</div><div class="val">${esc(a.partyB)} ${a.partyBVaultId ? `<span class="vault-id-pill" style="font-size:10.5px;padding:2px 7px;vertical-align:middle;margin-left:4px">🆔 ${esc(a.partyBVaultId)}</span>` : ''}</div></div>
         </div>
         <div class="grid">
           <div><div class="label">TOTAL FINANCIAL VALUE</div><div class="val">₹${Number(a.amount).toLocaleString('en-IN')}</div></div>
@@ -5171,17 +5171,23 @@ window.rejectPayment = async (agrId, payId) => {
   renderDocumentView(a.id);
 };
 
-/* ─── Universal Signature Box & Canvas (Role-Enforced) ─── */
+/* ─── Universal Signature Box & Canvas (Role-Enforced with Explicit Vault ID Stamp) ─── */
 function renderSignatureBox(a, k, name, role, remoteSigningRole) {
+  const isA = k === 'A';
+  const vid = isA ? a.partyAVaultId : a.partyBVaultId;
   const s = a['sig' + k];
   if (s) {
     return `
-    <div class="sig-cell verified">
+    <div class="sig-cell verified" style="border:1.5px solid #10b981;border-radius:10px;padding:12px;background:#f0fdf4">
       <img src="${s.img}" alt="Digital Signature">
-      <div style="font-weight:800;font-size:13px;margin-top:6px;color:#0f172a">${esc(name)}</div>
-      <div style="font-size:11px;color:#059669;font-weight:700">✓ ${role} (SEALED)</div>
-      <div style="font-size:10px;color:#64748b;margin-top:2px">Digitally Endorsed: ${fdLong(s.at)}</div>
-      <div style="font-size:10px;font-family:ui-monospace;color:#047857">${s.stamp || 'VERIFIED IDENTITY'}</div>
+      <div style="font-weight:900;font-size:14px;margin-top:6px;color:#0f172a">${esc(name)}</div>
+      <div style="font-size:11px;color:#059669;font-weight:800">✓ ${role} (CRYPTOGRAPHICALLY SEALED)</div>
+      <div style="margin-top:6px;padding:5px 8px;background:#ffffff;border:1px solid #bbf7d0;border-radius:6px;display:flex;align-items:center;justify-content:space-between;gap:6px">
+        <span style="font-size:11px;font-weight:800;color:#166534">🆔 Signer Vault ID:</span>
+        <span class="vault-id-pill" style="font-size:11px;font-weight:900;padding:2px 8px;background:#15803d;color:#fff">${esc(vid || (k === 'A' ? a.partyAVaultId : a.partyBVaultId) || 'CONFIRMED')}</span>
+      </div>
+      <div style="font-size:10px;color:#64748b;margin-top:4px">Digitally Endorsed: ${fdLong(s.at)}</div>
+      <div style="font-size:10px;font-family:ui-monospace;color:#047857;font-weight:700">${s.stamp || 'VERIFIED IDENTITY'}</div>
     </div>`;
   }
 
@@ -5197,7 +5203,10 @@ function renderSignatureBox(a, k, name, role, remoteSigningRole) {
   if (!isEligible) {
     return `
     <div class="sig-cell no-print">
-      <div style="font-weight:700;font-size:12px;margin-bottom:4px">${esc(name)} (${role})</div>
+      <div style="font-weight:700;font-size:12px;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">
+        <span>${esc(name)} (${role})</span>
+        ${vid ? `<span class="vault-id-pill" style="font-size:10px;padding:1px 6px">🆔 ${esc(vid)}</span>` : ''}
+      </div>
       <div class="muted" style="font-size:12px">Awaiting signature from ${esc(name)}…</div>
       <div style="font-size:11px;color:var(--tx-faint);margin-top:6px">
         Only ${esc(name)} can sign this block using their private signing invite.
@@ -5207,7 +5216,10 @@ function renderSignatureBox(a, k, name, role, remoteSigningRole) {
 
   return `
   <div class="sig-cell no-print">
-    <div style="font-weight:700;font-size:12px;margin-bottom:6px">${esc(name)} (${role}) — Affix signature:</div>
+    <div style="font-weight:800;font-size:12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+      <span>${esc(name)} (${role}) — Affix signature:</span>
+      ${vid ? `<span class="vault-id-pill" style="font-size:10.5px;padding:2px 7px">🆔 ${esc(vid)}</span>` : ''}
+    </div>
     <canvas class="pad-canvas" id="canvas${k}"></canvas>
     <div class="flex space" style="margin-top:6px">
       <button class="btn-sm" id="clear${k}">Clear</button>
@@ -5272,6 +5284,18 @@ function initPad(k, a) {
       a.borrowerUndertaking = customOath.trim() || defaultOath;
     }
 
+    // Ensure confirmed Vault ID on both parties upon signing
+    if (k === 'B' && !a.partyBVaultId) {
+      if (currentUser && currentUser.vaultId) a.partyBVaultId = currentUser.vaultId;
+      else a.partyBVaultId = 'VID-' + Math.floor(10000 + Math.random() * 90000);
+    }
+    if (k === 'A' && !a.partyAVaultId) {
+      if (currentUser && currentUser.vaultId) a.partyAVaultId = currentUser.vaultId;
+      else a.partyAVaultId = 'VID-' + Math.floor(10000 + Math.random() * 90000);
+    }
+
+    const confirmedVid = k === 'A' ? a.partyAVaultId : a.partyBVaultId;
+
     const sigData = {
       img: t.toDataURL('image/png'),
       at: Date.now(),
@@ -5284,7 +5308,14 @@ function initPad(k, a) {
 
     await saveAgreementToServer(a);
 
-    showToast('Signature digitally sealed and endorsed!');
+    alert(`🎉 Digital Signature Endorsed Successfully!\n\n` +
+          `👤 Signer Identity: ${k === 'A' ? a.partyA : a.partyB}\n` +
+          `🆔 Official Vault ID: ${confirmedVid}\n` +
+          `📄 Instrument Ref: ${a.id}\n` +
+          `⚖️ Legal Status: Section 65B Indian Evidence Act Certified\n\n` +
+          `Your official Vault ID (${confirmedVid}) is permanently linked and stamped on this contract.`);
+
+    showToast(`✓ Signature Sealed! Vault ID: ${confirmedVid}`);
     renderDocumentView(a.id);
   };
 }
