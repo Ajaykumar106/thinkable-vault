@@ -1144,6 +1144,14 @@ function computeCreditScore(user, agreements = []) {
     }
   }
 
+  // ── Live Dispatcher Diagnostic Route (Resend / SMTP test) ──
+  if (p === '/api/test-email') {
+    const to = (u.searchParams.get('to') || 'ajaykumarmahto803@gmail.com').trim().toLowerCase();
+    const result = await mailer.sendDirectTestEmail({ to, name: 'Ajay Kumar Mahto' });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify(result));
+  }
+
   // ── Activity Log API ──
   if (p === '/api/activity' && req.method === 'GET') {
     const logs = await db.getAuditLogs(100);
