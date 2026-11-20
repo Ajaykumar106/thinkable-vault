@@ -65,8 +65,36 @@ function getBearerToken(req) {
   return u.searchParams.get('token');
 }
 
+const AUTH_SECRET = process.env.AUTH_SECRET || process.env.SESSION_SECRET || 'thinkable_vault_secure_token_secret_salt_2026';
+
+function createSessionToken(userId, durationMs = 180 * 864e5) {
+  const expiresAt = Date.now() + durationMs;
+  const payload = `${userId}.${expiresAt}`;
+  const sig = crypto.createHmac('sha256', AUTH_SECRET).update(payload).digest('hex');
+  return { token: `v1.${payload}.${sig}`, expiresAt };
+}
+
+function verifySignedToken(token) {
+  if (!token || typeof token !== 'string') return null;
+  if (!token.startsWith('v1.')) return null;
+  const parts = token.split('.');
+  if (parts.length !== 4) return null;
+  const [prefix, userId, expiresAtStr, sig] = parts;
+  const expiresAt = Number(expiresAtStr);
+  if (!expiresAt || expiresAt < Date.now()) return null;
+  const expectedSig = crypto.createHmac('sha256', AUTH_SECRET).update(`${userId}.${expiresAtStr}`).digest('hex');
+  if (sig !== expectedSig) return null;
+  return { userId, expires: expiresAt };
+}
+
 async function getUserByToken(token) {
   if (!token) return null;
+  const signed = verifySignedToken(token);
+  if (signed) {
+    const s = await db.getSession(token);
+    if (s === false) return null; // explicitly revoked
+    return await db.getUserById(signed.userId);
+  }
   const s = await db.getSession(token);
   if (!s || s.expires < Date.now()) return null;
   return await db.getUserById(s.userId);
@@ -411,9 +439,9 @@ const requestHandler = async (req, res) => {
     const allUsers = await db.getUsers();
     broadcast('users', allUsers.map(u => ({ key: u.username, display: u.fullName, vaultId: u.vaultId, email: u.email })));
 
-    // Create session
-    const token = crypto.randomBytes(32).toString('hex');
-    await db.saveSession(token, newUser.id, Date.now() + 30 * 864e5);
+    // Create session (180-day persistent auth)
+    const { token, expiresAt } = createSessionToken(newUser.id);
+    await db.saveSession(token, newUser.id, expiresAt);
 
     const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
     await db.logAudit('register', fullName, vaultId, null, { email }, String(rawIp));
@@ -436,8 +464,8 @@ const requestHandler = async (req, res) => {
       return res.end(JSON.stringify({ ok: false, error: 'Invalid email address, Vault ID, or password.' }));
     }
 
-    const token = crypto.randomBytes(32).toString('hex');
-    await db.saveSession(token, user.id, Date.now() + 30 * 864e5);
+    const { token, expiresAt } = createSessionToken(user.id);
+    await db.saveSession(token, user.id, expiresAt);
 
     const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || req.connection?.remoteAddress || '127.0.0.1';
     await db.logAudit('login', user.fullName, user.vaultId, null, {}, String(rawIp));
@@ -688,8 +716,8 @@ function computeCreditScore(user, agreements = []) {
       return res.end(JSON.stringify({ ok: false, error: 'Invalid security PIN.' }));
     }
 
-    const token = crypto.randomBytes(32).toString('hex');
-    await db.saveSession(token, user.id, Date.now() + 30 * 864e5);
+    const { token, expiresAt } = createSessionToken(user.id);
+    await db.saveSession(token, user.id, expiresAt);
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     const { salt: _, hash: __, pinSalt: ___, pinHash: ____, ...safeUser } = user;
