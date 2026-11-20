@@ -30,7 +30,7 @@ const mailer = require('./mailer.cjs');
 mailer.setDatabase(db);
 
 const PORT      = process.env.PORT || 3000;
-const DATA_DIR  = path.join(__dirname, '.agr_data');
+const DATA_DIR  = process.env.VERCEL ? path.join(os.tmpdir(), '.agr_data') : path.join(__dirname, '.agr_data');
 const AGR_FILE  = path.join(DATA_DIR, 'agreements.json');
 const USR_FILE  = path.join(DATA_DIR, 'users.json');
 const AUTH_FILE = path.join(DATA_DIR, 'auth_users.json');
@@ -38,11 +38,15 @@ const SESS_FILE = path.join(DATA_DIR, 'sessions.json');
 const LOG_FILE  = path.join(DATA_DIR, 'activity.json');
 const MSG_FILE  = path.join(DATA_DIR, 'messages.json');
 
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+} catch (e) {
+  console.warn('[SERVER DATA_DIR Warning]', e.message);
+}
 
 /* ── Data Helpers ── */
 const load = (f, d = []) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
-const save = (f, d) => fs.writeFileSync(f, JSON.stringify(d, null, 2));
+const save = (f, d) => { try { fs.writeFileSync(f, JSON.stringify(d, null, 2)); } catch {} };
 
 /* ── Password & Token Security ── */
 function hashPassword(password, salt = crypto.randomBytes(16).toString('hex')) {
@@ -147,9 +151,17 @@ const requestHandler = async (req, res) => {
     const u = new URL(rawUrl, `http://localhost`);
     let p = u.pathname;
 
-    // Normalize Vercel serverless rewrite paths
-    if (p.startsWith('/api/index.cjs')) {
-      p = p.replace('/api/index.cjs', '') || '/';
+    // Normalize Vercel serverless rewrite paths and wildcard queries
+    if (p === '/api' || p === '/api/') {
+      const sub = u.searchParams.get('0') || u.searchParams.get('path');
+      if (sub) {
+        p = '/api/' + sub.replace(/^\/+/, '');
+      } else if (req.headers['x-matched-path'] && req.headers['x-matched-path'].startsWith('/api/')) {
+        p = req.headers['x-matched-path'];
+      }
+    }
+    if (p.startsWith('/api/index.cjs') || p.startsWith('/api/index.js')) {
+      p = p.replace(/\/api\/index\.(cjs|js)/, '') || '/';
     }
     if (!p.startsWith('/api') && (p.startsWith('/auth') || p === '/status' || p === '/info' || p === '/events' || p === '/agreements' || p === '/contacts' || p === '/users')) {
       p = '/api' + p;

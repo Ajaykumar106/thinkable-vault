@@ -1,8 +1,8 @@
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 
-const db = require('../db.cjs');
-const handleRequest = require('../server.cjs');
+const db = require('./_lib/db.cjs');
+const handleRequest = require('./_lib/server.cjs');
 
 let dbInitPromise = null;
 

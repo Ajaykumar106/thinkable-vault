@@ -28,8 +28,10 @@ if (!process.env.NEON_CONNECTION_STRING) {
 const NEON_CONN_STRING = process.env.NEON_CONNECTION_STRING || '';
 const NEON_ENDPOINT    = process.env.NEON_ENDPOINT || '';
 
-// Local Fallback Paths
-const DATA_DIR  = path.join(__dirname, '.agr_data');
+const os = require('node:os');
+
+// Local Fallback Paths (Use os.tmpdir() on read-only serverless runtimes like Vercel)
+const DATA_DIR  = process.env.VERCEL ? path.join(os.tmpdir(), '.agr_data') : path.join(__dirname, '.agr_data');
 const AGR_FILE  = path.join(DATA_DIR, 'agreements.json');
 const USR_FILE  = path.join(DATA_DIR, 'users.json');
 const AUTH_FILE = path.join(DATA_DIR, 'auth_users.json');
@@ -38,7 +40,11 @@ const LOG_FILE  = path.join(DATA_DIR, 'activity.json');
 const CONTACTS_FILE = path.join(DATA_DIR, 'contacts.json');
 const EMAIL_FILE = path.join(DATA_DIR, 'emails.json');
 
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+} catch (e) {
+  console.warn('[DB DATA_DIR Warning]', e.message);
+}
 
 const loadLocal = (f, d = []) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
 const saveLocal = (f, d) => { try { fs.writeFileSync(f, JSON.stringify(d, null, 2)); } catch {} };

@@ -11,9 +11,13 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
+const os = require('node:os');
+
 // Ensure email preview folder exists
-const PREVIEW_DIR = path.join(__dirname, '.agr_data', 'emails');
-if (!fs.existsSync(PREVIEW_DIR)) fs.mkdirSync(PREVIEW_DIR, { recursive: true });
+const PREVIEW_DIR = process.env.VERCEL ? path.join(os.tmpdir(), '.agr_data', 'emails') : path.join(__dirname, '.agr_data', 'emails');
+try {
+  if (!fs.existsSync(PREVIEW_DIR)) fs.mkdirSync(PREVIEW_DIR, { recursive: true });
+} catch {}
 
 // Environment Configuration
 function getConfig() {
