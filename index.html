@@ -769,17 +769,26 @@ canvas.pad-canvas {
   box-shadow: 0 10px 30px rgba(0,0,0,0.12); flex-wrap: wrap;
 }
 
-/* ── Real-Time Toast Notification ── */
+/* ── Native Clean Notification Toast ── */
 .vault-toast {
-  position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-40px);
-  background: var(--brand-grad); color: #ffffff;
-  padding: 10px 22px; border-radius: 99px; font-size: 13px; font-weight: 600;
-  box-shadow: 0 10px 30px rgba(79, 70, 229, 0.35); z-index: 9999;
-  opacity: 0; pointer-events: none; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: fixed; bottom: 24px; right: 24px;
+  background: #0f172a; color: #f8fafc;
+  padding: 11px 18px; border-radius: 12px; font-size: 13px; font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28); z-index: 99999;
+  opacity: 0; transform: translateY(20px); pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; gap: 8px; max-width: 90vw;
 }
 .vault-toast.show {
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
   opacity: 1; pointer-events: auto;
+}
+@media (max-width: 600px) {
+  .vault-toast {
+    left: 16px; right: 16px; bottom: 76px;
+    justify-content: center; text-align: center;
+  }
 }
 
 /* ── Modals (Universal Scrollable Layout for Desktop & Mobile) ── */
@@ -833,6 +842,105 @@ canvas.pad-canvas {
 .sep { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 .muted { color: var(--tx-muted); font-size: 13px; }
 .text-green { color: var(--ok); font-weight: 700; }
+
+/* ── Infographic Landing Page ── */
+.landing-wrap { max-width: 960px; margin: 0 auto; padding: 20px 14px 60px; }
+.landing-hero {
+  text-align: center; padding: 44px 18px 32px;
+  background: radial-gradient(circle at 50% 15%, rgba(99, 102, 241, 0.09) 0%, transparent 70%);
+  border-radius: 20px; margin-bottom: 28px; border: 1px solid rgba(99, 102, 241, 0.12);
+}
+.landing-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 800;
+  background: rgba(99, 102, 241, 0.12); color: #4338ca; border: 1px solid rgba(99, 102, 241, 0.25);
+  margin-bottom: 16px;
+}
+[data-theme="dark"] .landing-badge {
+  background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border-color: rgba(99, 102, 241, 0.35);
+}
+.landing-h1 {
+  font-size: clamp(24px, 4.2vw, 38px); font-weight: 900; line-height: 1.25;
+  color: var(--tx); margin: 0 auto 14px; max-width: 740px; letter-spacing: -0.02em;
+}
+.landing-sub {
+  font-size: clamp(13.5px, 1.8vw, 16px); color: var(--tx-muted); max-width: 620px;
+  margin: 0 auto 24px; line-height: 1.6;
+}
+.landing-hero-btns {
+  display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.landing-trust-bar {
+  display: flex; justify-content: center; gap: 16px; flex-wrap: wrap;
+  font-size: 12px; font-weight: 700; color: var(--tx-muted);
+}
+.landing-section-title {
+  text-align: center; font-size: 20px; font-weight: 900; color: var(--tx); margin: 36px 0 6px;
+}
+.landing-section-sub {
+  text-align: center; font-size: 13px; color: var(--tx-muted); margin-bottom: 22px;
+}
+.landing-steps-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px; margin-bottom: 36px;
+}
+.step-card {
+  background: var(--paper); border: 1px solid var(--border); border-radius: 16px;
+  padding: 22px 18px; box-shadow: var(--shadow); position: relative;
+}
+.step-num-pill {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--brand-grad); color: #fff; font-size: 15px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+}
+.step-card-title { font-size: 15.5px; font-weight: 800; color: var(--tx); margin-bottom: 6px; }
+.step-card-desc { font-size: 12.5px; color: var(--tx-muted); line-height: 1.5; }
+
+.personas-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px; margin-bottom: 36px;
+}
+.persona-card {
+  background: var(--paper); border: 1px solid var(--border); border-radius: 16px;
+  padding: 20px 18px; box-shadow: var(--shadow);
+}
+
+/* ── Digital Online Diary Styles ── */
+.diary-kpis {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px;
+}
+@media (max-width: 640px) {
+  .diary-kpis { grid-template-columns: 1fr; }
+}
+.diary-kpi-card {
+  background: var(--paper); border: 1px solid var(--border); border-radius: 14px;
+  padding: 16px 18px; box-shadow: var(--shadow);
+}
+.diary-kpi-label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--tx-muted); letter-spacing: 0.05em; }
+.diary-kpi-val { font-size: 24px; font-weight: 900; color: var(--tx); margin-top: 4px; }
+
+.diary-action-bar {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.diary-filter-chips {
+  display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; align-items: center;
+}
+.diary-chip {
+  padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 700;
+  border: 1px solid var(--border); background: var(--paper); color: var(--tx-muted);
+  cursor: pointer; white-space: nowrap; transition: all .15s;
+}
+.diary-chip.active {
+  background: var(--brand); color: #fff; border-color: var(--brand);
+}
+.diary-card {
+  background: var(--paper); border: 1px solid var(--border); border-radius: 14px;
+  padding: 16px 18px; margin-bottom: 12px; transition: all 0.15s ease;
+  box-shadow: var(--shadow);
+}
+.diary-card:hover {
+  border-color: var(--brand);
+}
 
 /* ── Print Styles ── */
 @media print {
@@ -941,116 +1049,72 @@ canvas.pad-canvas {
 
 <!-- Account / Profile Modal -->
 <div id="userModal" class="modal-overlay" style="display:none">
-  <div class="modal-card anim-fade">
-    <div class="flex space" style="margin-bottom:14px">
-      <div style="font-weight:800;font-size:16px">Account &amp; Security</div>
+  <div class="modal-card anim-fade" style="max-width:440px;padding:24px">
+    <div class="flex space" style="margin-bottom:18px">
+      <div style="font-weight:900;font-size:17px;color:var(--tx)">Mera Account</div>
       <button class="btn-sm" id="btnCloseUserModal">✕</button>
     </div>
 
-    <div id="userModalProfileContent">
-      <div class="flex" style="gap:14px;margin-bottom:16px">
-        <div id="profileAvatar" style="width:48px;height:48px;border-radius:50%;background:var(--brand-grad);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px">
-          U
-        </div>
-        <div>
-          <div id="profileFullName" style="font-weight:800;font-size:16px">User Name</div>
-          <div id="profileHandle" class="muted" style="font-size:13px">user@email.com</div>
-          <div style="margin-top:4px">
-            <span class="badge ok" style="font-size:10px;padding:2px 7px">🛡️ KYC Verified Tier 1</span>
-            <span class="badge filled" style="font-size:10px;padding:2px 7px">Trust Score: 99</span>
-          </div>
+    <!-- Profile Photo & Basic Info -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;background:var(--paper);padding:14px;border:1px solid var(--border);border-radius:14px">
+      <div style="position:relative">
+        <div id="profileAvatarWrap" style="width:62px;height:62px;border-radius:50%;overflow:hidden;background:var(--brand-grad);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);border:2px solid #ffffff">
+          <img id="profileAvatarImg" src="" alt="Avatar" style="width:100%;height:100%;object-fit:cover;display:none">
+          <span id="profileAvatarInit" style="font-size:24px;font-weight:900;color:#ffffff">U</span>
         </div>
       </div>
-
-      <!-- Vault ID Copy Card -->
-      <div style="background:var(--pill);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px">
-        <div class="flex space">
-          <div>
-            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--tx-muted);letter-spacing:0.06em">Your Unique Vault ID</div>
-            <div id="profileVaultId" style="font-size:18px;font-weight:900;color:var(--brand);letter-spacing:0.04em">VID-XXXXX</div>
-          </div>
-          <button class="btn-sm btn-primary" id="btnCopyProfileVaultId">📋 Copy ID</button>
-        </div>
-        <div class="muted" style="font-size:11.5px;margin-top:6px">
-          Share this ID with other parties so they can send you direct digital contracts.
-        </div>
-      </div>
-
-      <!-- Personal UPI VPA & Real QR Scanner Settings -->
-      <div style="background:var(--pill);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px">
-        <label style="margin-top:0;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--tx-muted);letter-spacing:0.06em">
-          Payment Receiving Settings (Lender / Payee)
+      <div style="flex:1">
+        <div id="profileFullName" style="font-weight:800;font-size:16px;color:var(--tx)">User Name</div>
+        <div id="profileHandle" class="muted" style="font-size:12px;margin-bottom:8px">user@email.com</div>
+        <label class="btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;font-size:11px;font-weight:700;background:var(--pill);border:1px solid var(--border);border-radius:6px">
+          📷 Photo Badlein
+          <input type="file" id="inProfilePhoto" accept="image/*" style="display:none">
         </label>
-        <div class="muted" style="font-size:11.5px;margin-bottom:10px">
-          Set your UPI ID and upload your real PhonePe, Google Pay, or Paytm scanner QR code so borrowers can scan &amp; pay you directly.
-        </div>
+      </div>
+    </div>
 
-        <label style="font-size:11px;font-weight:700;margin-top:0">1. Your UPI ID / VPA</label>
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <input id="profileUpiInput" placeholder="e.g. mobile@paytm or name@okaxis" style="flex:1;font-size:13px;font-family:ui-monospace,monospace">
-        </div>
+    <!-- Unique Vault ID Card -->
+    <div style="background:var(--pill);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:10.5px;font-weight:800;text-transform:uppercase;color:var(--tx-muted);letter-spacing:0.05em">Aapka Vault ID</div>
+        <div id="profileVaultId" style="font-size:17px;font-weight:900;color:var(--brand)">VID-XXXXX</div>
+      </div>
+      <button class="btn-sm btn-primary" id="btnCopyProfileVaultId" style="padding:6px 14px;font-weight:700">📋 Copy ID</button>
+    </div>
 
-        <label style="font-size:11px;font-weight:700;margin-top:0">2. Real Scanner QR Code (Google Pay / PhonePe / Paytm)</label>
-        <div class="muted" style="font-size:11px;margin-bottom:8px">
-          Upload a screenshot of your personal or shop QR scanner from your phone.
-        </div>
-        
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <label class="btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;background:var(--paper);border:1px solid var(--border);font-weight:700;font-size:12px">
-            📷 Choose Scanner Screenshot
-            <input type="file" id="profileQrInput" accept="image/*" style="display:none">
-          </label>
-          <span id="profileQrFileName" class="muted" style="font-size:11px">No scanner selected</span>
-        </div>
+    <!-- Payment Receiving Details (Lender / Payee) -->
+    <div style="background:var(--paper);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:18px">
+      <div style="font-weight:800;font-size:13px;color:var(--tx);margin-bottom:4px">Payment Lene Ke Liye Details</div>
+      <div class="muted" style="font-size:11.5px;margin-bottom:12px">Apna UPI ID aur PhonePe/GPay scanner QR upload karein taaki borrower direct scan karke paise bhej sake.</div>
 
-        <div id="profileQrPreviewWrap" style="display:none;background:var(--paper);border:1px dashed var(--border);border-radius:8px;padding:10px;text-align:center;margin-bottom:12px">
-          <div style="font-size:10.5px;font-weight:700;color:var(--tx-muted);margin-bottom:6px">ACTIVE SCANNER PREVIEW</div>
-          <img id="profileQrPreview" src="" alt="Scanner QR Preview" style="max-width:140px;max-height:140px;border-radius:8px;border:1px solid var(--border);display:inline-block">
-          <div style="margin-top:6px">
-            <button class="btn-sm" id="btnRemoveProfileQr" type="button" style="font-size:10.5px;padding:2px 8px;color:var(--danger)">✕ Remove Scanner</button>
-          </div>
-        </div>
+      <label style="font-size:11px;font-weight:700;margin:0 0 4px 0">1. Aapka UPI ID</label>
+      <input id="profileUpiInput" placeholder="e.g. mobile@paytm ya name@okaxis" style="font-size:13px;margin-bottom:12px">
 
-        <button class="btn-primary full" id="btnSaveProfileUpi" style="padding:9px;font-weight:800;font-size:13px">
-          💾 Save UPI ID &amp; Real Scanner
-        </button>
+      <label style="font-size:11px;font-weight:700;margin:0 0 4px 0">2. Scanner QR Screenshot</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <label class="btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:var(--pill);border:1px solid var(--border);font-weight:700;font-size:11.5px">
+          🖼️ QR Scanner Upload
+          <input type="file" id="profileQrInput" accept="image/*" style="display:none">
+        </label>
+        <span id="profileQrFileName" class="muted" style="font-size:11px">No scanner</span>
       </div>
 
-      <div class="sep"></div>
-
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-        <label style="margin:0;font-size:13px;font-weight:800">👥 Saved Counterparties</label>
-        <button class="btn-sm" id="btnAddContactManual" type="button" style="font-size:11px;padding:3px 8px">+ Add Contact</button>
-      </div>
-      <div class="muted" style="margin-bottom:10px;font-size:12px">
-        Counterparties are remembered automatically so you never have to re-type Vault IDs.
-      </div>
-      <div id="savedContactsList" style="display:flex;flex-direction:column;gap:8px;max-height:180px;overflow-y:auto;margin-bottom:16px">
-        <!-- Dynamically rendered -->
-      </div>
-
-      <!-- Automated Email Notice & Audit Dispatcher Status -->
-      <div style="background:var(--pill);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <span style="font-weight:800;font-size:12.5px;display:flex;align-items:center;gap:6px">
-            📧 Auto Gmail &amp; Audit Dispatcher
-          </span>
-          <span class="badge ok" style="font-size:10px;padding:2px 7px">Active</span>
-        </div>
-        <div class="muted" style="font-size:11.5px;line-height:1.4">
-          Legal contracts, mutual endorsements, and UPI payment proofs are automatically sealed &amp; emailed to both parties' real Gmail addresses.
+      <div id="profileQrPreviewWrap" style="display:none;background:var(--pill);border:1px dashed var(--border);border-radius:8px;padding:10px;text-align:center;margin-bottom:12px">
+        <img id="profileQrPreview" src="" alt="Scanner Preview" style="max-width:130px;max-height:130px;border-radius:6px;display:inline-block">
+        <div style="margin-top:6px">
+          <button class="btn-sm" id="btnRemoveProfileQr" type="button" style="font-size:10.5px;color:var(--danger)">✕ Hatao</button>
         </div>
       </div>
 
-      <div class="flex space" style="margin-bottom:14px;font-size:12px">
-        <a href="privacy.html" target="_blank" style="color:var(--brand);text-decoration:none">📜 Privacy Policy</a>
-        <a href="terms.html" target="_blank" style="color:var(--brand);text-decoration:none">⚖️ Terms of Service</a>
-      </div>
-
-      <button class="btn-danger full" id="btnLogoutUser" style="padding:10px;font-weight:700">
-        🚪 Sign Out of Vault
+      <button class="btn-primary full" id="btnSaveProfileUpi" style="padding:9px;font-weight:800;font-size:13px">
+        💾 Payment Details Save Karein
       </button>
     </div>
+
+    <!-- Sign Out Button -->
+    <button class="btn-danger full" id="btnLogoutUser" style="padding:10px;font-weight:800;border-radius:10px">
+      🚪 Sign Out of Vault
+    </button>
   </div>
 </div>
 
@@ -1299,7 +1363,12 @@ function updateHeaderUser() {
   const mobileNav = document.getElementById('mobileNavBar');
 
   if (currentUser) {
-    lbl.textContent = currentUser.fullName.split(' ')[0] || currentUser.username;
+    const firstName = currentUser.fullName.split(' ')[0] || currentUser.username;
+    if (currentUser.avatar) {
+      lbl.innerHTML = `<img src="${currentUser.avatar}" style="width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:5px;border:1px solid rgba(255,255,255,0.4)">${esc(firstName)}`;
+    } else {
+      lbl.textContent = firstName;
+    }
     if (btnNew) btnNew.style.display = 'inline-flex';
     if (vPill && currentUser.vaultId) {
       vPill.style.display = 'inline-flex';
@@ -2267,83 +2336,186 @@ function renderAuthView(initialTab = 'signin') {
 
   const app = document.getElementById('appSlot');
   app.innerHTML = `
-    <div style="max-width:440px;margin:28px auto 60px">
-      <div class="card anim-fade" style="padding:28px 24px;border:1px solid var(--border);box-shadow:var(--shadow)">
-        <div style="text-align:center;margin-bottom:22px">
-          <div class="brand-icon" style="width:46px;height:46px;font-size:20px;margin:0 auto 12px;border-radius:12px">AV</div>
-          <div style="font-weight:900;font-size:20px;letter-spacing:-0.02em">AGREEMENT VAULT</div>
-          <div class="muted" style="font-size:12.5px;margin-top:4px">
-            Two-Party Cryptographic Contracts &amp; Vault ID Exchange
-          </div>
+    <div class="landing-wrap anim-fade">
+      <!-- Hero Section -->
+      <div class="landing-hero">
+        <div class="landing-badge">
+          <span>🛡️</span> Digital Udhaar Diary &amp; Safe Agreement Vault
         </div>
-
-        <!-- Auth Tabs -->
-        <div style="display:flex;background:var(--bg);padding:4px;border-radius:8px;border:1px solid var(--border);margin-bottom:20px">
-          <button id="tabAuthSignIn" class="full btn-sm" style="border:none;border-radius:6px;${initialTab==='signin' ? 'background:var(--paper);font-weight:700;box-shadow:var(--shadow)' : 'background:transparent;color:var(--tx-muted)'}">Sign In</button>
-          <button id="tabAuthRegister" class="full btn-sm" style="border:none;border-radius:6px;${initialTab==='register' ? 'background:var(--paper);font-weight:700;box-shadow:var(--shadow)' : 'background:transparent;color:var(--tx-muted)'}">Create Account</button>
+        <h1 class="landing-h1">
+          Zabaani Baaton Par Nahin,<br>Safe Digital Proof Par Chalo.
+        </h1>
+        <div class="landing-sub">
+          Dost, rishtedaar ya vyapaar mein kisi ko diye paise ka hisaab ab 1 minute mein phone par likhein. Dono ke mobile se digital sign, timely WhatsApp reminders aur direct UPI payment — bina rishta kharab kiye.
         </div>
-
-        <!-- Sign In Pane -->
-        <div id="paneSignIn" style="${initialTab==='signin' ? 'display:block' : 'display:none'}">
-          <div id="loginAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
-
-          <!-- Official Google Sign-In Button -->
-          <button id="btnGoogleSignIn" type="button" class="btn-google-auth">
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-            Continue with Google
+        <div class="landing-hero-btns">
+          <button class="btn-primary" id="btnLandingStart" style="padding:12px 24px;font-size:15px;font-weight:800;border-radius:12px">
+            🚀 Pehla Hisaab Likhein (Free)
           </button>
+          <button class="btn-outline" id="btnLandingTour" style="padding:12px 22px;font-size:14px;font-weight:700;border-radius:12px">
+            💡 Kaise Kaam Karta Hai?
+          </button>
+        </div>
+        <div class="landing-trust-bar">
+          <span>⚖️ IT Act 2000 Compliant</span>
+          <span>💳 0% Platform Fee</span>
+          <span>🔒 100% Encrypted &amp; Safe</span>
+          <span>📱 No App Download Needed</span>
+        </div>
+      </div>
 
-          <div class="auth-divider"><span>OR SIGN IN WITH EMAIL</span></div>
-          
-          <label>Email Address or Vault ID</label>
-          <input id="inLoginId" placeholder="e.g. yourname@gmail.com or VID-XXXXX" autocomplete="username">
+      <!-- 3-Step Infographic Grid -->
+      <div class="landing-section-title">Sirf 3 Aasan Steps Mein Hisaab Pakka</div>
+      <div class="landing-section-sub">Kaagazi diary ya zabaani waado ka zamana gaya. Ab har hisaab phone par transparent.</div>
 
-          <label>Password</label>
-          <input id="inLoginPass" type="password" placeholder="••••••••" autocomplete="current-password">
-
-          <div style="margin-top:18px">
-            <button class="btn-primary full" id="btnSubmitLogin" style="padding:11px">Sign In to Vault</button>
+      <div class="landing-steps-grid">
+        <div class="step-card">
+          <div class="step-num-pill">1</div>
+          <div class="step-card-title">1 Minute Mein Hisaab Likhein</div>
+          <div class="step-card-desc">
+            Kitna paisa diya, wapsi ki taarikh (due date) kya hai, aur apna UPI ID daalein. Digital entry turant ready ho jayegi.
           </div>
         </div>
+        <div class="step-card">
+          <div class="step-num-pill">2</div>
+          <div class="step-card-title">Dono Phone Se Digital Sign</div>
+          <div class="step-card-desc">
+            WhatsApp ya SMS se 1-click link bhejein. Saamne wala bina app install kiye phone par padh kar finger se digital sign karega.
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-num-pill">3</div>
+          <div class="step-card-title">Auto Reminders &amp; Direct UPI</div>
+          <div class="step-card-desc">
+            Wapsi taarikh aane par polite reminder jayega. Saamne wala PhonePe, GPay ya Paytm se seedha aapke UPI par transfer karega.
+          </div>
+        </div>
+      </div>
 
-        <!-- Register Pane -->
-        <div id="paneRegister" style="${initialTab==='register' ? 'display:block' : 'display:none'}">
-          <div id="regAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
+      <!-- 3 Personas Grid -->
+      <div class="landing-section-title">Yeh Kis-Kis Ke Kaam Aata Hai?</div>
+      <div class="landing-section-sub">Aapka paisa, aapki mehnat — chahe dosti ho ya vyapaar.</div>
 
-          <!-- Official Google Sign-Up Button -->
-          <button id="btnGoogleSignUp" type="button" class="btn-google-auth">
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-            Sign Up with Google
-          </button>
+      <div class="personas-grid">
+        <div class="persona-card">
+          <div class="persona-icon">🤝</div>
+          <div class="persona-title">Dost Aur Rishtedaar</div>
+          <div class="persona-desc">
+            Dosti mein paise maangne me sharm aati hai? Vault ka neutral, polite reminder rishta bhi bachata hai aur paisa bhi waqt par wapas lata hai.
+          </div>
+        </div>
+        <div class="persona-card">
+          <div class="persona-icon">🏪</div>
+          <div class="persona-title">Dukaandar Aur Vyapaari</div>
+          <div class="persona-desc">
+            Purana bahi-khata kho sakta hai, par cloud vault kabhi nahi. Har udhaar ka digitally signed legal pawaati dono ke paas hamesha surakshit rehti hai.
+          </div>
+        </div>
+        <div class="persona-card">
+          <div class="persona-icon">💼</div>
+          <div class="persona-title">Freelancer &amp; Kaam-Wale</div>
+          <div class="persona-desc">
+            Kaam shuru karne se pehle advance payment aur milestone completion dates ka pakka agreement sign karwayein taaki koi payment na fase.
+          </div>
+        </div>
+      </div>
 
-          <div class="auth-divider"><span>OR REGISTER WITH DETAILS</span></div>
-
-          <label>Legal Full Name</label>
-          <input id="inRegName" placeholder="e.g. Ajay Kumar" autocomplete="name">
-
-          <label>Real Email Address (Required for Identity &amp; Notices)</label>
-          <input id="inRegEmail" type="email" placeholder="e.g. ajay@example.com" autocomplete="email">
-
-          <label>Username / Handle</label>
-          <input id="inRegUser" placeholder="e.g. ajaykumar" autocomplete="username">
-
-          <label>Password</label>
-          <input id="inRegPass" type="password" placeholder="Choose a secure password" autocomplete="new-password">
-
-          <label>Optional 4-Digit Security PIN</label>
-          <input id="inRegPin" type="password" maxlength="4" placeholder="4 digits for mobile unlock">
-
-          <div class="muted" style="font-size:11.5px;margin-top:10px;line-height:1.5">
-            🛡️ A unique, permanent <b>Vault ID (VID-XXXXX)</b> will be cryptographically minted for your profile upon registration.
+      <!-- Clean Embedded Auth Box -->
+      <div id="authBoxSection" style="max-width:440px;margin:20px auto 40px;scroll-margin-top:20px">
+        <div class="card" style="padding:26px 22px;border:1px solid var(--border);box-shadow:var(--shadow);border-radius:18px">
+          <div style="text-align:center;margin-bottom:18px">
+            <div style="font-weight:900;font-size:19px;letter-spacing:-0.02em;color:var(--tx)">Apna Khata Kholein</div>
+            <div class="muted" style="font-size:12px;margin-top:4px">
+              1-Click Google Sign-In ya Email se login karein
+            </div>
           </div>
 
-          <div style="margin-top:18px">
-            <button class="btn-primary full" id="btnSubmitRegister" style="padding:11px">Create Account &amp; Mint Vault ID</button>
+          <!-- Auth Tabs -->
+          <div style="display:flex;background:var(--bg);padding:4px;border-radius:8px;border:1px solid var(--border);margin-bottom:18px">
+            <button id="tabAuthSignIn" class="full btn-sm" style="border:none;border-radius:6px;${initialTab==='signin' ? 'background:var(--paper);font-weight:700;box-shadow:var(--shadow)' : 'background:transparent;color:var(--tx-muted)'}">Sign In</button>
+            <button id="tabAuthRegister" class="full btn-sm" style="border:none;border-radius:6px;${initialTab==='register' ? 'background:var(--paper);font-weight:700;box-shadow:var(--shadow)' : 'background:transparent;color:var(--tx-muted)'}">Naya Account</button>
           </div>
+
+          <!-- Sign In Pane -->
+          <div id="paneSignIn" style="${initialTab==='signin' ? 'display:block' : 'display:none'}">
+            <div id="loginAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
+
+            <!-- Official Google Sign-In Button -->
+            <button id="btnGoogleSignIn" type="button" class="btn-google-auth">
+              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+              Google Se Login Karein
+            </button>
+
+            <div class="auth-divider"><span>YA EMAIL / VAULT ID SE</span></div>
+            
+            <label>Email Address ya Vault ID</label>
+            <input id="inLoginId" placeholder="e.g. yourname@gmail.com ya VID-XXXXX" autocomplete="username">
+
+            <label>Password</label>
+            <input id="inLoginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+
+            <div style="margin-top:16px">
+              <button class="btn-primary full" id="btnSubmitLogin" style="padding:11px;font-weight:800">Login Karein</button>
+            </div>
+          </div>
+
+          <!-- Register Pane -->
+          <div id="paneRegister" style="${initialTab==='register' ? 'display:block' : 'display:none'}">
+            <div id="regAlert" style="display:none;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)"></div>
+
+            <!-- Official Google Sign-Up Button -->
+            <button id="btnGoogleSignUp" type="button" class="btn-google-auth">
+              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+              Google Se Naya Account Banayein
+            </button>
+
+            <div class="auth-divider"><span>YA DETAILS BHAREIN</span></div>
+
+            <label>Aapka Asli Pura Naam</label>
+            <input id="inRegName" placeholder="e.g. Ajay Kumar" autocomplete="name">
+
+            <label>Real Email Address</label>
+            <input id="inRegEmail" type="email" placeholder="e.g. ajay@example.com" autocomplete="email">
+
+            <label>Username</label>
+            <input id="inRegUser" placeholder="e.g. ajaykumar" autocomplete="username">
+
+            <label>Password</label>
+            <input id="inRegPass" type="password" placeholder="Surakshit password banayein" autocomplete="new-password">
+
+            <div class="muted" style="font-size:11.5px;margin-top:10px;line-height:1.5">
+              🛡️ Account bante hi aapko ek permanent <b>Vault ID (VID-XXXXX)</b> milega.
+            </div>
+
+            <div style="margin-top:16px">
+              <button class="btn-primary full" id="btnSubmitRegister" style="padding:11px;font-weight:800">Account Banayein</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal Policy & Terms Footer -->
+      <div style="text-align:center;padding:24px 10px;border-top:1px solid var(--border);font-size:12px;color:var(--tx-muted);line-height:1.8">
+        <div><b>Thinkable Agreement Vault</b> — Digital Promissory &amp; Ledger Platform</div>
+        <div>Compliant with Section 65B of Indian Evidence Act, 1872 &amp; Information Technology Act, 2000.</div>
+        <div style="margin-top:8px">
+          <a href="/?view=terms" onclick="event.preventDefault();alert('Privacy & Terms: Thinkable Vault stores encrypted electronic contract records pursuant to the Indian IT Act 2000. All transactions are peer-to-peer and direct without intermediary escrow.');" style="color:var(--brand);font-weight:700;text-decoration:underline">Privacy Policy &amp; Terms</a>
         </div>
       </div>
     </div>
   `;
+
+  const btnLandingStart = document.getElementById('btnLandingStart');
+  if (btnLandingStart) {
+    btnLandingStart.onclick = () => {
+      const authBox = document.getElementById('authBoxSection');
+      if (authBox) authBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+  }
+  const btnLandingTour = document.getElementById('btnLandingTour');
+  if (btnLandingTour) {
+    btnLandingTour.onclick = () => openTourGuide(true);
+  }
 
   const tabSignIn = document.getElementById('tabAuthSignIn');
   const tabRegister = document.getElementById('tabAuthRegister');
@@ -2651,7 +2823,7 @@ window.logoutUser = async () => {
   renderAuthView('signin');
 };
 
-/* ─── View 1: Unified Portfolio Dashboard ─── */
+/* ─── View 1: Clean Digital Online Diary (Udhaar Khata & Ledger) ─── */
 function renderDashboard() {
   if (!currentUser) return renderAuthView('signin');
   currentAppView = 'dashboard';
@@ -2659,58 +2831,28 @@ function renderDashboard() {
   currentSigningRole = null;
   updateHeaderUser();
 
-  if (list.length === 0) {
-    const app = document.getElementById('appSlot');
-    app.innerHTML = `
-      <div class="card" style="text-align:center;padding:52px 20px;border:1.5px dashed var(--border);max-width:540px;margin:28px auto">
-        <div style="font-size:42px;margin-bottom:14px">📜</div>
-        <div style="font-weight:800;font-size:18px;margin-bottom:6px">No Agreements in Your Vault</div>
-        <div class="muted" style="max-width:400px;margin:0 auto 20px;line-height:1.6">
-          Draft your first Promissory Note or Working Agreement. You can digitally sign and share the secure remote signing link with your counterparty.
-        </div>
-        <button class="btn-primary" id="btnZeroNew">+ Draft New Agreement</button>
-      </div>
-    `;
-    const bz = document.getElementById('btnZeroNew');
-    if (bz) bz.onclick = () => { 
-      document.getElementById('templateModal').style.display = 'flex'; 
-      if (!isHandlingPopState) { try { history.pushState({ modal: 'template' }, ''); } catch {} }
-    };
-    return;
-  }
-
   let totalCommitted = 0, totalPaidOut = 0;
-  let activeCount = 0, pendingActionCount = 0;
+  let pendingCount = 0, settledCount = 0;
 
   for (const a of list) {
-    const { total, paid } = calcTotals(a);
+    const { total, paid, left } = calcTotals(a);
     totalCommitted += total;
     totalPaidOut += paid;
-
-    if (a.sigA && a.sigB) activeCount++;
-
-    if (a.type === 'work') {
-      if ((a.milestones || []).some(m => m.status === 'SUBMITTED') || (!a.sigA || !a.sigB)) {
-        pendingActionCount++;
-      }
+    if (left <= 0.005 && a.sigA && a.sigB) {
+      settledCount++;
     } else {
-      if ((a.payments || []).some(p => p.status === 'PENDING') || (!a.sigA || !a.sigB)) {
-        pendingActionCount++;
-      }
+      pendingCount++;
     }
   }
 
+  const remainingBalance = Math.max(0, totalCommitted - totalPaidOut);
+
   // Filter list by Tab & Search
   let filtered = list;
-  if (activeTab === 'work') {
-    filtered = filtered.filter(a => a.type === 'work');
-  } else if (activeTab === 'loan') {
-    filtered = filtered.filter(a => a.type !== 'work');
-  } else if (activeTab === 'action') {
+  if (activeTab === 'pending') {
     filtered = filtered.filter(a => {
-      if (!a.sigA || !a.sigB) return true;
-      if (a.type === 'work') return (a.milestones || []).some(m => m.status === 'SUBMITTED');
-      return (a.payments || []).some(p => p.status === 'PENDING');
+      const { left } = calcTotals(a);
+      return !a.sigA || !a.sigB || left > 0.005;
     });
   } else if (activeTab === 'settled') {
     filtered = filtered.filter(a => {
@@ -2719,26 +2861,14 @@ function renderDashboard() {
     });
   }
 
-  // Multi-Borrower / Multi-Counterparty extraction
-  const uniqueBorrowers = [];
-  for (const a of list) {
-    if (a.partyB) {
-      const existing = uniqueBorrowers.find(b => b.name === a.partyB);
-      if (existing) existing.count++;
-      else uniqueBorrowers.push({ name: a.partyB, count: 1 });
-    }
-  }
-
-  if (selectedBorrowerFilter) {
-    filtered = filtered.filter(a => a.partyB === selectedBorrowerFilter || a.partyA === selectedBorrowerFilter);
-  }
-
   if (searchQuery.trim()) {
     const q = searchQuery.toLowerCase().trim();
-    filtered = filtered.filter(a => 
-      a.partyA.toLowerCase().includes(q) || 
-      a.partyB.toLowerCase().includes(q) || 
-      a.id.toLowerCase().includes(q) ||
+    filtered = filtered.filter(a =>
+      (a.partyA && a.partyA.toLowerCase().includes(q)) ||
+      (a.partyB && a.partyB.toLowerCase().includes(q)) ||
+      (a.partyBVaultId && a.partyBVaultId.toLowerCase().includes(q)) ||
+      (a.partyAVaultId && a.partyAVaultId.toLowerCase().includes(q)) ||
+      (a.id && a.id.toLowerCase().includes(q)) ||
       (a.title && a.title.toLowerCase().includes(q)) ||
       (a.purpose && a.purpose.toLowerCase().includes(q))
     );
@@ -2753,320 +2883,233 @@ function renderDashboard() {
 
   const app = document.getElementById('appSlot');
   app.innerHTML = `
-    <!-- Direct Incoming Requests (Pulse Attention) -->
-    ${incomingReqs.length > 0 ? `
-      <div class="incoming-req-box anim-fade">
-        <div class="flex space" style="margin-bottom:8px">
-          <div style="font-weight:900;font-size:15px;color:var(--brand);display:flex;align-items:center;gap:6px">
-            <span style="font-size:18px">📬</span> Incoming Contract Requests (${incomingReqs.length})
+    <div class="anim-fade" style="max-width:880px;margin:0 auto;padding-bottom:60px">
+      <!-- Incoming Requests Attention Banner -->
+      ${incomingReqs.length > 0 ? `
+        <div class="incoming-req-box anim-fade" style="margin-bottom:18px">
+          <div class="flex space" style="margin-bottom:8px">
+            <div style="font-weight:900;font-size:15px;color:var(--brand);display:flex;align-items:center;gap:6px">
+              <span>📬</span> Naya Parcha Aaya Hai Sign Karne Ke Liye (${incomingReqs.length})
+            </div>
+            <span class="badge warn" style="font-size:10px">Sign Required</span>
           </div>
-          <span class="badge warn" style="font-size:10px">Sign Required</span>
-        </div>
-        <div class="muted" style="font-size:12.5px;margin-bottom:12px">
-          You have received direct digital contract request(s) on your Vault ID (<b>${esc(currentUser.vaultId || 'Your Profile')}</b>). Review terms and affix your signature.
-        </div>
-        <div style="display:grid;gap:10px">
-          ${incomingReqs.map(req => {
-            const isWork = req.type === 'work';
-            const { total } = calcTotals(req);
-            return `
-              <div class="card" style="margin:0;padding:12px 14px;background:var(--paper);border:1px solid var(--border);border-left:4px solid var(--brand)">
+          <div style="display:grid;gap:8px">
+            ${incomingReqs.map(req => `
+              <div class="card" style="margin:0;padding:12px 14px;background:var(--paper);border:1px solid var(--border)">
                 <div class="flex space" style="flex-wrap:wrap;gap:8px">
                   <div>
-                    <div style="font-weight:800;font-size:14.5px">
-                      ${isWork ? `💼 ${esc(req.title || 'Working Agreement & SOW')}` : `🤝 Mutual Loan Note (${money(req.amount)})`}
-                      <span class="badge ${isWork ? 'filled' : 'ok'}" style="font-size:9.5px;margin-left:4px">${isWork ? 'SOW' : 'LOAN'}</span>
-                    </div>
-                    <div class="muted" style="font-size:12px;margin-top:2px">
-                      Requested by: <b>${esc(req.partyA)}</b> ${req.partyAVaultId ? `<span class="vault-id-pill" style="font-size:10px;padding:1px 6px">🆔 ${esc(req.partyAVaultId)}</span>` : ''} · Total: <b>${money(total)}</b>
-                    </div>
+                    <div style="font-weight:800;font-size:14px;color:var(--tx)">${esc(req.title || 'Mutual Loan')} (${money(req.amount)})</div>
+                    <div class="muted" style="font-size:12px;margin-top:2px">Bheja gaya: <b>${esc(req.partyA)}</b> dwara</div>
                   </div>
-                  <div class="flex" style="gap:6px">
-                    <button class="btn-sm btn-primary" onclick="window.reviewAndSign('${req.id}')" style="padding:6px 12px;font-weight:700">✍️ Review &amp; Sign</button>
-                    <button class="btn-sm btn-danger" onclick="window.declineAgreement('${req.id}')" style="padding:6px 10px">Decline</button>
-                  </div>
+                  <button class="btn-sm btn-primary" onclick="window.reviewAndSign('${req.id}')" style="padding:6px 14px;font-weight:800">✍️ Padh Kar Sign Karein</button>
                 </div>
               </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    ` : ''}
-
-    <!-- Quick How-It-Works Guide Strip -->
-    <div style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:14px;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:22px">💡</span>
-        <div>
-          <div style="font-size:13.5px;font-weight:800;color:#1e3a8a">Yeh App Kaise Kaam Karta Hai? (1-Min Guide)</div>
-          <div style="font-size:11.5px;color:#3b82f6">Loan agreement kaise banayein, Credit score kaise dekhein, aur UPI payment record kaise karein.</div>
-        </div>
-      </div>
-      <button class="btn-sm" onclick="openTourGuide(true)" style="background:#2563eb;color:#ffffff;border:none;font-weight:800;font-size:12px;padding:6px 14px;border-radius:8px;box-shadow:0 2px 6px rgba(37,99,235,0.3);cursor:pointer">
-        📖 Guide Kholein
-      </button>
-    </div>
-
-    <!-- Top KPI Grid -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Total Invoiced / Committed</div>
-        <div class="kpi-val">${money(totalCommitted)}</div>
-        <div class="kpi-sub">
-          <span class="badge ok" style="font-size:10px;padding:1px 6px">
-            ${totalCommitted > 0 ? ((totalPaidOut / totalCommitted) * 100).toFixed(0) : 0}% Cleared
-          </span>
-          <span>${money(totalPaidOut)} paid</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-label">Total Endorsed Payouts</div>
-        <div class="kpi-val">${money(totalPaidOut)}</div>
-        <div class="kpi-sub">
-          <span>Remaining: ${money(Math.max(0, totalCommitted - totalPaidOut))}</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-label">Active Binding Contracts</div>
-        <div class="kpi-val">${activeCount}</div>
-        <div class="kpi-sub">
-          <span>${list.length - activeCount} pending signature(s)</span>
-        </div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-label">Pending Action</div>
-        <div class="kpi-val" style="${pendingActionCount > 0 ? 'color:var(--warn)' : 'color:var(--ok)'}">
-          ${pendingActionCount > 0 ? `${pendingActionCount} Items` : '✓ 0'}
-        </div>
-        <div class="kpi-sub">
-          ${pendingActionCount > 0 
-            ? '<span class="badge warn" style="font-size:10px;padding:1px 6px">Action Required</span>' 
-            : '<span class="badge ok" style="font-size:10px;padding:1px 6px">All Cleared</span>'}
-        </div>
-      </div>
-    </div>
-
-    <!-- View Switcher & Multi-Borrower Portfolio Bar -->
-    <div class="view-switch-bar" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div style="display:flex;gap:4px;background:var(--pill);padding:4px;border-radius:8px;border:1px solid var(--border)">
-        <button class="btn-sm ${dashboardViewMode === 'list' ? 'btn-primary' : ''}" id="btnSwitchListView" style="font-size:12px;padding:5px 14px;border-radius:6px;font-weight:700">📋 List View</button>
-        <button class="btn-sm ${dashboardViewMode === 'calendar' ? 'btn-primary' : ''}" id="btnSwitchCalendarView" style="font-size:12px;padding:5px 14px;border-radius:6px;font-weight:700">📅 Calendar &amp; Schedule</button>
-      </div>
-      ${uniqueBorrowers.length > 0 ? `
-        <div style="font-size:12px;color:var(--tx-muted);display:flex;align-items:center;gap:6px">
-          <span>👥</span> <b>${uniqueBorrowers.length} Counterpart${uniqueBorrowers.length === 1 ? 'y' : 'ies'}</b> in Vault
+            `).join('')}
+          </div>
         </div>
       ` : ''}
-    </div>
 
-    <!-- Multi-Borrower Filter Pills -->
-    ${uniqueBorrowers.length > 1 ? `
-      <div class="borrower-chips-bar" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;align-items:center">
-        <span style="font-size:10.5px;font-weight:800;color:var(--tx-muted);white-space:nowrap">FILTER:</span>
-        <button class="btn-sm ${selectedBorrowerFilter === null ? 'btn-primary' : ''}" style="border-radius:99px;font-size:11px;padding:3px 10px;white-space:nowrap" onclick="window.setBorrowerFilter(null)">All (${list.length})</button>
-        ${uniqueBorrowers.map(b => `
-          <button class="btn-sm ${selectedBorrowerFilter === b.name ? 'btn-primary' : ''}" style="border-radius:99px;font-size:11px;padding:3px 10px;white-space:nowrap" onclick="window.setBorrowerFilter('${esc(b.name)}')">
-            👤 ${esc(b.name)} <span class="badge ${selectedBorrowerFilter === b.name ? 'filled' : 'ok'}" style="font-size:9px;padding:1px 5px">${b.count}</span>
-          </button>
-        `).join('')}
-      </div>
-    ` : ''}
-
-    ${dashboardViewMode === 'calendar' ? renderCalendarView(filtered) : `
-      <!-- Filter Tabs & Real-time Search -->
-      <div class="filter-row">
-        <div class="tab-pills">
-          <button class="tab-btn ${activeTab === 'all' ? 'active' : ''}" data-tab="all">All (${list.length})</button>
-          <button class="tab-btn ${activeTab === 'work' ? 'active' : ''}" data-tab="work">💼 Working SOW (${list.filter(x => x.type === 'work').length})</button>
-          <button class="tab-btn ${activeTab === 'loan' ? 'active' : ''}" data-tab="loan">🤝 Loans (${list.filter(x => x.type !== 'work').length})</button>
-          <button class="tab-btn ${activeTab === 'action' ? 'active' : ''}" data-tab="action">
-            Needs Action ${pendingActionCount > 0 ? `(${pendingActionCount})` : ''}
-          </button>
-          <button class="tab-btn ${activeTab === 'settled' ? 'active' : ''}" data-tab="settled">Completed</button>
-          <button class="tab-btn ${activeTab === 'logins' ? 'active' : ''}" data-tab="logins">🔐 Login History</button>
-          <button class="tab-btn ${activeTab === 'emails' ? 'active' : ''}" data-tab="emails">📧 Sent Notices</button>
+      <!-- Top 3 Clean Diary Metrics -->
+      <div class="diary-kpis">
+        <div class="diary-kpi-card" style="border-left:4px solid var(--brand)">
+          <div class="diary-kpi-label">💰 Kul Diya / Invoiced</div>
+          <div class="diary-kpi-val">${money(totalCommitted)}</div>
+          <div class="muted" style="font-size:11.5px;margin-top:2px">Total ${list.length} hisaab darj</div>
         </div>
-        <input class="search-input" id="inSearch" placeholder="Search contracts, parties, SOW…" value="${esc(searchQuery)}">
+
+        <div class="diary-kpi-card" style="border-left:4px solid var(--ok)">
+          <div class="diary-kpi-label">✅ Wapas Aaya (Received)</div>
+          <div class="diary-kpi-val" style="color:var(--ok)">${money(totalPaidOut)}</div>
+          <div class="muted" style="font-size:11.5px;margin-top:2px">${settledCount} hisaab chuka diya gaya</div>
+        </div>
+
+        <div class="diary-kpi-card" style="border-left:4px solid ${remainingBalance > 0 ? 'var(--warn)' : 'var(--ok)'}">
+          <div class="diary-kpi-label">⏳ Bacha Hua (Pending)</div>
+          <div class="diary-kpi-val" style="color:${remainingBalance > 0 ? 'var(--warn)' : 'var(--ok)'}">${money(remainingBalance)}</div>
+          <div class="muted" style="font-size:11.5px;margin-top:2px">${pendingCount} hisaab baaki hai</div>
+        </div>
       </div>
 
-      <!-- Custom Views or Agreements List -->
-      ${activeTab === 'logins' ? `
-        <div class="card" style="padding:20px;border-radius:12px;background:var(--paper)">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-            <div>
-              <div style="font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px">
-                <span>🔐</span> Real-Time Login &amp; Security Audit Trail
-              </div>
-              <div class="muted" style="font-size:12px;margin-top:2px">
-                All authenticated logins from Neon PostgreSQL with device IP, Vault ID, and timestamps.
-              </div>
-            </div>
-            <button class="btn-sm btn-primary" id="btnRefreshActivityLogs" style="padding:6px 14px;font-weight:700">🔄 Refresh</button>
-          </div>
-          <div id="liveActivityList" style="display:flex;flex-direction:column;gap:10px">
-            <div class="muted" style="font-size:12px;padding:20px;text-align:center">Loading real-time audit logs from database...</div>
-          </div>
+      <!-- Action & Search Bar -->
+      <div class="diary-action-bar">
+        <button class="btn-primary" id="btnDiaryNew" style="padding:10px 18px;font-size:13.5px;font-weight:800;border-radius:10px;display:flex;align-items:center;gap:6px">
+          <span>+</span> Naya Hisaab Likhein
+        </button>
+        <div style="flex:1;max-width:320px">
+          <input class="search-input" id="inSearch" placeholder="🔍 Naam ya Vault ID se khojein..." value="${esc(searchQuery)}" style="margin:0;width:100%;box-sizing:border-box;font-size:13px;padding:9px 12px;border-radius:10px">
         </div>
-      ` : activeTab === 'emails' ? `
-        <div class="card" style="padding:20px;border-radius:12px;background:var(--paper)">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-            <div>
-              <div style="font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px">
-                <span>📧</span> Automated Legal Emails &amp; Notifications Outbox
-              </div>
-              <div class="muted" style="font-size:12px;margin-top:2px">
-                Full legal contracts, 6-month repayment schedules, and settlement notices dispatched to both parties.
-              </div>
-            </div>
-            <button class="btn-sm btn-primary" id="btnRefreshEmailLogs" style="padding:6px 14px;font-weight:700">🔄 Refresh</button>
+      </div>
+
+      <!-- Clean Filter Chips -->
+      <div class="diary-filter-chips" style="margin-bottom:16px">
+        <button class="diary-chip ${activeTab === 'all' ? 'active' : ''}" data-tab="all">Sabhi (${list.length})</button>
+        <button class="diary-chip ${activeTab === 'pending' ? 'active' : ''}" data-tab="pending">⏳ Bacha Hua (${pendingCount})</button>
+        <button class="diary-chip ${activeTab === 'settled' ? 'active' : ''}" data-tab="settled">✓ Chuka Diya (${settledCount})</button>
+      </div>
+
+      <!-- Diary Entries List -->
+      ${filtered.length === 0 ? `
+        <div class="card" style="text-align:center;padding:48px 18px;border:1.5px dashed var(--border);border-radius:16px;margin:18px 0">
+          <div style="font-size:38px;margin-bottom:10px">📖</div>
+          <div style="font-weight:900;font-size:17px;color:var(--tx);margin-bottom:6px">
+            ${list.length === 0 ? 'Aapki Digital Diary Abhi Khali Hai' : 'Koi hisaab nahi mila'}
           </div>
-          <div id="liveEmailList" style="display:flex;flex-direction:column;gap:10px">
-            <div class="muted" style="font-size:12px;padding:20px;text-align:center">Loading dispatched notices from database...</div>
+          <div class="muted" style="max-width:380px;margin:0 auto 18px;line-height:1.5;font-size:13px">
+            ${list.length === 0 
+              ? 'Dost, vyapaari ya client ko diye gaye paise ka hisaab yahan darj karein — dono ke mobile par legal pawaati rahegi aur samay par reminder jayega.'
+              : 'Aapke search query ke anusaar koi entry nahi mili.'}
           </div>
-        </div>
-      ` : filtered.length === 0 ? `
-        <div class="card" style="text-align:center;padding:44px 16px">
-          <div style="font-size:16px;font-weight:700;margin-bottom:4px">No agreements found</div>
-          <div class="muted" style="margin-bottom:16px">Create a professional working agreement (SOW) or a mutual loan promissory note.</div>
-          <button class="btn-primary" id="btnEmptyNew">+ Draft Agreement</button>
+          <button class="btn-primary" id="btnEmptyDiaryNew" style="padding:10px 20px;font-weight:800;border-radius:10px">+ Pehla Hisaab Jodein</button>
         </div>
       ` : filtered.map(a => {
-        const st = agreementStatus(a);
         const { total, paid, left } = calcTotals(a);
-        const pct = total > 0 ? Math.min(100, (paid / total) * 100).toFixed(0) : 0;
-        const isWork = a.type === 'work';
-
         const isPartyA = matchName(activeProfile, a.partyA);
         const isPartyB = matchName(activeProfile, a.partyB);
-        const roleTag = isWork 
-          ? (isPartyA ? 'CLIENT' : isPartyB ? 'CONTRACTOR' : 'VIEWER') 
-          : (isPartyA ? 'LENDER' : isPartyB ? 'BORROWER' : 'VIEWER');
-
-        const borderStripe = left <= 0.005 
-          ? 'border-left: 4px solid var(--ok);' 
-          : (!a.sigA || !a.sigB)
-          ? 'border-left: 4px solid var(--warn);'
-          : 'border-left: 4px solid var(--brand);';
+        const otherParty = isPartyA ? a.partyB : (isPartyB ? a.partyA : a.partyB);
+        const otherVaultId = isPartyA ? a.partyBVaultId : (isPartyB ? a.partyAVaultId : '');
+        const roleLabel = isPartyA ? 'Aapne Diya' : (isPartyB ? 'Aapne Liya' : 'Hisaab');
+        const isSettled = left <= 0.005 && a.sigA && a.sigB;
+        const isPendingSign = !a.sigA || !a.sigB;
 
         return `
-        <div class="card contract-card clickable" data-open="${a.id}" style="${borderStripe}">
-          <!-- Row 1: Badges & Status Header -->
-          <div class="contract-card-header">
-            <div class="contract-badges">
-              <span class="badge ${isWork ? 'filled' : 'ok'}">${isWork ? '💼 SOW' : '🤝 LOAN'}</span>
-              ${!isWork && a.repaymentMode ? `<span class="badge" style="background:rgba(99,102,241,0.1);color:#4f46e5;font-weight:800;font-size:10px">${a.repaymentMode === 'emi_6' ? '6M EMI' : a.repaymentMode === 'emi_3' ? '3M EMI' : a.repaymentMode === 'emi_12' ? '12M EMI' : 'LUMP SUM'}</span>` : ''}
-              <span class="badge role-tag">${roleTag}</span>
+          <div class="diary-card">
+            <!-- Header Row: Counterparty & Amount -->
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:8px;flex-wrap:wrap">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-weight:900;font-size:16px;color:var(--tx)">${esc(otherParty || 'Counterparty')}</span>
+                  ${otherVaultId ? `<span class="vault-id-pill" style="font-size:10px;padding:2px 7px">🆔 ${esc(otherVaultId)}</span>` : ''}
+                </div>
+                <div class="muted" style="font-size:12px;margin-top:2px">
+                  ${roleLabel} · Ref: <b style="font-family:monospace">${esc(a.id)}</b> · Wapsi: <b>${fd(a.due)}</b>
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-weight:900;font-size:18px;color:var(--tx)">${money(a.amount)}</div>
+                <div style="margin-top:3px">
+                  ${isPendingSign 
+                    ? '<span class="badge warn" style="font-size:10px;padding:2px 8px">✍️ Sign Baaki Hai</span>'
+                    : isSettled 
+                    ? '<span class="badge ok" style="font-size:10px;padding:2px 8px">✓ Chuka Diya</span>'
+                    : `<span class="badge" style="background:rgba(99,102,241,0.12);color:#4338ca;font-weight:800;font-size:10px;padding:2px 8px">⏳ Bacha: ${money(left)}</span>`}
+                </div>
+              </div>
             </div>
-            <div class="flex" style="gap:4px;align-items:center">
-              ${renderSlaBadge(a)}
-              <span class="badge ${st.class} contract-status-pill">${st.text}</span>
-            </div>
-          </div>
 
-          <!-- Row 2: Headline / Counterparties (Full Width) -->
-          <div class="contract-card-body">
-            ${isWork ? `
-              <div class="contract-title">💼 ${esc(a.title || 'Working Agreement & SOW')}</div>
-              <div class="contract-meta">
-                <span class="contract-party"><b>${esc(a.partyA)}</b> <span class="role-sub">(Client)</span></span>
-                <span class="meta-sep">&amp;</span>
-                <span class="contract-party"><b>${esc(a.partyB)}</b> <span class="role-sub">(Contractor)</span></span>
-              </div>
-            ` : `
-              <div class="contract-parties-row">
-                <span class="party-name">${esc(a.partyA)}</span>
-                <span class="party-arrow">⇄</span>
-                <span class="party-name">${esc(a.partyB)}</span>
-              </div>
-              <div class="contract-meta">
-                <span class="meta-item"><b class="tx-highlight">${money(a.amount)}</b> principal</span>
-                <span class="meta-dot">·</span>
-                <span class="meta-item">Due <b>${fd(a.due)}</b></span>
-                ${a.rate ? `<span class="meta-dot">·</span> <span class="meta-item"><b>${a.rate}%</b> p.a.</span>` : ''}
-              </div>
-            `}
-          </div>
+            <!-- Action Buttons Row -->
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--border)">
+              <button class="btn-sm" onclick="renderDocumentView('${a.id}')" style="font-weight:700;font-size:12px;padding:6px 12px;border-radius:8px">
+                📄 Parcha Dekhein
+              </button>
+              <button class="btn-sm" onclick="sendWhatsAppReminder('${a.id}')" style="font-weight:700;font-size:12px;padding:6px 12px;border-radius:8px;background:#25d36615;color:#16a34a;border:1px solid #25d36640">
+                📲 WhatsApp Reminder
+              </button>
 
-          <!-- Row 3: Financial Progress & Ledger -->
-          <div class="contract-card-footer">
-            <div class="flex space" style="font-size:12px;margin-bottom:6px">
-              <span class="muted">Balance: <b class="tx-main">${money(left)}</b> / ${money(total)}</span>
-              <span class="pct-pill ${left <= 0.005 ? 'complete' : ''}">${pct}% fulfilled</span>
-            </div>
-            <div class="bar-track">
-              <div class="bar-fill ${left <= 0.005 ? 'complete' : ''}" style="width:${pct}%"></div>
+              ${isPendingSign ? `
+                <button class="btn-sm btn-primary" onclick="renderDocumentView('${a.id}')" style="font-weight:800;font-size:12px;padding:6px 14px;border-radius:8px;margin-left:auto">
+                  ✍️ Sign Karein
+                </button>
+              ` : !isSettled ? `
+                <button class="btn-sm btn-primary" onclick="window.openUpiPaymentModal('${a.id}', null, ${left}, '${esc(a.partyA)}')" style="font-weight:800;font-size:12px;padding:6px 14px;border-radius:8px;margin-left:auto">
+                  💳 Payment Mark Karein
+                </button>
+              ` : `
+                <span class="muted" style="font-size:11.5px;margin-left:auto;font-weight:700;color:var(--ok)">✓ Hisaab Complete</span>
+              `}
             </div>
           </div>
-        </div>`;
+        `;
       }).join('')}
-    `}
-    <!-- Bottom Spacer so cards scroll cleanly above mobile dock -->
-    <div style="height:96px"></div>
+
+      <!-- Bottom Collapsible: Security Audit & Dispatched Notices -->
+      <div style="margin-top:24px;background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:12px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="btnToggleAuditLogs">
+          <div style="font-weight:700;font-size:12.5px;color:var(--tx-muted);display:flex;align-items:center;gap:6px">
+            <span>🔐</span> Security Audit &amp; Notices Outbox
+          </div>
+          <span id="auditToggleIcon" style="font-size:12px;color:var(--tx-muted)">▼</span>
+        </div>
+        <div id="auditLogsContainer" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <button class="btn-sm btn-primary" id="btnShowLoginsTab" style="font-size:11.5px;padding:4px 10px">🔐 Login History</button>
+            <button class="btn-sm" id="btnShowEmailsTab" style="font-size:11.5px;padding:4px 10px">📧 Sent Notices</button>
+          </div>
+          <div id="liveActivityList" style="display:flex;flex-direction:column;gap:8px"></div>
+          <div id="liveEmailList" style="display:none;flex-direction:column;gap:8px"></div>
+        </div>
+      </div>
+    </div>
   `;
 
-  // Bind View Switcher
-  const btnList = document.getElementById('btnSwitchListView');
-  if (btnList) btnList.onclick = () => { dashboardViewMode = 'list'; renderDashboard(); };
-  const btnCal = document.getElementById('btnSwitchCalendarView');
-  if (btnCal) btnCal.onclick = () => { dashboardViewMode = 'calendar'; renderDashboard(); };
-
-  // Bind Calendar Controls
-  if (dashboardViewMode === 'calendar') {
-    const pM = document.getElementById('calPrevMonth');
-    if (pM) pM.onclick = () => {
-      selectedCalendarDate.setMonth(selectedCalendarDate.getMonth() - 1);
-      renderDashboard();
+  // Bind Main Actions
+  const btnDiaryNew = document.getElementById('btnDiaryNew');
+  if (btnDiaryNew) {
+    btnDiaryNew.onclick = () => {
+      document.getElementById('templateModal').style.display = 'flex';
+      if (!isHandlingPopState) { try { history.pushState({ modal: 'template' }, ''); } catch {} }
     };
-    const nM = document.getElementById('calNextMonth');
-    if (nM) nM.onclick = () => {
-      selectedCalendarDate.setMonth(selectedCalendarDate.getMonth() + 1);
-      renderDashboard();
-    };
-    const td = document.getElementById('calToday');
-    if (td) td.onclick = () => {
-      selectedCalendarDate = new Date();
-      renderDashboard();
-    };
-    document.querySelectorAll('.cal-day-cell').forEach(cell => {
-      cell.onclick = () => {
-        selectedCalendarDate = new Date(cell.dataset.date);
-        renderDashboard();
-      };
-    });
   }
 
-  // Bind Events
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    b.onclick = () => { activeTab = b.dataset.tab; renderDashboard(); };
+  const btnEmptyNew = document.getElementById('btnEmptyDiaryNew');
+  if (btnEmptyNew) {
+    btnEmptyNew.onclick = () => {
+      document.getElementById('templateModal').style.display = 'flex';
+      if (!isHandlingPopState) { try { history.pushState({ modal: 'template' }, ''); } catch {} }
+    };
+  }
+
+  // Bind Filter Chips
+  document.querySelectorAll('.diary-chip').forEach(b => {
+    b.onclick = () => {
+      activeTab = b.dataset.tab;
+      renderDashboard();
+    };
   });
 
-  if (activeTab === 'logins') {
-    loadLiveActivityList();
-    const btnRef = document.getElementById('btnRefreshActivityLogs');
-    if (btnRef) btnRef.onclick = loadLiveActivityList;
-  } else if (activeTab === 'emails') {
-    loadLiveEmailList();
-    const btnRef = document.getElementById('btnRefreshEmailLogs');
-    if (btnRef) btnRef.onclick = loadLiveEmailList;
-  }
-
+  // Bind Search
   const searchInput = document.getElementById('inSearch');
   if (searchInput) {
-    searchInput.oninput = e => { searchQuery = e.target.value; renderDashboard(); };
+    searchInput.oninput = e => {
+      searchQuery = e.target.value;
+      renderDashboard();
+    };
   }
 
-  document.querySelectorAll('[data-open]').forEach(c => {
-    c.onclick = () => renderDocumentView(c.dataset.open);
-  });
+  // Bind Collapsible Audit Logs
+  const btnToggleAudit = document.getElementById('btnToggleAuditLogs');
+  const auditContainer = document.getElementById('auditLogsContainer');
+  const auditIcon = document.getElementById('auditToggleIcon');
+  if (btnToggleAudit && auditContainer) {
+    btnToggleAudit.onclick = () => {
+      const isHidden = auditContainer.style.display === 'none';
+      auditContainer.style.display = isHidden ? 'block' : 'none';
+      if (auditIcon) auditIcon.textContent = isHidden ? '▲' : '▼';
+      if (isHidden) {
+        loadLiveActivityList();
+      }
+    };
+  }
 
-  const en = document.getElementById('btnEmptyNew');
-  if (en) en.onclick = () => { 
-    document.getElementById('templateModal').style.display = 'flex'; 
-    if (!isHandlingPopState) { try { history.pushState({ modal: 'template' }, ''); } catch {} }
-  };
+  const btnShowLogins = document.getElementById('btnShowLoginsTab');
+  const btnShowEmails = document.getElementById('btnShowEmailsTab');
+  const actList = document.getElementById('liveActivityList');
+  const emlList = document.getElementById('liveEmailList');
+  if (btnShowLogins && btnShowEmails && actList && emlList) {
+    btnShowLogins.onclick = () => {
+      btnShowLogins.classList.add('btn-primary');
+      btnShowEmails.classList.remove('btn-primary');
+      actList.style.display = 'flex';
+      emlList.style.display = 'none';
+      loadLiveActivityList();
+    };
+    btnShowEmails.onclick = () => {
+      btnShowEmails.classList.add('btn-primary');
+      btnShowLogins.classList.remove('btn-primary');
+      actList.style.display = 'none';
+      emlList.style.display = 'flex';
+      loadLiveEmailList();
+    };
+  }
 }
 
 /* ─── Match Helper for Names ─── */
@@ -5801,7 +5844,7 @@ function renderCreateLoanRequestForm() {
   };
 }
 
-/* ─── WhatsApp Notice Dispatcher ─── */
+/* ─── Clean WhatsApp Notice Dispatcher ─── */
 function sendAgreementWhatsAppNotice(a, targetPhone = '', targetRole = '') {
   const port = location.port ? `:${location.port}` : '';
   const host = (location.hostname === 'localhost' || location.hostname === '127.0.0.1') ? (serverIP || location.hostname) : location.hostname;
@@ -5811,41 +5854,30 @@ function sendAgreementWhatsAppNotice(a, targetPhone = '', targetRole = '') {
 
   let msg = '';
   if (a.type === 'loan') {
-    const kfs = calcLoanKFS(a);
-    const { total, left } = calcTotals(a);
-    const targetName = targetRole === 'A' ? a.partyA : a.partyB;
-
-    let scheduleText = '';
-    if (kfs.schedule && kfs.schedule.length > 0) {
-      scheduleText = `\n📅 Scheduled Repayment Dates & EMI Breakdown (${kfs.months} Months):\n` +
-        kfs.schedule.map(s => `• ${s.month}: ${fd(s.dueDate)} — ${money(s.amt)} (${s.status || 'SCHEDULED'})`).join('\n') + '\n';
-    }
-
-    msg = `Namaste ${targetName}! 🤝\n` +
-      `Here is the official update for Mutual Loan Agreement & Promissory Note (Ref: ${a.id}) on Thinkable Vault.\n\n` +
-      `💰 Principal Sum: ${money(a.amount)}\n` +
-      `📊 Repayment Schedule: ${kfs.months} Monthly EMIs (${money(kfs.emiAmount)} / mo)\n` +
-      `📉 Outstanding Balance: ${money(left)}\n` +
-      `📅 Disbursed Date: ${fd(a.start)}\n` +
-      `🏁 Maturity Date: ${fd(a.due)}\n` +
-      `⚡ Interest Rate: ${a.rate || 0}% p.a.\n` +
-      scheduleText + '\n' +
-      `📜 View and verify live digital instrument & Section 65B Certificate:\n${viewUrl}\n\n` +
-      `🔒 Cryptographically sealed in Thinkable Agreement Vault under Section 65B Indian Evidence Act.`;
+    const { left } = calcTotals(a);
+    msg = `Thinkable Vault - Digital Agreement Record\n` +
+      `Ref: ${a.id}\n\n` +
+      `Lender: ${a.partyA}\n` +
+      `Borrower: ${a.partyB}\n` +
+      `Amount: ${money(a.amount)}\n` +
+      `Pending Balance: ${money(left)}\n` +
+      `Due Date: ${fd(a.due)}\n\n` +
+      `View Certified Agreement & Status:\n${viewUrl}\n\n` +
+      `Legally recorded electronic document under Information Technology Act, 2000.`;
   } else {
-    msg = `Namaste ${a.partyB}! 💼\n` +
-      `Here is the official update for Working Agreement (Ref: ${a.id}) on Thinkable Vault.\n\n` +
-      `📋 Project: ${a.title}\n` +
-      `💰 Total SOW Value: ${money(a.amount)}\n` +
-      `📅 Target Completion: ${fd(a.due)}\n\n` +
-      `📜 View deliverables, milestones, and client sign-offs:\n${viewUrl}\n\n` +
-      `🔒 Legally binding electronic record under Information Technology Act 2000.`;
+    msg = `Thinkable Vault - Work Agreement Record\n` +
+      `Ref: ${a.id}\n\n` +
+      `Client: ${a.partyB}\n` +
+      `Project: ${a.title}\n` +
+      `Total Value: ${money(a.amount)}\n` +
+      `Due Date: ${fd(a.due)}\n\n` +
+      `View Agreement & Milestones:\n${viewUrl}`;
   }
 
   window.open(`https://api.whatsapp.com/send/?${phoneParam}text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-/* ─── WhatsApp Reminder ─── */
+/* ─── Clean WhatsApp Reminder ─── */
 function sendWhatsAppReminder(id) {
   const a = list.find(x => x.id === id);
   if (!a) return;
@@ -5855,8 +5887,8 @@ function sendWhatsAppReminder(id) {
   const viewUrl = `${location.protocol}//${host}${port}/?action=view&id=${encodeURIComponent(a.id)}`;
   
   const text = a.type === 'work'
-    ? `Hi ${a.partyB},\nThis is regarding our Working Agreement (Ref: ${a.id}) for ${esc(a.title || 'Project')}.\nOutstanding balance: ${money(left)} / ${money(total)}.\nView current progress & milestone review:\n${viewUrl}`
-    : `Hi ${a.partyB},\nThis is a polite reminder regarding our mutual promissory note (Ref: ${a.id}) for ${money(a.amount)}.\nOutstanding balance: ${money(left)}\nDue date: ${fd(a.due)}.\nView current statement: ${viewUrl}`;
+    ? `Thinkable Vault - Payment Reminder\nRef: ${a.id}\n\nHi ${a.partyB},\nThis is a gentle reminder regarding our work agreement for "${a.title || 'Project'}".\nPending balance: ${money(left)} of ${money(total)}.\n\nView details:\n${viewUrl}`
+    : `Thinkable Vault - Repayment Reminder\nRef: ${a.id}\n\nHi ${a.partyB},\nThis is a gentle reminder regarding the mutual loan for ${money(a.amount)}.\nPending balance: ${money(left)}\nDue date: ${fd(a.due)}\n\nView statement & pay:\n${viewUrl}`;
 
   window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
 }
@@ -6215,12 +6247,55 @@ if (btnRemoveProfileQr) {
   };
 }
 
+function renderUserModalPhoto() {
+  const pImg = document.getElementById('profileAvatarImg');
+  const pInit = document.getElementById('profileAvatarInit');
+  if (currentUser && currentUser.avatar) {
+    if (pImg) { pImg.src = currentUser.avatar; pImg.style.display = 'block'; }
+    if (pInit) pInit.style.display = 'none';
+  } else {
+    if (pImg) pImg.style.display = 'none';
+    if (pInit) {
+      pInit.style.display = 'block';
+      pInit.textContent = (currentUser && currentUser.fullName ? currentUser.fullName[0] : 'U').toUpperCase();
+    }
+  }
+}
+
+const inProfilePhoto = document.getElementById('inProfilePhoto');
+if (inProfilePhoto) {
+  inProfilePhoto.onchange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 180; canvas.height = 180;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, 180, 180);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        if (currentUser) {
+          currentUser.avatar = dataUrl;
+          localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
+          updateHeaderUser();
+          renderUserModalPhoto();
+          showToast('✓ Profile photo updated!');
+        }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+}
+
 document.getElementById('btnUserModal').onclick = () => {
   if (!currentUser) {
     renderAuthView('signin');
     return;
   }
-  document.getElementById('profileAvatar').textContent = (currentUser.fullName || 'U')[0].toUpperCase();
+  renderUserModalPhoto();
   document.getElementById('profileFullName').textContent = currentUser.fullName;
   document.getElementById('profileHandle').textContent = `@${currentUser.username} · ${currentUser.email || 'Verified Account'}`;
   const pVid = document.getElementById('profileVaultId');
@@ -6239,7 +6314,6 @@ document.getElementById('btnUserModal').onclick = () => {
     if (profileQrFileName) profileQrFileName.textContent = 'No scanner selected';
   }
 
-  renderSavedContactsModal();
   userModal.style.display = 'flex';
   if (!isHandlingPopState) { try { history.pushState({ modal: 'user' }, ''); } catch {} }
 };

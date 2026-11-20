@@ -519,14 +519,14 @@ function getAgreementReminderTemplate(agr, hoursLeft, config) {
   `;
 
   return {
-    subject: `[⏰ 12h SLA Reminder - ${hoursText} Left] Action Required: ${agr.title} (${agr.id})`,
+    subject: `[Reminder - ${hoursText} Left] Action Required: ${agr.title} (${agr.id})`,
     preheader: `Periodic reminder: ${hoursText} remaining to review and accept the loan agreement for ${formatInr(agr.amount)} from ${agr.partyA}.`,
-    badge: `⏰ 12h SLA Reminder · ${hoursText} Remaining`,
+    badge: `SLA Reminder · ${hoursText} Remaining`,
     badgeColor: '#dc2626',
     bodyContent,
     actionUrl: viewUrl,
     actionText: 'Review & Accept Agreement Now →',
-    footerNote: `🔒 Automated periodic reminder dispatched pursuant to Thinkable Agreement Vault SLA Protocol.`
+    footerNote: `Automated periodic reminder dispatched pursuant to Thinkable Agreement Vault SLA Protocol.`
   };
 }
 
@@ -535,7 +535,7 @@ function getPromissoryAcceptedTemplate(agr, undertaking, config) {
   const bodyContent = `
     <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:18px;margin-bottom:18px">
       <div style="font-weight:800;color:#166534;font-size:15px">
-        🎉 LOAN AGREEMENT ACCEPTED &amp; PROMISSORY UNDERTAKING EXECUTED
+        LOAN AGREEMENT ACCEPTED &amp; PROMISSORY UNDERTAKING EXECUTED
       </div>
       <div style="font-size:13.5px;color:#15803d;margin-top:6px;font-style:italic">
         "${undertaking || 'I promise to repay the loan sum and interest according to schedule. Thank you!'}"
@@ -574,7 +574,7 @@ function getPromissoryAcceptedTemplate(agr, undertaking, config) {
   `;
 
   return {
-    subject: `[🎉 Agreement Accepted] ${agr.partyB} signed Loan Note ${agr.id} with Promissory Pledge`,
+    subject: `[Agreement Accepted] ${agr.partyB} signed Loan Note ${agr.id} with Promissory Pledge`,
     preheader: `${agr.partyB} accepted the loan agreement of ${formatInr(agr.amount)} and executed promissory undertaking.`,
     badge: '✓ Formally Accepted &amp; Executed',
     badgeColor: '#059669',
@@ -633,7 +633,7 @@ function getInstalmentVerifiedTemplate(agr, payment, clearedMonth, totalMonths, 
   `;
 
   return {
-    subject: `[✓ Payment Verified by Lender] ${formatInr(amt)} Confirmed for ${agr.id} (${monthText} Cleared)`,
+    subject: `[Payment Verified] ${formatInr(amt)} Confirmed for ${agr.id} (${monthText} Cleared)`,
     preheader: `Lender ${agr.partyA} has verified your repayment of ${formatInr(amt)}. Remaining balance: ${formatInr(remainingBalance)}.`,
     badge: '✓ Lender Verified &amp; Endorsed',
     badgeColor: '#059669',
