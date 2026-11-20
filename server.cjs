@@ -676,6 +676,7 @@ function computeCreditScore(user, agreements = []) {
           email: found.email,
           username: found.username,
           phone: found.phone || '',
+          city: found.city || '',
           upiId: found.upiId || null,
           qrCode: found.qrCode || null,
           kycTier: found.kycTier || 'Tier 1 Verified',

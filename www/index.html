@@ -5450,6 +5450,7 @@ function renderCreateWorkForm() {
         document.getElementById('workContractor').value = u.fullName;
         if (document.getElementById('workContractorEmail')) document.getElementById('workContractorEmail').value = u.email || '';
         if (document.getElementById('workContractorPhone') && u.phone) document.getElementById('workContractorPhone').value = u.phone;
+        if (document.getElementById('workContractorCity') && u.city) document.getElementById('workContractorCity').value = u.city;
         badge.className = 'badge ok';
         const cs = u.creditScore || { score: 750, badgeText: '🟢 Verified Counterparty', tierColor: 'var(--ok)', repaymentRate: 100, onTimePayments: 0, overduePayments: 0 };
         badge.innerHTML = `
@@ -5831,6 +5832,7 @@ function renderCreateLoanForm() {
         document.getElementById('newPartyB').value = u.fullName;
         if (document.getElementById('newPartyBEmail')) document.getElementById('newPartyBEmail').value = u.email || '';
         if (document.getElementById('newPartyBPhone') && u.phone) document.getElementById('newPartyBPhone').value = u.phone;
+        if (document.getElementById('newCityB') && u.city) document.getElementById('newCityB').value = u.city;
         badge.className = 'badge ok';
         const cs = u.creditScore || { score: 750, badgeText: '🟢 Verified Counterparty', tierColor: 'var(--ok)', repaymentRate: 100, onTimePayments: 0, overduePayments: 0 };
         badge.innerHTML = `
