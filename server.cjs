@@ -242,6 +242,27 @@ const requestHandler = async (req, res) => {
 
   // ── SSE Real-time Feed ──
   if (p === '/api/events') {
+    // Vercel serverless cannot hold open connections — return one-shot JSON snapshot instead
+    if (process.env.VERCEL) {
+      try {
+        const token = getBearerToken(req);
+        const user = await getUserByToken(token);
+        const agreements = await db.getAgreements();
+        const users = await db.getUsers();
+        const activity = await db.getAuditLogs(50);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          ok: true, vercel: true,
+          agreements,
+          users: users.map(u => ({ key: u.username, display: u.fullName, vaultId: u.vaultId, email: u.email })),
+          activity
+        }));
+      } catch (sseErr) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ ok: true, vercel: true, agreements: [], users: [], activity: [] }));
+      }
+    }
+
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
