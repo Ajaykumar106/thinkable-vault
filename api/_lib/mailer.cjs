@@ -895,9 +895,12 @@ async function processQueue() {
       // 1. Try Resend if configured
       if (config.resendApiKey) {
         try {
+          const fromAddress = (config.smtpFrom && config.smtpFrom.includes('@') && !config.smtpFrom.includes('thinkable.vault'))
+            ? config.smtpFrom
+            : 'Thinkable Vault <onboarding@resend.dev>';
           await sendViaResend({
             apiKey: config.resendApiKey,
-            from: config.smtpFrom,
+            from: fromAddress,
             to,
             subject,
             html: fullHtml
