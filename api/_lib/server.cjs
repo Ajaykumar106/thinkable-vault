@@ -531,6 +531,99 @@ const requestHandler = async (req, res) => {
     }
   }
 
+// ── Dynamic Credit Score Engine (300 to 900 CIBIL / Experian standard scale) ──
+function computeCreditScore(user, agreements = []) {
+  const userVaultId = (user.vaultId || '').toLowerCase();
+  const userEmail = (user.email || '').toLowerCase();
+  const userName = (user.fullName || '').toLowerCase();
+
+  const borrowerAgreements = agreements.filter(a => {
+    const pBId = (a.partyBVaultId || '').toLowerCase();
+    const pBEmail = (a.partyBEmail || '').toLowerCase();
+    const pBName = (a.partyB || '').toLowerCase();
+    return (userVaultId && pBId === userVaultId) || (userEmail && pBEmail === userEmail) || (userName && pBName === userName);
+  });
+
+  let baseScore = 750;
+  let totalBorrowed = 0;
+  let totalRepaid = 0;
+  let onTimePayments = 0;
+  let overduePayments = 0;
+  let settledCount = 0;
+  let activeCount = 0;
+
+  const now = Date.now();
+
+  for (const a of borrowerAgreements) {
+    const total = parseFloat(a.amount || 0);
+    let paid = 0;
+    if (Array.isArray(a.payments)) {
+      for (const p of a.payments) {
+        if (p.status === 'PAID' || p.status === 'VERIFIED') {
+          paid += parseFloat(p.amount || 0);
+          onTimePayments++;
+          baseScore += 12;
+        } else if (p.status === 'PENDING') {
+          const dueTs = p.dueTimestamp || (p.dueDate ? new Date(p.dueDate).getTime() : 0);
+          if (dueTs > 0 && dueTs < now) {
+            overduePayments++;
+            const daysOverdue = Math.max(1, Math.floor((now - dueTs) / 864e5));
+            baseScore -= Math.min(95, 35 + daysOverdue * 3);
+          }
+        }
+      }
+    }
+    totalBorrowed += total;
+    totalRepaid += paid;
+
+    if (a.sigA && a.sigB) {
+      if (total > 0 && paid >= (total - 0.5)) {
+        settledCount++;
+        baseScore += 35;
+      } else {
+        activeCount++;
+      }
+    }
+  }
+
+  const score = Math.max(300, Math.min(900, Math.round(baseScore)));
+  let tier = 'EXCELLENT';
+  let tierColor = '#10b981';
+  let badgeText = '🟢 Prime Borrower (High Trust)';
+
+  if (score >= 760) {
+    tier = 'EXCELLENT';
+    tierColor = '#10b981';
+    badgeText = '🟢 Prime Borrower (High Trust)';
+  } else if (score >= 690) {
+    tier = 'GOOD';
+    tierColor = '#3b82f6';
+    badgeText = '🔵 Reliable (Good History)';
+  } else if (score >= 610) {
+    tier = 'MODERATE';
+    tierColor = '#f59e0b';
+    badgeText = '🟡 Moderate Risk (Caution)';
+  } else {
+    tier = 'HIGH_RISK';
+    tierColor = '#ef4444';
+    badgeText = '🔴 High Risk / Overdue Default';
+  }
+
+  return {
+    score,
+    tier,
+    tierColor,
+    badgeText,
+    totalBorrowed,
+    totalRepaid,
+    settledCount,
+    activeCount,
+    onTimePayments,
+    overduePayments,
+    repaymentRate: totalBorrowed > 0 ? Math.min(100, Math.round((totalRepaid / totalBorrowed) * 100)) : 100
+  };
+}
+
   // GET /api/users/lookup?q=... (Counterparty discovery by Vault ID or Email)
   if (p === '/api/users/lookup' && req.method === 'GET') {
     const q = (u.searchParams.get('q') || '').trim().toLowerCase();
@@ -540,6 +633,8 @@ const requestHandler = async (req, res) => {
     }
     const found = (await db.getUserByVaultId(q)) || (await db.getUserByUsernameOrEmail(q));
     if (found) {
+      const agreements = await db.getAgreements();
+      const creditScore = computeCreditScore(found, agreements);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({
         ok: true,
@@ -551,12 +646,29 @@ const requestHandler = async (req, res) => {
           username: found.username,
           upiId: found.upiId || null,
           qrCode: found.qrCode || null,
-          kycTier: found.kycTier || 'Tier 1 Verified'
+          kycTier: found.kycTier || 'Tier 1 Verified',
+          creditScore
         }
       }));
     }
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true, found: false }));
+  }
+
+  // GET /api/users/credit-score (Real-time credit rating report)
+  if (p === '/api/users/credit-score' && req.method === 'GET') {
+    const token = getBearerToken(req);
+    const user = await getUserByToken(token);
+    const targetQ = u.searchParams.get('vaultId') || u.searchParams.get('email');
+    const targetUser = targetQ ? ((await db.getUserByVaultId(targetQ)) || (await db.getUserByUsernameOrEmail(targetQ))) : user;
+    if (!targetUser) {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ ok: false, error: 'User not found' }));
+    }
+    const agreements = await db.getAgreements();
+    const scoreData = computeCreditScore(targetUser, agreements);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ ok: true, user: targetUser.fullName, vaultId: targetUser.vaultId, creditScore: scoreData }));
   }
 
   // POST /api/auth/pin-login (Quick 4-digit mobile unlock)
