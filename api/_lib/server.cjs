@@ -1034,8 +1034,9 @@ const requestHandler = async (req, res) => {
 
   // ── Activity Log API ──
   if (p === '/api/activity' && req.method === 'GET') {
+    const logs = await db.getAuditLogs(100);
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify(load(LOG_FILE, [])));
+    return res.end(JSON.stringify(logs));
   }
 
   res.writeHead(404, { 'Content-Type': 'application/json' });
